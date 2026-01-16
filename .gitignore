@@ -1,0 +1,34 @@
+# Environment and secrets
+.env
+.streamlit/secrets.toml
+*.secret
+*credentials*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+
+# Logs
+logs/*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large data files (keep CSVs for now but exclude xlsx)
+# data/**/*.xlsx
+
+# Cache
+*.cache
+skip_trace_cache.json
