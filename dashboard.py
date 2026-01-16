@@ -909,22 +909,56 @@ elif page == "🚀 Generate Leads":
             df['skip_trace_confidence'] = 0.0
             progress_bar.progress(90)
 
-            # Step 9: Export
-            status_text.text("📤 Exporting leads...")
+            # Step 9: Export as numbered batch with month label
+            status_text.text("📤 Exporting leads as batch...")
 
             PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
-            # Save to both filenames for compatibility
+
+            # Create batches directory
+            batches_dir = PROCESSED_DATA_DIR / 'batches'
+            batches_dir.mkdir(parents=True, exist_ok=True)
+
+            # Determine next batch number and month label
+            from datetime import datetime
+            current_month = datetime.now().strftime('%b').lower()  # jan, feb, etc.
+            current_year = datetime.now().strftime('%Y')  # 2025
+
+            # Find existing batches to determine next number
+            existing_batches = list(batches_dir.glob(f'batch_*_{current_month}_{current_year}.csv'))
+            if existing_batches:
+                # Extract batch numbers and find max
+                batch_numbers = []
+                for batch_file in existing_batches:
+                    try:
+                        batch_num = int(batch_file.stem.split('_')[1])
+                        batch_numbers.append(batch_num)
+                    except:
+                        pass
+                next_batch_num = max(batch_numbers) + 1 if batch_numbers else 1
+            else:
+                next_batch_num = 1
+
+            # Create batch filename
+            batch_filename = f'batch_{next_batch_num}_{current_month}_{current_year}.csv'
+            batch_path = batches_dir / batch_filename
+
+            # Save to batch file
+            df.to_csv(batch_path, index=False)
+            st.success(f"📁 Saved as **{batch_filename}** ({len(df)} leads)")
+
+            # Also save to main file for compatibility (latest batch)
             all_leads_path = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
             df.to_csv(all_leads_path, index=False)
-            # Also save to legacy filename
             df.to_csv(PROCESSED_DATA_DIR / 'all_leads_real.csv', index=False)
 
+            # Save tier files for this batch too
             for tier_num in [1, 2, 3]:
                 tier_df = df[df['tier'] == tier_num]
                 if len(tier_df) > 0:
-                    tier_path = PROCESSED_DATA_DIR / f'columbus_oh_tier_{tier_num}_leads.csv'
-                    tier_df.to_csv(tier_path, index=False)
-                    # Also save to legacy filename
+                    tier_batch_filename = f'batch_{next_batch_num}_{current_month}_{current_year}_tier_{tier_num}.csv'
+                    tier_df.to_csv(batches_dir / tier_batch_filename, index=False)
+                    # Also save to main tier files for compatibility
+                    tier_df.to_csv(PROCESSED_DATA_DIR / f'columbus_oh_tier_{tier_num}_leads.csv', index=False)
                     tier_df.to_csv(PROCESSED_DATA_DIR / f'tier_{tier_num}_leads_real.csv', index=False)
 
             progress_bar.progress(100)
@@ -980,6 +1014,11 @@ elif page == "⚖️ Probate & Foreclosure":
     **Pre-foreclosure leads** are properties heading to sheriff sale - owners have deadline pressure.
     """)
 
+    st.success("""
+    **Pro Tip:** Go back **6 months (180 days)** for probate - heirs are MORE motivated after dealing with the property for a while.
+    Cases 3-12 months old are in the sweet spot where heirs are ready to sell but haven't listed yet.
+    """)
+
     # Two columns for the two scraper types
     col1, col2 = st.columns(2)
 
@@ -987,8 +1026,8 @@ elif page == "⚖️ Probate & Foreclosure":
         st.markdown("#### 📜 Probate Court Records")
         st.markdown("Franklin County Probate Court estate cases")
 
-        probate_days = st.slider("Days to look back (Probate)", 30, 180, 90, key="probate_days")
-        probate_max = st.slider("Max results (Probate)", 50, 500, 100, key="probate_max")
+        probate_days = st.slider("Days to look back (Probate)", 30, 365, 180, key="probate_days")
+        probate_max = st.slider("Max results (Probate)", 50, 1000, 300, key="probate_max")
 
         if st.button("🔍 Scrape Probate Cases", type="primary", key="btn_probate"):
             with st.spinner("Scraping probate court records... (this may take 1-2 minutes)"):
@@ -1023,7 +1062,8 @@ elif page == "⚖️ Probate & Foreclosure":
         st.markdown("#### 🏚️ Sheriff Sales / Pre-Foreclosure")
         st.markdown("Properties scheduled for auction")
 
-        sheriff_max = st.slider("Max results (Sheriff Sales)", 20, 200, 50, key="sheriff_max")
+        sheriff_max = st.slider("Max results (Sheriff Sales)", 20, 500, 100, key="sheriff_max")
+        st.caption("*Sheriff sales are limited by actual foreclosure activity in the county*")
 
         if st.button("🔍 Scrape Sheriff Sales", type="primary", key="btn_sheriff"):
             with st.spinner("Scraping sheriff sale listings..."):
@@ -2671,10 +2711,27 @@ elif page == "👥 VA Management":
                 source_name = ""
 
                 if lead_source == "🏦 Delinquent Tax":
-                    file_path = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+                    # Check for batches
+                    batches_dir = PROCESSED_DATA_DIR / 'batches'
+                    batch_files = []
+                    if batches_dir.exists():
+                        batch_files = sorted(batches_dir.glob('batch_*_*.csv'), reverse=True)
+                        batch_files = [f for f in batch_files if '_tier_' not in f.name]
+
+                    if batch_files:
+                        batch_options = ["📋 Latest (Main File)"] + [f.name for f in batch_files]
+                        selected_batch = st.selectbox("Select Batch", batch_options, key="assign_batch")
+
+                        if selected_batch == "📋 Latest (Main File)":
+                            file_path = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+                        else:
+                            file_path = batches_dir / selected_batch
+                    else:
+                        file_path = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+
                     if file_path.exists():
                         leads_df = pd.read_csv(file_path)
-                        source_name = "Delinquent Tax"
+                        source_name = f"Delinquent Tax ({file_path.name})"
                 elif lead_source == "⚖️ Probate":
                     file_path = PROCESSED_DATA_DIR / 'probate_leads.csv'
                     if file_path.exists():
@@ -3063,10 +3120,50 @@ elif page == "🔍 Search Owner":
 elif page == "📊 View Leads":
     st.markdown('<h1 class="main-header">📊 View Leads</h1>', unsafe_allow_html=True)
 
-    # Check if data exists - try new format first, then old
-    all_leads_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
-    if not all_leads_file.exists():
-        all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+    # Check for batches
+    batches_dir = PROCESSED_DATA_DIR / 'batches'
+    batch_files = []
+    if batches_dir.exists():
+        batch_files = sorted(batches_dir.glob('batch_*_*.csv'), reverse=True)
+        # Filter out tier-specific files (only show main batch files)
+        batch_files = [f for f in batch_files if '_tier_' not in f.name]
+
+    # Batch selector
+    if batch_files:
+        st.markdown("### 📁 Select Batch")
+        batch_options = ["📋 Latest (All Combined)"] + [f.name for f in batch_files]
+        selected_batch = st.selectbox("Choose which batch to view:", batch_options)
+
+        if selected_batch == "📋 Latest (All Combined)":
+            all_leads_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+            if not all_leads_file.exists():
+                all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+        else:
+            all_leads_file = batches_dir / selected_batch
+
+        # Show batch summary
+        st.markdown("#### 📊 Available Batches")
+        batch_summary = []
+        for bf in batch_files[:10]:  # Show last 10 batches
+            try:
+                batch_df = pd.read_csv(bf)
+                batch_summary.append({
+                    'Batch': bf.name,
+                    'Leads': len(batch_df),
+                    'Tier 1': len(batch_df[batch_df['tier'] == 1]) if 'tier' in batch_df.columns else 0,
+                    'Tier 2': len(batch_df[batch_df['tier'] == 2]) if 'tier' in batch_df.columns else 0,
+                    'Tier 3': len(batch_df[batch_df['tier'] == 3]) if 'tier' in batch_df.columns else 0,
+                })
+            except:
+                pass
+        if batch_summary:
+            st.dataframe(pd.DataFrame(batch_summary), use_container_width=True, hide_index=True)
+        st.markdown("---")
+    else:
+        # No batches yet, use legacy file
+        all_leads_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+        if not all_leads_file.exists():
+            all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
 
     if not all_leads_file.exists():
         st.warning("⚠️ No leads found. Generate leads first!")

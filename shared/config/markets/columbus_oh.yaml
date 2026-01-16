@@ -1,0 +1,94 @@
+# Columbus, Ohio Market Configuration
+# Franklin County tax delinquent properties
+
+market:
+  id: columbus_oh
+  name: Columbus
+  state: OH
+  county: Franklin
+  timezone: America/New_York
+
+# Columbus area ZIP codes
+geography:
+  zip_codes:
+    - "43201"
+    - "43202"
+    - "43203"
+    - "43204"
+    - "43205"
+    - "43206"
+    - "43207"
+    - "43209"
+    - "43210"
+    - "43211"
+    - "43212"
+    - "43213"
+    - "43214"
+    - "43215"
+    - "43216"
+    - "43217"
+    - "43218"
+    - "43219"
+    - "43220"
+    - "43221"
+    - "43222"
+    - "43223"
+    - "43224"
+    - "43226"
+    - "43227"
+    - "43228"
+    - "43229"
+    - "43230"
+    - "43231"
+    - "43232"
+    - "43235"
+    - "43240"
+
+# Tax data configuration
+tax_data:
+  type: excel
+  source: franklin_county_auditor
+  files:
+    tax_detail: TaxDetail.xlsx
+    parcel: Parcel.xlsx
+    value: Value.xlsx
+    dwelling: Dwelling.xlsx
+  field_mappings:
+    parcel_id: PARCELID
+    address: SITUSADDR
+    owner_name: OWNER
+    mailing_address: MAILADD
+    zip_code: ZIP1
+    amount_owed: TOTDUE
+    years_delinquent: YRSDELQ
+    assessed_value: ASSVAL
+    market_value: MKTVAL
+    year_built: YRBLT
+    property_type: PROPCLASS
+
+# Code violations API
+violations:
+  type: arcgis_api
+  source: columbus_311
+  url: "https://services2.arcgis.com/sddVaUArlQRXYRG3/arcgis/rest/services"
+  query_field: address
+  max_records_per_request: 1000
+  field_mappings:
+    case_number: CASE_NBR
+    violation_type: VIOLATION_TYPE
+    status: STATUS
+    opened_date: OPENED_DATE
+
+# Scoring adjustments for this market
+scoring:
+  tax_debt_ratio:
+    high: 0.20
+    medium: 0.10
+    low: 0.05
+  estimated_annual_tax_rate: 0.04
+
+# Data quality filters
+data_quality:
+  min_amount_owed: 1000.0
+  min_years_delinquent: 2
+  max_data_age_days: 30
