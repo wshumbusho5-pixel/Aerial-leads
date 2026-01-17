@@ -44,6 +44,7 @@ try:
     from marketing.sms_campaigns import SMSCampaigns, CAMPAIGN_STATUS as SMS_CAMPAIGN_STATUS, DEFAULT_SMS_TEMPLATES
     from marketing.follow_up_sequences import FollowUpSequences, ACTION_TYPES, ACTION_TYPE_DISPLAY, DEFAULT_SEQUENCES
     from auth.va_auth import VAAuth, ROLES
+    from buyers.buyer_matcher import BuyerMatcher
 except ImportError as e:
     DEPLOY_MODE = True
     # Fallback paths for deployment
@@ -123,7 +124,7 @@ with st.sidebar:
 
     page = st.radio(
         "Navigation",
-        ["🏠 Home", "🚀 Generate Leads", "⚖️ Probate & Foreclosure", "📞 Skip Trace", "🛡️ DNC Scrub", "☎️ Call Tracker", "👥 VA Management", "📱 Dialer", "📥 Inbound Leads", "💰 Deal Pipeline", "📅 Appointments", "💬 SMS Campaigns", "🔄 Follow-ups", "🎯 Reverse Targeting", "📬 Direct Mail", "📲 RVM & Numbers", "🔍 Search Owner", "📊 View Leads", "🐋 Whale Owners", "📈 Statistics", "📋 Data Quality", "⚙️ Data Management", "🔐 User Management"],
+        ["🏠 Home", "🚀 Generate Leads", "⚖️ Probate & Foreclosure", "📞 Skip Trace", "🛡️ DNC Scrub", "☎️ Call Tracker", "👥 VA Management", "📱 Dialer", "📥 Inbound Leads", "💰 Deal Pipeline", "📅 Appointments", "💬 SMS Campaigns", "🔄 Follow-ups", "🎯 Reverse Targeting", "📬 Direct Mail", "📲 RVM & Numbers", "🤝 Buyer Matching", "🔍 Search Owner", "📊 View Leads", "🐋 Whale Owners", "📈 Statistics", "📋 Data Quality", "⚙️ Data Management", "🔐 User Management"],
         label_visibility="collapsed"
     )
 
@@ -3782,7 +3783,7 @@ elif page == "🎯 Reverse Targeting":
     rt_scraper = ReverseTargetingScraper()
 
     # Get stats
-    rt_stats = rt_scraper.get_stats()
+    rt_stats = rt_scraper.get_stats() or {}
 
     # Stats row
     col1, col2, col3, col4 = st.columns(4)
@@ -6063,6 +6064,268 @@ elif page == "📱 Dialer":
                     st.dataframe(history_df, use_container_width=True)
                 else:
                     st.info("No calls recorded yet")
+
+
+# ========================================
+# BUYER MATCHING PAGE
+# ========================================
+elif page == "🤝 Buyer Matching":
+    st.markdown('<h1 class="main-header">🤝 Buyer Matching</h1>', unsafe_allow_html=True)
+    st.markdown("Match deals to interested cash buyers based on their buy box criteria")
+
+    # Initialize matcher
+    matcher = BuyerMatcher()
+
+    # Get stats
+    stats = matcher.get_stats()
+
+    # Stats row
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Buyers", stats['total_buyers'])
+    with col2:
+        st.metric("Active Buyers", stats['active_buyers'])
+    with col3:
+        st.metric("Deal Blasts", stats['total_blasts'])
+    with col4:
+        st.metric("Response Rate", stats['response_rate'])
+
+    st.markdown("---")
+
+    # Tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["👥 Buyer List", "➕ Add Buyer", "🎯 Match Deal", "📊 Top Buyers"])
+
+    with tab1:
+        st.markdown("### 👥 Active Buyers")
+
+        buyers_df = matcher.get_all_buyers(status='active')
+
+        if len(buyers_df) > 0:
+            # Display buyers
+            for idx, buyer in buyers_df.iterrows():
+                with st.expander(f"**{buyer['name']}** - {buyer.get('company', 'Individual')} ({buyer['deals_purchased']} deals)"):
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown(f"**Email:** {buyer['email']}")
+                        st.markdown(f"**Phone:** {buyer['phone']}")
+                        st.markdown(f"**Funding:** {buyer.get('funding_type', 'cash').upper()}")
+
+                    with col2:
+                        st.markdown(f"**ZIP Codes:** {buyer.get('zip_codes', 'Any')}")
+                        st.markdown(f"**Property Types:** {buyer.get('property_types', 'Any')}")
+                        st.markdown(f"**Price Range:** ${buyer.get('min_price', 0):,.0f} - ${buyer.get('max_price', 0):,.0f}")
+
+                    st.markdown(f"**ARV Range:** ${buyer.get('min_arv', 0):,.0f} - ${buyer.get('max_arv', 0):,.0f}")
+                    st.markdown(f"**Max Days to Close:** {buyer.get('max_days_to_close', 30)}")
+
+                    if buyer.get('notes'):
+                        st.markdown(f"**Notes:** {buyer['notes']}")
+
+                    # Actions
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        if st.button("📝 Edit", key=f"edit_{buyer['buyer_id']}"):
+                            st.session_state['editing_buyer'] = buyer['buyer_id']
+                    with col2:
+                        if st.button("🚫 Deactivate", key=f"deactivate_{buyer['buyer_id']}"):
+                            matcher.deactivate_buyer(buyer['buyer_id'])
+                            st.success("Buyer deactivated")
+                            st.rerun()
+                    with col3:
+                        if st.button("🗑️ Delete", key=f"delete_{buyer['buyer_id']}"):
+                            matcher.delete_buyer(buyer['buyer_id'])
+                            st.success("Buyer deleted")
+                            st.rerun()
+        else:
+            st.info("No active buyers yet. Add buyers using the 'Add Buyer' tab.")
+
+        # Show inactive buyers
+        inactive_df = matcher.get_all_buyers(status='inactive')
+        if len(inactive_df) > 0:
+            with st.expander(f"Show Inactive Buyers ({len(inactive_df)})"):
+                for idx, buyer in inactive_df.iterrows():
+                    col1, col2, col3 = st.columns([3, 1, 1])
+                    with col1:
+                        st.write(f"{buyer['name']} - {buyer['email']}")
+                    with col2:
+                        if st.button("✅ Reactivate", key=f"reactivate_{buyer['buyer_id']}"):
+                            matcher.update_buyer(buyer['buyer_id'], status='active')
+                            st.rerun()
+
+    with tab2:
+        st.markdown("### ➕ Add New Buyer")
+
+        with st.form("add_buyer_form"):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                name = st.text_input("Name *")
+                email = st.text_input("Email *")
+                phone = st.text_input("Phone *")
+                company = st.text_input("Company")
+
+            with col2:
+                zip_codes = st.text_input("ZIP Codes (comma separated)", placeholder="43201, 43202, 43203")
+                property_types = st.multiselect(
+                    "Property Types",
+                    ["SFR", "Duplex", "Triplex", "Quad", "Multi-Family", "Land", "Commercial"],
+                    default=["SFR"]
+                )
+                funding_type = st.selectbox("Funding Type", ["cash", "hard_money", "conventional", "private"])
+
+            st.markdown("#### Price Criteria")
+            col1, col2 = st.columns(2)
+            with col1:
+                min_price = st.number_input("Min Purchase Price", min_value=0, value=0, step=5000)
+                min_arv = st.number_input("Min ARV", min_value=0, value=0, step=5000)
+            with col2:
+                max_price = st.number_input("Max Purchase Price", min_value=0, value=200000, step=5000)
+                max_arv = st.number_input("Max ARV", min_value=0, value=500000, step=5000)
+
+            max_days = st.slider("Max Days to Close", 7, 90, 30)
+            notes = st.text_area("Notes")
+
+            submitted = st.form_submit_button("Add Buyer", type="primary")
+
+            if submitted:
+                if not name or not email or not phone:
+                    st.error("Name, Email, and Phone are required")
+                else:
+                    zip_list = [z.strip() for z in zip_codes.split(',') if z.strip()]
+
+                    buyer_id = matcher.add_buyer(
+                        name=name,
+                        email=email,
+                        phone=phone,
+                        company=company,
+                        zip_codes=zip_list,
+                        property_types=property_types,
+                        min_price=min_price,
+                        max_price=max_price,
+                        min_arv=min_arv,
+                        max_arv=max_arv,
+                        funding_type=funding_type,
+                        max_days_to_close=max_days,
+                        notes=notes
+                    )
+                    st.success(f"Buyer added: {buyer_id}")
+                    st.rerun()
+
+    with tab3:
+        st.markdown("### 🎯 Match Deal to Buyers")
+        st.markdown("Enter deal details to find matching buyers")
+
+        with st.form("match_deal_form"):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                deal_address = st.text_input("Property Address *")
+                deal_zip = st.text_input("ZIP Code *")
+                deal_type = st.selectbox("Property Type", ["SFR", "Duplex", "Triplex", "Quad", "Multi-Family", "Land"])
+
+            with col2:
+                asking_price = st.number_input("Asking Price *", min_value=0, value=75000, step=5000)
+                arv = st.number_input("ARV (After Repair Value)", min_value=0, value=120000, step=5000)
+                repair_cost = st.number_input("Estimated Repairs", min_value=0, value=25000, step=1000)
+
+            condition = st.selectbox("Property Condition", ["turnkey", "light_rehab", "moderate_rehab", "heavy_rehab", "tear_down"])
+            deal_notes = st.text_area("Deal Notes")
+
+            find_matches = st.form_submit_button("🔍 Find Matching Buyers", type="primary")
+
+            if find_matches:
+                if not deal_address or not deal_zip:
+                    st.error("Address and ZIP code are required")
+                else:
+                    deal = {
+                        'address': deal_address,
+                        'zip_code': deal_zip,
+                        'property_type': deal_type,
+                        'asking_price': asking_price,
+                        'arv': arv,
+                        'repair_cost': repair_cost,
+                        'condition': condition,
+                        'notes': deal_notes
+                    }
+
+                    st.session_state['current_deal'] = deal
+                    matches = matcher.match_deal_to_buyers(deal)
+                    st.session_state['deal_matches'] = matches
+
+        # Show matches
+        if 'deal_matches' in st.session_state and st.session_state['deal_matches']:
+            matches = st.session_state['deal_matches']
+            deal = st.session_state.get('current_deal', {})
+
+            st.markdown("---")
+            st.markdown(f"### 🎯 Found {len(matches)} Matching Buyers")
+            st.markdown(f"**Deal:** {deal.get('address', 'N/A')} | **Asking:** ${deal.get('asking_price', 0):,} | **ARV:** ${deal.get('arv', 0):,}")
+
+            for i, match in enumerate(matches):
+                score_color = "🟢" if match['score'] >= 70 else "🟡" if match['score'] >= 50 else "🔴"
+
+                with st.expander(f"{score_color} **{match['name']}** - Score: {match['score']}/100 ({match['funding_type'].upper()})"):
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown(f"**Email:** {match['email']}")
+                        st.markdown(f"**Phone:** {match['phone']}")
+                        st.markdown(f"**Company:** {match.get('company', 'N/A')}")
+
+                    with col2:
+                        st.markdown(f"**Deals Purchased:** {match['deals_purchased']}")
+                        st.markdown(f"**Avg Response Time:** {match['avg_response_time_hrs']:.1f} hrs")
+
+                    st.markdown("**Match Reasons:**")
+                    for reason in match['reasons']:
+                        st.markdown(f"- {reason}")
+
+                    # Contact buttons
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.markdown(f"[📧 Email](mailto:{match['email']}?subject=Deal%20Opportunity%20-%20{deal.get('address', '')})")
+                    with col2:
+                        st.markdown(f"[📞 Call](tel:{match['phone']})")
+                    with col3:
+                        if st.button("✅ Mark Interested", key=f"interested_{match['buyer_id']}_{i}"):
+                            st.success(f"Marked {match['name']} as interested!")
+
+            # Blast to all button
+            st.markdown("---")
+            if st.button("📤 Send Deal to All Matched Buyers", type="primary"):
+                deal['deal_id'] = f"DEAL-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                blast_id = matcher.create_deal_blast(deal, [m['buyer_id'] for m in matches])
+                st.success(f"Deal blast sent to {len(matches)} buyers! Blast ID: {blast_id}")
+
+        elif 'deal_matches' in st.session_state:
+            st.warning("No matching buyers found. Try adjusting the deal criteria or add more buyers.")
+
+    with tab4:
+        st.markdown("### 📊 Top Buyers")
+        st.markdown("Buyers ranked by deals purchased")
+
+        top_buyers = matcher.get_top_buyers(limit=20)
+
+        if len(top_buyers) > 0:
+            # Display as table
+            display_df = top_buyers[['name', 'company', 'deals_purchased', 'funding_type', 'zip_codes']].copy()
+            display_df.columns = ['Name', 'Company', 'Deals', 'Funding', 'ZIP Codes']
+            st.dataframe(display_df, use_container_width=True)
+
+            # Chart
+            if len(top_buyers) >= 3:
+                import plotly.express as px
+                fig = px.bar(
+                    top_buyers.head(10),
+                    x='name',
+                    y='deals_purchased',
+                    title="Top 10 Buyers by Deals Purchased",
+                    labels={'name': 'Buyer', 'deals_purchased': 'Deals'}
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No buyer data yet. Add buyers and record their purchases to see rankings.")
 
 
 # ========================================
