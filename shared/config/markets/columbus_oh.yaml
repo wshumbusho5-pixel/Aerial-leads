@@ -44,7 +44,7 @@ geography:
     - "43235"
     - "43240"
 
-# Tax data configuration
+# Tax data configuration - ACTUAL column names from Franklin County Excel files
 tax_data:
   type: excel
   source: franklin_county_auditor
@@ -54,17 +54,29 @@ tax_data:
     value: Value.xlsx
     dwelling: Dwelling.xlsx
   field_mappings:
-    parcel_id: PARCELID
-    address: SITUSADDR
-    owner_name: OWNER
-    mailing_address: MAILADD
-    zip_code: ZIP1
-    amount_owed: TOTDUE
-    years_delinquent: YRSDELQ
-    assessed_value: ASSVAL
-    market_value: MKTVAL
-    year_built: YRBLT
-    property_type: PROPCLASS
+    # TaxDetail.xlsx columns
+    parcel_id: "Parcel Id"
+    amount_owed: "TotTotal"
+    # Parcel.xlsx columns
+    parcel_id_parcel: "PARCEL ID"
+    address: "SiteAddress"
+    owner_name: "OwnerName1"
+    mailing_address: "TaxpayerAddress1"
+    zip_code: "ZipCode"
+    property_type: "LUCDesc"
+    # Value.xlsx columns
+    parcel_id_value: "Parcel Id"
+    market_land: "MarketLand"
+    market_impr: "MarketImpr"
+    taxable_land: "TaxableLand"
+    taxable_impr: "TaxableImpr"
+    # Dwelling.xlsx columns
+    building_parcel_id: "PARCEL ID"
+    year_built: "YRBLT"
+    bedrooms: "RMBED"
+    bathrooms: "FIXBATH"
+    half_baths: "FIXHALF"
+    square_feet: "SFLA"
 
 # Code violations API
 violations:

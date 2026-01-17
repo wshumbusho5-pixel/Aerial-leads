@@ -3246,11 +3246,11 @@ elif page == "📊 View Leads":
         with col4:
             # Bathrooms filter
             if 'bathrooms' in df.columns:
-                max_baths = float(df['bathrooms'].max()) if df['bathrooms'].max() > 0 else 10
+                max_baths = float(df['bathrooms'].max()) if df['bathrooms'].max() > 0 else 10.0
                 min_bathrooms = st.number_input(
                     "Min Bathrooms",
                     min_value=0.0,
-                    max_value=max_baths,
+                    max_value=float(max_baths),
                     value=0.0,
                     step=0.5,
                     help="Minimum number of bathrooms"

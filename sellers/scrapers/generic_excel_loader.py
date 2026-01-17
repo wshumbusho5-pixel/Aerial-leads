@@ -109,6 +109,17 @@ class GenericExcelLoader:
 
         return df_final
 
+    def _find_column(self, df: pd.DataFrame, candidates: list, default: str = None) -> str:
+        """Find a column from a list of possible names (case-insensitive)"""
+        df_cols_lower = {col.lower().replace(' ', ''): col for col in df.columns}
+        for candidate in candidates:
+            candidate_normalized = candidate.lower().replace(' ', '')
+            if candidate_normalized in df_cols_lower:
+                return df_cols_lower[candidate_normalized]
+        if default and default in df.columns:
+            return default
+        return None
+
     def _load_tax_details(self) -> pd.DataFrame:
         """Load tax detail file and extract total owed"""
         file_name = self.files.get('tax_detail', 'TaxDetail.xlsx')
@@ -118,17 +129,46 @@ class GenericExcelLoader:
         if not file_path.exists():
             file_path = RAW_DATA_DIR / file_name
 
+        # Check for CSV version (much faster)
+        csv_path = Path(str(file_path).replace('.xlsx', '.csv'))
+        if csv_path.exists():
+            self.logger.info(f"Using fast CSV: {csv_path.name}")
+            df = pd.read_csv(csv_path)
+            # Normalize column names
+            parcel_col = self._find_column(df, ['Parcel Id', 'PARCEL ID', 'PARCELID', 'ParcelId', 'parcel_id'])
+            taxes_col = self._find_column(df, ['TotTotal', 'TOTTOTAL', 'TotalOwed', 'AmountOwed'])
+            if parcel_col and taxes_col:
+                df = df[[parcel_col, taxes_col]].copy()
+                df.columns = ['parcel_id', 'taxes_owed']
+                df = df[df['taxes_owed'].notna() & (df['taxes_owed'] > 0)]
+                self.logger.info(f"Found {len(df)} parcels with tax debt")
+                return df
+
         if not file_path.exists():
             raise FileNotFoundError(f"{file_name} not found at {file_path}")
 
-        # Read Excel file
-        df = pd.read_excel(file_path, engine='openpyxl')
+        # First, read just the header to detect column names
+        self.logger.info(f"Reading header from {file_path.name}...")
+        df_header = pd.read_excel(file_path, engine='openpyxl', nrows=0)
 
-        # Map columns using market config
-        parcel_col = self.field_mappings.get('parcel_id', 'Parcel Id')
-        taxes_col = self.field_mappings.get('taxes_owed', 'TotTotal')
+        # Auto-detect parcel ID column
+        parcel_candidates = ['Parcel Id', 'PARCEL ID', 'PARCELID', 'ParcelId', 'parcel_id']
+        parcel_col = self._find_column(df_header, parcel_candidates)
+        if not parcel_col:
+            raise KeyError(f"Could not find parcel ID column. Available: {df_header.columns.tolist()}")
 
-        df = df[[parcel_col, taxes_col]].copy()
+        # Auto-detect taxes owed column
+        taxes_candidates = ['TotTotal', 'TOTTOTAL', 'TotalOwed', 'AmountOwed', 'TaxesOwed', 'Total']
+        taxes_col = self._find_column(df_header, taxes_candidates)
+        if not taxes_col:
+            raise KeyError(f"Could not find taxes owed column. Available: {df_header.columns.tolist()}")
+
+        self.logger.info(f"Using columns: parcel_id='{parcel_col}', taxes_owed='{taxes_col}'")
+
+        # Now read ONLY the columns we need (much faster for large files)
+        self.logger.info(f"Loading only required columns from {file_path.name}...")
+        df = pd.read_excel(file_path, engine='openpyxl', usecols=[parcel_col, taxes_col])
+
         df.columns = ['parcel_id', 'taxes_owed']
 
         # Remove nulls and zeros
@@ -148,31 +188,65 @@ class GenericExcelLoader:
         if not file_path.exists():
             file_path = RAW_DATA_DIR / file_name
 
+        # Check for CSV version (much faster)
+        csv_path = Path(str(file_path).replace('.xlsx', '.csv'))
+        if csv_path.exists():
+            self.logger.info(f"Using fast CSV: {csv_path.name}")
+            df = pd.read_csv(csv_path)
+            # Auto-detect and rename columns
+            col_map = {}
+            parcel_col = self._find_column(df, ['PARCEL ID', 'Parcel Id', 'PARCELID'])
+            if parcel_col: col_map[parcel_col] = 'parcel_id'
+            addr_col = self._find_column(df, ['SiteAddress', 'Address', 'SITUSADDR'])
+            if addr_col: col_map[addr_col] = 'address'
+            owner_col = self._find_column(df, ['OwnerName1', 'Owner', 'OWNER'])
+            if owner_col: col_map[owner_col] = 'owner_name'
+            mail_col = self._find_column(df, ['TaxpayerAddress1', 'MailingAddress', 'MAILADD'])
+            if mail_col: col_map[mail_col] = 'mailing_address'
+            zip_col = self._find_column(df, ['ZipCode', 'ZIP', 'ZIP1'])
+            if zip_col: col_map[zip_col] = 'zip_code'
+            type_col = self._find_column(df, ['LUCDesc', 'PropertyType', 'PROPCLASS'])
+            if type_col: col_map[type_col] = 'property_type'
+            df = df.rename(columns=col_map)
+            self.logger.info(f"Loaded {len(df)} parcel records")
+            return df
+
         if not file_path.exists():
             raise FileNotFoundError(f"{file_name} not found at {file_path}")
 
-        # Read Excel file
-        df = pd.read_excel(file_path, engine='openpyxl')
+        # First, read just the header to detect column names
+        self.logger.info(f"Reading header from {file_path.name}...")
+        df_header = pd.read_excel(file_path, engine='openpyxl', nrows=0)
 
-        # Build column mapping from market config (parcel file may have different parcel_id column)
-        parcel_id_col = self.field_mappings.get('parcel_parcel_id', self.field_mappings.get('parcel_id', 'PARCEL ID'))
-        column_map = {
-            parcel_id_col: 'parcel_id',
-            self.field_mappings.get('address', 'SiteAddress'): 'address',
-            self.field_mappings.get('owner_name', 'OwnerName1'): 'owner_name',
-            self.field_mappings.get('owner_address', 'OwnerAddress1'): 'owner_address',
-            self.field_mappings.get('mailing_address', 'TaxpayerAddress1'): 'mailing_address',
-            self.field_mappings.get('zip_code', 'ZipCode'): 'zip_code',
-            self.field_mappings.get('property_type', 'LUCDesc'): 'property_type',
-        }
+        # Auto-detect columns using common variations
+        parcel_col = self._find_column(df_header, ['PARCEL ID', 'Parcel Id', 'PARCELID', 'ParcelId', 'parcel_id'])
+        address_col = self._find_column(df_header, ['SiteAddress', 'SITEADDRESS', 'Address', 'PropertyAddress', 'SITUSADDR'])
+        owner_col = self._find_column(df_header, ['OwnerName1', 'OWNERNAME1', 'Owner', 'OwnerName', 'OWNER'])
+        owner_addr_col = self._find_column(df_header, ['OwnerAddress1', 'OWNERADDRESS1', 'OwnerAddress'])
+        mailing_col = self._find_column(df_header, ['TaxpayerAddress1', 'TAXPAYERADDRESS1', 'MailingAddress', 'MAILADD'])
+        zip_col = self._find_column(df_header, ['ZipCode', 'ZIPCODE', 'Zip', 'ZIP', 'ZIP1'])
+        prop_type_col = self._find_column(df_header, ['LUCDesc', 'LUCDESC', 'PropertyType', 'PROPCLASS', 'LandUse'])
 
-        # Filter to columns that exist
-        available_cols = [col for col in column_map.keys() if col in df.columns]
-        df = df[available_cols].copy()
+        # Build list of columns to load
+        cols_to_load = [c for c in [parcel_col, address_col, owner_col, owner_addr_col, mailing_col, zip_col, prop_type_col] if c]
+
+        self.logger.info(f"Loading only required columns: {cols_to_load}")
+
+        # Read ONLY the columns we need (much faster)
+        df = pd.read_excel(file_path, engine='openpyxl', usecols=cols_to_load)
+
+        # Build column mapping
+        column_map = {}
+        if parcel_col: column_map[parcel_col] = 'parcel_id'
+        if address_col: column_map[address_col] = 'address'
+        if owner_col: column_map[owner_col] = 'owner_name'
+        if owner_addr_col: column_map[owner_addr_col] = 'owner_address'
+        if mailing_col: column_map[mailing_col] = 'mailing_address'
+        if zip_col: column_map[zip_col] = 'zip_code'
+        if prop_type_col: column_map[prop_type_col] = 'property_type'
 
         # Rename columns
-        rename_map = {k: v for k, v in column_map.items() if k in df.columns}
-        df = df.rename(columns=rename_map)
+        df = df.rename(columns=column_map)
 
         self.logger.info(f"Loaded {len(df)} parcel records")
 
@@ -187,34 +261,70 @@ class GenericExcelLoader:
         if not file_path.exists():
             file_path = RAW_DATA_DIR / file_name
 
+        # Check for CSV version (much faster)
+        csv_path = Path(str(file_path).replace('.xlsx', '.csv'))
+        if csv_path.exists():
+            self.logger.info(f"Using fast CSV: {csv_path.name}")
+            df = pd.read_csv(csv_path)
+            parcel_col = self._find_column(df, ['Parcel Id', 'PARCEL ID', 'PARCELID'])
+            ml_col = self._find_column(df, ['MarketLand', 'MARKETLAND'])
+            mi_col = self._find_column(df, ['MarketImpr', 'MARKETIMPR'])
+            tl_col = self._find_column(df, ['TaxableLand', 'TAXABLELAND'])
+            ti_col = self._find_column(df, ['TaxableImpr', 'TAXABLEIMPR'])
+
+            if ml_col and mi_col:
+                df['market_value'] = df[ml_col].fillna(0) + df[mi_col].fillna(0)
+            else:
+                df['market_value'] = 0
+            if tl_col and ti_col:
+                df['assessed_value'] = df[tl_col].fillna(0) + df[ti_col].fillna(0)
+            else:
+                df['assessed_value'] = df['market_value']
+
+            if parcel_col:
+                df = df[[parcel_col, 'market_value', 'assessed_value']].copy()
+                df = df.rename(columns={parcel_col: 'parcel_id'})
+                df = df.drop_duplicates(subset=['parcel_id'], keep='last')
+            self.logger.info(f"Loaded {len(df)} value records")
+            return df
+
         if not file_path.exists():
             # Values file is optional
             self.logger.warning(f"{file_name} not found, skipping value data")
             return pd.DataFrame(columns=['parcel_id', 'market_value', 'assessed_value'])
 
-        # Read Excel file
-        df = pd.read_excel(file_path, engine='openpyxl')
+        # First, read just the header to detect column names
+        self.logger.info(f"Reading header from {file_path.name}...")
+        df_header = pd.read_excel(file_path, engine='openpyxl', nrows=0)
 
-        # Get column names from mapping
-        parcel_col = self.field_mappings.get('parcel_id', 'Parcel Id')
-        market_land_col = self.field_mappings.get('market_land', 'MarketLand')
-        market_impr_col = self.field_mappings.get('market_improvements', 'MarketImpr')
-        taxable_land_col = self.field_mappings.get('taxable_land', 'TaxableLand')
-        taxable_impr_col = self.field_mappings.get('taxable_improvements', 'TaxableImpr')
+        # Auto-detect columns
+        parcel_col = self._find_column(df_header, ['Parcel Id', 'PARCEL ID', 'PARCELID', 'ParcelId', 'parcel_id'])
+        market_land_col = self._find_column(df_header, ['MarketLand', 'MARKETLAND', 'Market Land', 'MktLand'])
+        market_impr_col = self._find_column(df_header, ['MarketImpr', 'MARKETIMPR', 'Market Impr', 'MktImpr', 'MarketImprovements'])
+        taxable_land_col = self._find_column(df_header, ['TaxableLand', 'TAXABLELAND', 'Taxable Land', 'AssessedLand'])
+        taxable_impr_col = self._find_column(df_header, ['TaxableImpr', 'TAXABLEIMPR', 'Taxable Impr', 'AssessedImpr', 'TaxableImprovements'])
+
+        # Build list of columns to load
+        cols_to_load = [c for c in [parcel_col, market_land_col, market_impr_col, taxable_land_col, taxable_impr_col] if c]
+
+        self.logger.info(f"Value columns to load: {cols_to_load}")
+
+        # Read ONLY the columns we need (much faster)
+        df = pd.read_excel(file_path, engine='openpyxl', usecols=cols_to_load)
 
         # Calculate total values
-        if market_land_col in df.columns and market_impr_col in df.columns:
+        if market_land_col and market_impr_col and market_land_col in df.columns and market_impr_col in df.columns:
             df['market_value'] = df[market_land_col].fillna(0) + df[market_impr_col].fillna(0)
         else:
             df['market_value'] = 0
 
-        if taxable_land_col in df.columns and taxable_impr_col in df.columns:
+        if taxable_land_col and taxable_impr_col and taxable_land_col in df.columns and taxable_impr_col in df.columns:
             df['assessed_value'] = df[taxable_land_col].fillna(0) + df[taxable_impr_col].fillna(0)
         else:
             df['assessed_value'] = df['market_value']
 
         # Keep only necessary columns
-        if parcel_col in df.columns:
+        if parcel_col and parcel_col in df.columns:
             df = df[[parcel_col, 'market_value', 'assessed_value']].copy()
             df = df.rename(columns={parcel_col: 'parcel_id'})
         else:
@@ -229,21 +339,26 @@ class GenericExcelLoader:
 
     def _load_building(self) -> pd.DataFrame:
         """Load building file and extract year built, bedrooms, bathrooms, sqft"""
-        file_name = self.files.get('building', 'Residential.xlsx')
+        file_name = self.files.get('dwelling', self.files.get('building', 'Dwelling.xlsx'))
         file_path = self.data_dir / file_name
 
         # Also check raw data dir (for backward compatibility)
         if not file_path.exists():
             file_path = RAW_DATA_DIR / file_name
 
-        if not file_path.exists():
+        # Check for CSV version (much faster)
+        csv_path = Path(str(file_path).replace('.xlsx', '.csv'))
+        if csv_path.exists():
+            self.logger.info(f"Using fast CSV: {csv_path.name}")
+            df = pd.read_csv(csv_path)
+        elif file_path.exists():
+            # Fall back to Excel
+            self.logger.info(f"Loading building data from {file_name}...")
+            df = pd.read_excel(file_path, engine='openpyxl')
+        else:
             # Building file is optional
             self.logger.warning(f"{file_name} not found, skipping building data (year_built, bedrooms, etc.)")
             return pd.DataFrame(columns=['parcel_id', 'year_built', 'bedrooms', 'bathrooms', 'square_feet'])
-
-        # Read Excel file
-        self.logger.info(f"Loading building data from {file_name}...")
-        df = pd.read_excel(file_path, engine='openpyxl')
 
         # Get column names from mapping (building file may have different parcel column name)
         parcel_col = self.field_mappings.get('building_parcel_id', self.field_mappings.get('parcel_id', 'PARCEL ID'))

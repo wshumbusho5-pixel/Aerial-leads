@@ -180,6 +180,13 @@ class ColumbusViolationsAPI(BaseScraper):
     def _query_by_address(self, address: str) -> List[Dict]:
         """Query violations for a specific address"""
 
+        # Skip invalid addresses (NaN, None, empty, or non-string)
+        if address is None or (isinstance(address, float) and pd.isna(address)) or not isinstance(address, str):
+            return []
+
+        if not address.strip():
+            return []
+
         # Normalize address for better matching
         address_normalized = address.upper().replace(',', '').strip()
 
