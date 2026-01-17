@@ -1,0 +1,26 @@
+{
+  "numbers": [
+    {
+      "id": "NUM-0001-201601",
+      "phone_number": "16145550001",
+      "formatted": "+1 (614) 555-0001",
+      "area_code": "614",
+      "provider": "sample",
+      "status": "active",
+      "health_score": 100,
+      "total_calls": 0,
+      "calls_today": 0,
+      "calls_since_rotation": 0,
+      "last_used": null,
+      "resting_until": null,
+      "spam_reports": 0,
+      "added_at": "2026-01-16T20:16:01.792191",
+      "notes": "Sample number - replace with real"
+    }
+  ],
+  "settings": {
+    "calls_before_rotation": 25,
+    "rest_hours_after_limit": 24,
+    "max_daily_calls_per_number": 100
+  }
+}

@@ -1,0 +1,2 @@
+sequence_id,name,description,status,total_steps,created_at,created_by,leads_enrolled,leads_completed,leads_converted
+new_lead_7day,New Lead - 7 Day Follow-up,Standard follow-up for new leads over 7 days,active,7,2026-01-17T11:28:37.848360,system,0,0,0

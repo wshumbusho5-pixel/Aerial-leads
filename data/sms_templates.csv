@@ -1,0 +1,7 @@
+template_id,name,message,category,created_at,is_default
+initial_contact,Initial Contact,"Hi {owner_name}, this is {sender_name} with Lifeline Home Buyers. We buy houses for cash in {city}. Interested in a no-obligation offer for {address}? Reply YES or call {phone}",outreach,2026-01-17T11:54:59.391501,True
+follow_up_1,Follow-up #1,"Hi {owner_name}, just following up on your property at {address}. We can close in as little as 7 days. Still interested? Reply or call {phone}",follow_up,2026-01-17T11:54:59.392400,True
+follow_up_2,Follow-up #2,"{owner_name}, we're still interested in buying {address}. Cash offer, no repairs needed, you pick the closing date. Text CALL if you'd like us to reach out.",follow_up,2026-01-17T11:54:59.392483,True
+probate_outreach,Probate Outreach,"Hi {owner_name}, I understand you may have inherited property at {address}. We buy estates as-is for cash. Can help with the process. Reply for info or call {phone}",outreach,2026-01-17T11:54:59.392489,True
+motivated_seller,Motivated Seller,"Hi {owner_name}, we have cash buyers looking for properties like {address}. Quick close, no fees. Would you consider a fair cash offer? Reply YES",outreach,2026-01-17T11:54:59.392490,True
+appointment_reminder,Appointment Reminder,Reminder: Your appointment with Lifeline Home Buyers is tomorrow at {time} for {address}. See you then! Reply to confirm or reschedule.,reminder,2026-01-17T11:54:59.392516,True

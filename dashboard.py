@@ -12,31 +12,71 @@ from pathlib import Path
 import time
 from datetime import datetime
 import os
-import hashlib
 
-# Import our modules - Sellers
-from sellers.scrapers.franklin_county_excel import FranklinCountyExcelLoader
-from sellers.scrapers.columbus_violations_api import ColumbusViolationsAPI
-from sellers.scoring.motivation_scorer import MotivationScorer
-from sellers.scrapers.factory import ScraperFactory
-from sellers.skip_tracing.skip_tracer import SkipTracer
-from sellers.scrapers.probate_scraper import ProbateScraper
-from sellers.scrapers.sheriff_sale_scraper import SheriffSaleScraper
-from sellers.tracking.call_tracker import CallTracker
-from sellers.tracking.va_manager import VAManager
-from sellers.lead_generation.dnc_scrubber import DNCChecker
+# Import our modules - with fallbacks for deployment
+DEPLOY_MODE = False  # Set to True when modules unavailable
 
-# Import our modules - Shared
-from shared.config.settings import RAW_DATA_DIR, PROCESSED_DATA_DIR, BATCHDATA_API_KEY, DATA_DIR
-from shared.config.market_loader import load_market
-from shared.data_processing.portfolio_detector import PortfolioDetector
-from shared.data_processing.equity_calculator import EquityCalculator
-from shared.data_processing.comps_estimator import CompsEstimator
-from shared.data_processing.freshness_tracker import FreshnessTracker
-from shared.data_processing.lead_integrator import LeadIntegrator
-from shared.data_processing.probate_matcher import ProbateMatcher
-from shared.utils.street_view import StreetViewHelper
-from shared.utils.data_archiver import DataArchiver, archive_before_scrape
+try:
+    from scrapers.franklin_county_excel import FranklinCountyExcelLoader
+    from scrapers.columbus_violations_api import ColumbusViolationsAPI
+    from scoring.motivation_scorer import MotivationScorer
+    from config.settings import RAW_DATA_DIR, PROCESSED_DATA_DIR, BATCHDATA_API_KEY, DATA_DIR
+    from config.market_loader import load_market
+    from scrapers.factory import ScraperFactory
+    from data_processing.portfolio_detector import PortfolioDetector
+    from data_processing.equity_calculator import EquityCalculator
+    from data_processing.comps_estimator import CompsEstimator
+    from data_processing.freshness_tracker import FreshnessTracker
+    from utils.street_view import StreetViewHelper
+    from skip_tracing.skip_tracer import SkipTracer
+    from scrapers.probate_scraper import ProbateScraper
+    from scrapers.sheriff_sale_scraper import SheriffSaleScraper
+    from data_processing.lead_integrator import LeadIntegrator
+    from tracking.call_tracker import CallTracker
+    from tracking.va_manager import VAManager
+    from lead_generation.dnc_scrubber import DNCChecker
+    from data_processing.probate_matcher import ProbateMatcher
+    from scrapers.reverse_targeting import ReverseTargetingScraper
+    from marketing.direct_mail import DirectMailManager, MAIL_TEMPLATES
+    from marketing.rvm_manager import NumberRotationManager, RVMManager, DEFAULT_RVM_SCRIPTS
+    from tracking.deal_pipeline import DealPipeline, DEAL_STAGES, STAGE_DISPLAY_NAMES, STAGE_COLORS
+    from tracking.appointment_scheduler import AppointmentScheduler, APPOINTMENT_TYPES, APPOINTMENT_TYPE_DISPLAY, APPOINTMENT_STATUS, STATUS_COLORS as APT_STATUS_COLORS
+    from marketing.sms_campaigns import SMSCampaigns, CAMPAIGN_STATUS as SMS_CAMPAIGN_STATUS, DEFAULT_SMS_TEMPLATES
+    from marketing.follow_up_sequences import FollowUpSequences, ACTION_TYPES, ACTION_TYPE_DISPLAY, DEFAULT_SEQUENCES
+    from auth.va_auth import VAAuth, ROLES
+except ImportError as e:
+    DEPLOY_MODE = True
+    # Fallback paths for deployment
+    DATA_DIR = Path("/app/data")
+    RAW_DATA_DIR = DATA_DIR / "raw"
+    PROCESSED_DATA_DIR = DATA_DIR / "processed"
+    BATCHDATA_API_KEY = os.environ.get("BATCHDATA_API_KEY", "")
+    # Create placeholder classes
+    class DummyClass:
+        def __init__(self, *args, **kwargs): pass
+        def __call__(self, *args, **kwargs): return self
+        def __getattr__(self, name): return lambda *args, **kwargs: None
+    FranklinCountyExcelLoader = ColumbusViolationsAPI = MotivationScorer = DummyClass
+    ScraperFactory = PortfolioDetector = EquityCalculator = CompsEstimator = DummyClass
+    FreshnessTracker = StreetViewHelper = SkipTracer = ProbateScraper = DummyClass
+    SheriffSaleScraper = LeadIntegrator = CallTracker = VAManager = DummyClass
+    DNCChecker = ProbateMatcher = ReverseTargetingScraper = DirectMailManager = DummyClass
+    NumberRotationManager = RVMManager = DealPipeline = AppointmentScheduler = SMSCampaigns = FollowUpSequences = VAAuth = DummyClass
+    ROLES = ["admin", "va", "manager"]
+    MAIL_TEMPLATES = {}
+    DEFAULT_RVM_SCRIPTS = {}
+    SMS_CAMPAIGN_STATUS = ["draft", "scheduled", "sending", "paused", "completed", "cancelled"]
+    ACTION_TYPES = ["call", "sms", "rvm", "email", "mail", "task"]
+    ACTION_TYPE_DISPLAY = {"call": "Phone Call", "sms": "Text", "rvm": "RVM", "email": "Email", "mail": "Mail", "task": "Task"}
+    DEFAULT_SEQUENCES = {}
+    DEAL_STAGES = ["lead", "qualified", "offer_made", "under_contract", "closed", "dead"]
+    STAGE_DISPLAY_NAMES = {"lead": "Lead", "qualified": "Qualified", "offer_made": "Offer Made", "under_contract": "Under Contract", "closed": "Closed", "dead": "Dead"}
+    STAGE_COLORS = {"lead": "#6c757d", "qualified": "#17a2b8", "offer_made": "#ffc107", "under_contract": "#fd7e14", "closed": "#28a745", "dead": "#dc3545"}
+    APPOINTMENT_TYPES = ["phone_call", "walkthrough", "offer_meeting", "signing", "closing", "follow_up", "other"]
+    APPOINTMENT_TYPE_DISPLAY = {"phone_call": "Phone Call", "walkthrough": "Walkthrough", "offer_meeting": "Offer Meeting", "signing": "Signing", "closing": "Closing", "follow_up": "Follow-up", "other": "Other"}
+    APPOINTMENT_STATUS = ["scheduled", "confirmed", "completed", "no_show", "cancelled", "rescheduled"]
+    APT_STATUS_COLORS = {"scheduled": "#17a2b8", "confirmed": "#28a745", "completed": "#6c757d", "no_show": "#dc3545", "cancelled": "#ffc107", "rescheduled": "#fd7e14"}
+    def load_market(*args, **kwargs): return {}
 
 # Page config
 st.set_page_config(
@@ -76,479 +116,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ========================================
-# AUTHENTICATION SYSTEM
-# ========================================
-# Initialize session state for auth
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-if 'user_type' not in st.session_state:
-    st.session_state.user_type = None  # 'admin' or 'va'
-if 'user_id' not in st.session_state:
-    st.session_state.user_id = None
-if 'user_name' not in st.session_state:
-    st.session_state.user_name = None
-
-# Admin credentials (you can change these)
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"
-
-def check_va_login(username, password):
-    """Check if VA credentials are valid"""
-    va_mgr = VAManager()
-    vas_df = va_mgr.get_all_vas()
-    if vas_df.empty:
-        return None
-
-    # Hash the entered password
-    password_hash = hashlib.sha256(password.encode()).hexdigest()
-
-    # Check if username matches any VA (case-insensitive)
-    for _, va in vas_df.iterrows():
-        va_username = va.get('username', '').lower()
-        stored_hash = va.get('password_hash', '')
-        if va_username == username.lower() and stored_hash == password_hash:
-            return {'user_id': va['user_id'], 'name': va['name'], 'type': 'va'}
-    return None
-
-def show_login_page():
-    """Display login page"""
-    st.markdown("# 🏠 Aerial Leads")
-    st.markdown("### Login to Continue")
-
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        login_type = st.radio("Login As", ["Admin", "VA (Virtual Assistant)"], horizontal=True)
-
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-
-        if st.button("🔐 Login", type="primary", use_container_width=True):
-            if login_type == "Admin":
-                if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-                    st.session_state.logged_in = True
-                    st.session_state.user_type = 'admin'
-                    st.session_state.user_name = 'Admin'
-                    st.rerun()
-                else:
-                    st.error("Invalid admin credentials")
-            else:
-                va_info = check_va_login(username, password)
-                if va_info:
-                    st.session_state.logged_in = True
-                    st.session_state.user_type = 'va'
-                    st.session_state.user_id = va_info['user_id']
-                    st.session_state.user_name = va_info['name']
-                    st.rerun()
-                else:
-                    st.error("Invalid VA credentials. Check with your admin.")
-
-        st.markdown("---")
-        st.caption("**Admin:** Full access to all features")
-        st.caption("**VA:** Access to Dialer and assigned leads only")
-
-# Show login page if not logged in
-if not st.session_state.logged_in:
-    show_login_page()
-    st.stop()
-
-# ========================================
-# VA DASHBOARD (Simplified for VAs)
-# ========================================
-if st.session_state.user_type == 'va':
-    # Simplified sidebar for VAs
-    with st.sidebar:
-        st.markdown(f"# 📞 VA Portal")
-        st.markdown(f"**Welcome, {st.session_state.user_name}!**")
-        st.markdown("---")
-
-        va_page = st.radio(
-            "Navigation",
-            ["📋 My Leads", "📱 Dialer", "📞 My Calls", "📊 My Stats"],
-            label_visibility="collapsed"
-        )
-
-        st.markdown("---")
-
-        # Quick stats in sidebar
-        va_mgr = VAManager()
-        my_leads = va_mgr.get_va_assignments(st.session_state.user_id)
-        pending_leads = len(my_leads[my_leads['status'] == 'pending']) if not my_leads.empty else 0
-        st.metric("📋 Pending Leads", pending_leads)
-
-        st.markdown("---")
-        if st.button("🚪 Logout"):
-            st.session_state.logged_in = False
-            st.session_state.user_type = None
-            st.session_state.user_id = None
-            st.session_state.user_name = None
-            st.rerun()
-
-    # ========== MY LEADS PAGE ==========
-    if va_page == "📋 My Leads":
-        st.markdown(f'<h1 class="main-header">📋 My Assigned Leads</h1>', unsafe_allow_html=True)
-        st.info(f"👋 Welcome {st.session_state.user_name}! Here are the leads assigned to you.")
-
-        va_mgr = VAManager()
-        my_leads = va_mgr.get_va_assignments(st.session_state.user_id)
-
-        if my_leads.empty:
-            st.warning("🚫 No leads assigned to you yet. Ask your admin to assign leads.")
-        else:
-            # Filter tabs
-            tab1, tab2, tab3 = st.tabs(["📋 Pending", "🔄 In Progress", "✅ Completed"])
-
-            with tab1:
-                pending = my_leads[my_leads['status'] == 'pending']
-                if pending.empty:
-                    st.info("No pending leads")
-                else:
-                    st.success(f"You have **{len(pending)}** leads to call!")
-                    for idx, lead in pending.iterrows():
-                        with st.expander(f"🏠 {lead['address']} - {lead['owner_name']}", expanded=False):
-                            col1, col2, col3 = st.columns([2, 2, 1])
-                            with col1:
-                                st.markdown(f"**👤 Owner:** {lead['owner_name']}")
-                                st.markdown(f"**🏠 Address:** {lead['address']}")
-                                st.markdown(f"**⭐ Score:** {lead.get('motivation_score', 'N/A')}")
-                            with col2:
-                                phone = lead.get('phone', 'No phone')
-                                st.markdown(f"**📞 Phone:** `{phone}`")
-                                st.markdown(f"**📅 Assigned:** {str(lead.get('assigned_date', ''))[:10]}")
-                                st.markdown(f"**🎯 Priority:** {lead.get('priority', 'Normal')}")
-                            with col3:
-                                if st.button("📱 Call", key=f"call_{lead['assignment_id']}"):
-                                    st.session_state.selected_lead = lead.to_dict()
-                                    st.session_state.va_page_redirect = "📱 Dialer"
-                                    st.rerun()
-
-            with tab2:
-                in_progress = my_leads[my_leads['status'] == 'in_progress']
-                if in_progress.empty:
-                    st.info("No leads in progress")
-                else:
-                    for idx, lead in in_progress.iterrows():
-                        with st.expander(f"🔄 {lead['address']} - {lead['owner_name']}"):
-                            st.markdown(f"**📞 Phone:** `{lead.get('phone', 'N/A')}`")
-                            st.markdown(f"**📝 Notes:** {lead.get('notes', 'None')}")
-
-            with tab3:
-                completed = my_leads[my_leads['status'] == 'completed']
-                if completed.empty:
-                    st.info("No completed leads yet")
-                else:
-                    st.dataframe(completed[['address', 'owner_name', 'phone', 'notes']],
-                                use_container_width=True, hide_index=True)
-
-    # ========== DIALER PAGE ==========
-    elif va_page == "📱 Dialer":
-        st.markdown(f'<h1 class="main-header">📱 Cold Calling Dialer</h1>', unsafe_allow_html=True)
-
-        # Initialize Twilio
-        twilio_connected = False
-        twilio = None
-        selected_number = None
-
-        try:
-            from sellers.dialer.twilio_client import TwilioClient
-            twilio = TwilioClient()
-            phone_numbers = twilio.get_phone_numbers()
-            valid_numbers = [n for n in phone_numbers if 'error' not in n]
-            twilio_connected = len(valid_numbers) > 0
-            if valid_numbers:
-                selected_number = valid_numbers[0]['phone_number']
-        except Exception as e:
-            twilio_connected = False
-
-        va_mgr = VAManager()
-
-        # Get assigned leads
-        pending_leads = va_mgr.get_va_assignments(st.session_state.user_id, status='pending')
-        in_progress_leads = va_mgr.get_va_assignments(st.session_state.user_id, status='in_progress')
-        my_leads = pd.concat([in_progress_leads, pending_leads], ignore_index=True) if not pending_leads.empty or not in_progress_leads.empty else pd.DataFrame()
-
-        # Show connection status
-        if twilio_connected:
-            st.success(f"✅ Twilio Connected | Caller ID: `{selected_number}`")
-        else:
-            st.warning("⚠️ Twilio not connected - Manual dialing mode")
-
-        st.markdown("---")
-
-        # YOUR PHONE NUMBER (required for Twilio)
-        st.markdown("### 📱 Your Phone Number")
-        if 'va_phone' not in st.session_state:
-            st.session_state.va_phone = ""
-
-        va_phone = st.text_input(
-            "Enter your phone number (Twilio will call YOU, then connect you)",
-            value=st.session_state.va_phone,
-            placeholder="+1234567890"
-        )
-        st.session_state.va_phone = va_phone
-
-        st.markdown("---")
-
-        # CALL MODE SELECTION
-        call_mode = st.radio(
-            "Call Mode",
-            ["📋 Call Assigned Leads", "📞 Quick Call (Enter Any Number)"],
-            horizontal=True
-        )
-
-        st.markdown("---")
-
-        if call_mode == "📞 Quick Call (Enter Any Number)":
-            # QUICK CALL MODE - Enter any number
-            st.markdown("### 📞 Quick Call")
-
-            col1, col2 = st.columns([1, 1])
-
-            with col1:
-                target_phone = st.text_input(
-                    "Number to Call",
-                    placeholder="+16145551234",
-                    help="Enter any phone number"
-                )
-
-                if twilio_connected and va_phone and target_phone:
-                    if st.button("📞 CALL NOW", type="primary", use_container_width=True):
-                        try:
-                            result = twilio.make_call(
-                                to_number=va_phone,
-                                from_number=selected_number,
-                                twiml=f'''<Response>
-                                    <Say>Connecting your call.</Say>
-                                    <Dial callerId="{selected_number}" record="record-from-answer">
-                                        <Number>{target_phone}</Number>
-                                    </Dial>
-                                </Response>''',
-                                record=True
-                            )
-                            if result.get('success'):
-                                st.success(f"📞 Calling your phone... Answer to connect!")
-                            else:
-                                st.error(f"Call failed: {result.get('error')}")
-                        except Exception as e:
-                            st.error(f"Error: {e}")
-                elif not twilio_connected:
-                    st.info(f"📞 Dial manually: **{target_phone}**")
-                elif not va_phone:
-                    st.warning("⬆️ Enter your phone number above")
-
-            with col2:
-                st.markdown("### 📝 Log Call Result")
-                outcome = st.selectbox("What happened?", [
-                    "No Answer", "Left Voicemail", "Spoke - Not Interested",
-                    "Spoke - Call Back Later", "Spoke - Interested",
-                    "Appointment Set!", "Wrong Number", "Disconnected"
-                ], key="quick_outcome")
-
-                notes = st.text_area("Notes", placeholder="Quick notes...", key="quick_notes")
-
-                if st.button("💾 Save Call Log", use_container_width=True):
-                    tracker = CallTracker()
-                    tracker.log_call(
-                        address="Quick Call",
-                        owner_name="Manual Entry",
-                        phone=target_phone,
-                        outcome=outcome,
-                        notes=notes
-                    )
-                    st.success("✅ Call logged!")
-
-        else:
-            # ASSIGNED LEADS MODE
-            if my_leads.empty:
-                st.warning("🚫 No leads assigned. Ask your admin to assign leads to you.")
-            else:
-                st.success(f"📋 You have **{len(my_leads)}** leads to call!")
-
-                col1, col2 = st.columns([1, 1])
-
-                with col1:
-                    st.markdown("### 📋 Select Lead")
-
-                    # Lead selection
-                    lead_options = {f"{row['address']} - {row['owner_name']}": row.to_dict()
-                                  for _, row in my_leads.iterrows()}
-
-                    selected_key = st.selectbox("Choose Lead", list(lead_options.keys()))
-                    lead = lead_options[selected_key]
-
-                    phone = str(lead.get('phone', '')).strip()
-
-                    st.markdown("---")
-                    st.markdown("### 👤 Lead Info")
-                    st.markdown(f"**🏠 Address:** {lead.get('address', 'N/A')}")
-                    st.markdown(f"**👤 Owner:** {lead.get('owner_name', 'N/A')}")
-                    st.markdown(f"**⭐ Score:** {lead.get('motivation_score', 'N/A')}")
-
-                    st.markdown("---")
-                    st.markdown("### 📞 Phone Number")
-
-                    if phone and phone != 'nan':
-                        st.code(phone, language=None)
-
-                        if twilio_connected and va_phone:
-                            if st.button("📞 CALL NOW", type="primary", use_container_width=True):
-                                try:
-                                    result = twilio.make_call(
-                                        to_number=va_phone,
-                                        from_number=selected_number,
-                                        twiml=f'''<Response>
-                                            <Say>Connecting you to {lead.get('owner_name', 'the owner')}.</Say>
-                                            <Dial callerId="{selected_number}" record="record-from-answer">
-                                                <Number>{phone}</Number>
-                                            </Dial>
-                                        </Response>''',
-                                        record=True
-                                    )
-                                    if result.get('success'):
-                                        st.success(f"📞 Calling your phone... Answer to connect!")
-                                        va_mgr.update_assignment_status(lead['assignment_id'], 'in_progress')
-                                    else:
-                                        st.error(f"Call failed: {result.get('error')}")
-                                except Exception as e:
-                                    st.error(f"Error: {e}")
-                        elif not twilio_connected:
-                            # Manual dial link
-                            phone_clean = phone.replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
-                            st.markdown(f"[📱 Tap to Call]({f'tel:{phone_clean}'})")
-                            st.caption("Or dial manually")
-                        else:
-                            st.warning("⬆️ Enter your phone number above")
-                    else:
-                        st.error("❌ No phone number!")
-                        if st.button("⏭️ Skip Lead"):
-                            va_mgr.update_assignment_status(lead['assignment_id'], 'completed', notes="No phone")
-                            st.rerun()
-
-                with col2:
-                    st.markdown("### 📝 Log Call Result")
-
-                    outcome = st.selectbox("What happened?", [
-                        "No Answer", "Left Voicemail", "Spoke - Not Interested",
-                        "Spoke - Call Back Later", "Spoke - Interested",
-                        "Appointment Set!", "Wrong Number", "Disconnected"
-                    ])
-
-                    notes = st.text_area("Notes", placeholder="What happened on the call?")
-
-                    callback_date = None
-                    if "Call Back" in outcome:
-                        callback_date = st.date_input("📅 Callback Date")
-
-                    col_a, col_b = st.columns(2)
-                    with col_a:
-                        if st.button("✅ Save & Next", type="primary", use_container_width=True):
-                            tracker = CallTracker()
-                            tracker.log_call(
-                                address=lead.get('address', ''),
-                                owner_name=lead.get('owner_name', ''),
-                                phone=phone,
-                                outcome=outcome,
-                                notes=notes,
-                                follow_up_date=str(callback_date) if callback_date else None
-                            )
-
-                            if outcome in ['Spoke - Not Interested', 'Wrong Number', 'Disconnected']:
-                                new_status = 'completed'
-                            elif outcome == 'Appointment Set!':
-                                new_status = 'completed'
-                                st.balloons()
-                            else:
-                                new_status = 'in_progress'
-
-                            va_mgr.update_assignment_status(lead['assignment_id'], new_status, notes=f"{outcome}: {notes}")
-                            st.success("✅ Logged!")
-                            time.sleep(0.5)
-                            st.rerun()
-
-                    with col_b:
-                        if st.button("⏭️ Skip", use_container_width=True):
-                            st.rerun()
-
-    # ========== MY CALLS PAGE ==========
-    elif va_page == "📞 My Calls":
-        st.markdown("### 📞 My Recent Calls")
-        tracker = CallTracker()
-        calls = tracker.get_all_calls(limit=100)
-
-        if calls.empty:
-            st.info("No calls logged yet. Start calling from the Dialer!")
-        else:
-            # Filter to show only relevant columns
-            display_cols = ['call_date', 'call_time', 'address', 'owner_name', 'phone', 'outcome', 'notes']
-            available_cols = [c for c in display_cols if c in calls.columns]
-            st.dataframe(calls[available_cols], use_container_width=True, hide_index=True)
-
-    # ========== MY STATS PAGE ==========
-    elif va_page == "📊 My Stats":
-        st.markdown("### 📊 My Performance")
-
-        col1, col2 = st.columns([1, 1])
-
-        with col1:
-            st.markdown("#### Today's Progress")
-            tracker = CallTracker()
-            stats = tracker.get_todays_stats()
-
-            c1, c2 = st.columns(2)
-            with c1:
-                st.metric("📞 Calls Made", stats['total_calls'])
-                st.metric("💬 Conversations", stats['conversations'])
-            with c2:
-                st.metric("⭐ Interested", stats['interested'])
-                st.metric("📅 Appointments", stats['appointments'])
-
-        with col2:
-            st.markdown("#### My Lead Progress")
-            va_mgr = VAManager()
-            my_leads = va_mgr.get_va_assignments(st.session_state.user_id)
-
-            if not my_leads.empty:
-                pending = len(my_leads[my_leads['status'] == 'pending'])
-                in_progress = len(my_leads[my_leads['status'] == 'in_progress'])
-                completed = len(my_leads[my_leads['status'] == 'completed'])
-
-                c1, c2, c3 = st.columns(3)
-                with c1:
-                    st.metric("📋 Pending", pending)
-                with c2:
-                    st.metric("🔄 In Progress", in_progress)
-                with c3:
-                    st.metric("✅ Completed", completed)
-
-                # Progress bar
-                total = len(my_leads)
-                completion_pct = (completed / total * 100) if total > 0 else 0
-                st.progress(completion_pct / 100, text=f"Completion: {completion_pct:.0f}%")
-            else:
-                st.info("No leads assigned yet")
-
-    st.stop()  # Stop here for VA users
-
-# ========================================
-# ADMIN DASHBOARD (Full Access)
-# ========================================
-# Sidebar for Admin
+# Sidebar
 with st.sidebar:
     st.markdown("# 🏠 Aerial Leads")
-    st.markdown(f"**Logged in as: {st.session_state.user_name}**")
     st.markdown("---")
 
     page = st.radio(
         "Navigation",
-        ["🏠 Home", "🚀 Generate Leads", "⚖️ Probate & Foreclosure", "📞 Skip Trace", "🛡️ DNC Scrub", "☎️ Call Tracker", "👥 VA Management", "📱 Dialer", "🔍 Search Owner", "📊 View Leads", "🐋 Whale Owners", "💰 Investor Finder", "💵 Deal Analyzer", "📈 Statistics", "📋 Data Quality", "📁 Data History", "⚙️ Data Management"],
+        ["🏠 Home", "🚀 Generate Leads", "⚖️ Probate & Foreclosure", "📞 Skip Trace", "🛡️ DNC Scrub", "☎️ Call Tracker", "👥 VA Management", "📱 Dialer", "📥 Inbound Leads", "💰 Deal Pipeline", "📅 Appointments", "💬 SMS Campaigns", "🔄 Follow-ups", "🎯 Reverse Targeting", "📬 Direct Mail", "📲 RVM & Numbers", "🔍 Search Owner", "📊 View Leads", "🐋 Whale Owners", "📈 Statistics", "📋 Data Quality", "⚙️ Data Management", "🔐 User Management"],
         label_visibility="collapsed"
     )
-
-    st.markdown("---")
-    if st.button("🚪 Logout"):
-        st.session_state.logged_in = False
-        st.session_state.user_type = None
-        st.rerun()
 
     st.markdown("---")
     st.markdown("### Quick Stats")
@@ -718,13 +295,6 @@ elif page == "🚀 Generate Leads":
         status_text = st.empty()
 
         try:
-            # Step 0: Archive existing data before generating new
-            status_text.text("📁 Archiving existing data...")
-            archived = archive_before_scrape('delinquent')
-            if archived:
-                st.info(f"📁 Archived {len(archived)} existing files")
-            progress_bar.progress(5)
-
             # Step 1: Load tax data (using new GenericExcelLoader with year_built support)
             status_text.text("📊 Loading tax delinquent properties...")
             progress_bar.progress(10)
@@ -909,56 +479,22 @@ elif page == "🚀 Generate Leads":
             df['skip_trace_confidence'] = 0.0
             progress_bar.progress(90)
 
-            # Step 9: Export as numbered batch with month label
-            status_text.text("📤 Exporting leads as batch...")
+            # Step 9: Export
+            status_text.text("📤 Exporting leads...")
 
             PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-            # Create batches directory
-            batches_dir = PROCESSED_DATA_DIR / 'batches'
-            batches_dir.mkdir(parents=True, exist_ok=True)
-
-            # Determine next batch number and month label
-            from datetime import datetime
-            current_month = datetime.now().strftime('%b').lower()  # jan, feb, etc.
-            current_year = datetime.now().strftime('%Y')  # 2025
-
-            # Find existing batches to determine next number
-            existing_batches = list(batches_dir.glob(f'batch_*_{current_month}_{current_year}.csv'))
-            if existing_batches:
-                # Extract batch numbers and find max
-                batch_numbers = []
-                for batch_file in existing_batches:
-                    try:
-                        batch_num = int(batch_file.stem.split('_')[1])
-                        batch_numbers.append(batch_num)
-                    except:
-                        pass
-                next_batch_num = max(batch_numbers) + 1 if batch_numbers else 1
-            else:
-                next_batch_num = 1
-
-            # Create batch filename
-            batch_filename = f'batch_{next_batch_num}_{current_month}_{current_year}.csv'
-            batch_path = batches_dir / batch_filename
-
-            # Save to batch file
-            df.to_csv(batch_path, index=False)
-            st.success(f"📁 Saved as **{batch_filename}** ({len(df)} leads)")
-
-            # Also save to main file for compatibility (latest batch)
+            # Save to both filenames for compatibility
             all_leads_path = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
             df.to_csv(all_leads_path, index=False)
+            # Also save to legacy filename
             df.to_csv(PROCESSED_DATA_DIR / 'all_leads_real.csv', index=False)
 
-            # Save tier files for this batch too
             for tier_num in [1, 2, 3]:
                 tier_df = df[df['tier'] == tier_num]
                 if len(tier_df) > 0:
-                    tier_batch_filename = f'batch_{next_batch_num}_{current_month}_{current_year}_tier_{tier_num}.csv'
-                    tier_df.to_csv(batches_dir / tier_batch_filename, index=False)
-                    # Also save to main tier files for compatibility
-                    tier_df.to_csv(PROCESSED_DATA_DIR / f'columbus_oh_tier_{tier_num}_leads.csv', index=False)
+                    tier_path = PROCESSED_DATA_DIR / f'columbus_oh_tier_{tier_num}_leads.csv'
+                    tier_df.to_csv(tier_path, index=False)
+                    # Also save to legacy filename
                     tier_df.to_csv(PROCESSED_DATA_DIR / f'tier_{tier_num}_leads_real.csv', index=False)
 
             progress_bar.progress(100)
@@ -1014,11 +550,6 @@ elif page == "⚖️ Probate & Foreclosure":
     **Pre-foreclosure leads** are properties heading to sheriff sale - owners have deadline pressure.
     """)
 
-    st.success("""
-    **Pro Tip:** Go back **6 months (180 days)** for probate - heirs are MORE motivated after dealing with the property for a while.
-    Cases 3-12 months old are in the sweet spot where heirs are ready to sell but haven't listed yet.
-    """)
-
     # Two columns for the two scraper types
     col1, col2 = st.columns(2)
 
@@ -1026,17 +557,12 @@ elif page == "⚖️ Probate & Foreclosure":
         st.markdown("#### 📜 Probate Court Records")
         st.markdown("Franklin County Probate Court estate cases")
 
-        probate_days = st.slider("Days to look back (Probate)", 30, 365, 180, key="probate_days")
-        probate_max = st.slider("Max results (Probate)", 50, 1000, 300, key="probate_max")
+        probate_days = st.slider("Days to look back (Probate)", 30, 180, 90, key="probate_days")
+        probate_max = st.slider("Max results (Probate)", 50, 500, 100, key="probate_max")
 
         if st.button("🔍 Scrape Probate Cases", type="primary", key="btn_probate"):
             with st.spinner("Scraping probate court records... (this may take 1-2 minutes)"):
                 try:
-                    # Archive existing probate data first
-                    archived = archive_before_scrape('probate')
-                    if archived:
-                        st.info(f"📁 Archived {len(archived)} existing probate file(s)")
-
                     scraper = ProbateScraper(headless=True)
                     probate_df = scraper.scrape(days_back=probate_days, max_results=probate_max)
 
@@ -1062,17 +588,11 @@ elif page == "⚖️ Probate & Foreclosure":
         st.markdown("#### 🏚️ Sheriff Sales / Pre-Foreclosure")
         st.markdown("Properties scheduled for auction")
 
-        sheriff_max = st.slider("Max results (Sheriff Sales)", 20, 500, 100, key="sheriff_max")
-        st.caption("*Sheriff sales are limited by actual foreclosure activity in the county*")
+        sheriff_max = st.slider("Max results (Sheriff Sales)", 20, 200, 50, key="sheriff_max")
 
         if st.button("🔍 Scrape Sheriff Sales", type="primary", key="btn_sheriff"):
             with st.spinner("Scraping sheriff sale listings..."):
                 try:
-                    # Archive existing sheriff data first
-                    archived = archive_before_scrape('sheriff')
-                    if archived:
-                        st.info(f"📁 Archived {len(archived)} existing sheriff file(s)")
-
                     scraper = SheriffSaleScraper(county="franklin")
                     sheriff_df = scraper.scrape(max_results=sheriff_max, include_details=False)
 
@@ -1628,7 +1148,7 @@ elif page == "📞 Skip Trace":
         if BATCHDATA_API_KEY:
             # Try to get balance (optional)
             try:
-                from sellers.skip_tracing.providers.batchdata_provider import BatchDataProvider
+                from skip_tracing.providers.batchdata_provider import BatchDataProvider
                 provider = BatchDataProvider(api_key=BATCHDATA_API_KEY)
                 balance = provider.get_balance()
                 if balance:
@@ -2693,105 +2213,22 @@ elif page == "👥 VA Management":
         with tab2:
             st.markdown("### 📋 Lead Assignment")
 
-            vas_df = va_manager.get_all_vas()
+            # Get available leads
+            leads_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+            if not leads_file.exists():
+                leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
 
-            if vas_df.empty:
-                st.warning("⚠️ No VAs available. Add VAs first!")
-            else:
-                # Lead Source Selection
-                st.markdown("#### 📁 Select Lead Source")
-                lead_source = st.radio(
-                    "Lead Type",
-                    ["🏦 Delinquent Tax", "⚖️ Probate", "🏠 Sheriff Sales", "📊 All Sources"],
-                    horizontal=True
-                )
+            if leads_file.exists():
+                leads_df = pd.read_csv(leads_file)
+                vas_df = va_manager.get_all_vas()
 
-                # Load leads based on source
-                leads_df = None
-                source_name = ""
-
-                if lead_source == "🏦 Delinquent Tax":
-                    # Check for batches
-                    batches_dir = PROCESSED_DATA_DIR / 'batches'
-                    batch_files = []
-                    if batches_dir.exists():
-                        batch_files = sorted(batches_dir.glob('batch_*_*.csv'), reverse=True)
-                        batch_files = [f for f in batch_files if '_tier_' not in f.name]
-
-                    if batch_files:
-                        batch_options = ["📋 Latest (Main File)"] + [f.name for f in batch_files]
-                        selected_batch = st.selectbox("Select Batch", batch_options, key="assign_batch")
-
-                        if selected_batch == "📋 Latest (Main File)":
-                            file_path = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
-                        else:
-                            file_path = batches_dir / selected_batch
-                    else:
-                        file_path = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
-
-                    if file_path.exists():
-                        leads_df = pd.read_csv(file_path)
-                        source_name = f"Delinquent Tax ({file_path.name})"
-                elif lead_source == "⚖️ Probate":
-                    file_path = PROCESSED_DATA_DIR / 'probate_leads.csv'
-                    if file_path.exists():
-                        leads_df = pd.read_csv(file_path)
-                        # Normalize column names for probate
-                        if 'property_address' in leads_df.columns:
-                            leads_df['address'] = leads_df['property_address']
-                        if 'decedent_name' in leads_df.columns:
-                            leads_df['owner_name'] = leads_df['decedent_name']
-                        if 'motivation_score' not in leads_df.columns:
-                            leads_df['motivation_score'] = 75  # Default score for probate
-                        source_name = "Probate"
-                elif lead_source == "🏠 Sheriff Sales":
-                    file_path = PROCESSED_DATA_DIR / 'sheriff_sale_leads.csv'
-                    if file_path.exists():
-                        leads_df = pd.read_csv(file_path)
-                        if 'motivation_score' not in leads_df.columns:
-                            leads_df['motivation_score'] = 80  # Default score for sheriff sales
-                        source_name = "Sheriff Sales"
-                else:  # All Sources
-                    all_dfs = []
-                    # Delinquent
-                    f1 = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
-                    if f1.exists():
-                        df1 = pd.read_csv(f1)
-                        df1['lead_source'] = 'Delinquent Tax'
-                        all_dfs.append(df1[['address', 'owner_name', 'phone', 'motivation_score', 'lead_source']])
-                    # Probate
-                    f2 = PROCESSED_DATA_DIR / 'probate_leads.csv'
-                    if f2.exists():
-                        df2 = pd.read_csv(f2)
-                        if 'property_address' in df2.columns:
-                            df2['address'] = df2['property_address']
-                        if 'decedent_name' in df2.columns:
-                            df2['owner_name'] = df2['decedent_name']
-                        df2['motivation_score'] = 75
-                        df2['lead_source'] = 'Probate'
-                        all_dfs.append(df2[['address', 'owner_name', 'phone', 'motivation_score', 'lead_source']])
-                    # Sheriff
-                    f3 = PROCESSED_DATA_DIR / 'sheriff_sale_leads.csv'
-                    if f3.exists():
-                        df3 = pd.read_csv(f3)
-                        df3['motivation_score'] = 80
-                        df3['lead_source'] = 'Sheriff Sale'
-                        all_dfs.append(df3[['address', 'owner_name', 'phone', 'motivation_score', 'lead_source']])
-                    if all_dfs:
-                        leads_df = pd.concat(all_dfs, ignore_index=True)
-                    source_name = "All Sources"
-
-                if leads_df is None or leads_df.empty:
-                    st.warning(f"⚠️ No {source_name} leads found. Generate leads first!")
+                if vas_df.empty:
+                    st.warning("⚠️ No VAs available. Add VAs first!")
                 else:
-                    # Filter to only leads with phone numbers
-                    leads_with_phone = leads_df[leads_df['phone'].notna() & (leads_df['phone'] != '')]
-                    st.success(f"📊 **{len(leads_with_phone)}** leads with phone numbers available from {source_name}")
-
                     col1, col2 = st.columns(2)
 
                     with col1:
-                        st.markdown("#### 🎯 Assign to VA")
+                        st.markdown("#### 🎯 Manual Assignment")
 
                         # Select VA
                         va_options = {f"{row['name']} (@{row['username']})": row['user_id'] for _, row in vas_df.iterrows()}
@@ -2799,58 +2236,58 @@ elif page == "👥 VA Management":
                         selected_va_id = va_options[selected_va_name]
 
                         # Number of leads
-                        max_leads = min(len(leads_with_phone), 100)
-                        num_leads = st.slider("Number of leads to assign", 5, max(5, max_leads), min(25, max_leads))
+                        num_leads = st.slider("Number of leads to assign", 5, 100, 25)
 
                         # Priority
                         priority = st.select_slider("Priority", options=[1, 2, 3, 4, 5], value=3,
                                                    format_func=lambda x: {1: "🔴 Urgent", 2: "🟠 High", 3: "🟡 Normal", 4: "🟢 Low", 5: "⚪ Lowest"}[x])
 
-                        if st.button("📋 Assign Leads", type="primary", use_container_width=True):
-                            # Get leads with phone numbers
-                            to_assign = leads_with_phone.head(num_leads).copy()
-                            if len(to_assign) > 0:
+                        # Filter options
+                        min_score = st.slider("Minimum motivation score", 0, 100, 50)
+
+                        if st.button("📋 Assign Leads", use_container_width=True):
+                            # Filter and assign
+                            filtered = leads_df[leads_df['motivation_score'] >= min_score].head(num_leads)
+                            if len(filtered) > 0:
                                 count = va_manager.assign_leads(
-                                    to_assign,
+                                    filtered,
                                     selected_va_id,
-                                    assigned_by='admin',
+                                    assigned_by=st.session_state.va_user['user_id'],
                                     priority=priority
                                 )
-                                st.success(f"✅ Assigned **{count}** leads to {selected_va_name}!")
-                                st.balloons()
+                                st.success(f"✅ Assigned {count} leads to {selected_va_name}")
                             else:
-                                st.warning("No leads to assign")
+                                st.warning("No leads match criteria")
 
                     with col2:
-                        st.markdown("#### 👀 Preview Leads")
-                        preview = leads_with_phone.head(10)[['address', 'owner_name', 'phone']].copy()
-                        preview.columns = ['Address', 'Owner', 'Phone']
-                        st.dataframe(preview, use_container_width=True, hide_index=True)
+                        st.markdown("#### 🔄 Auto-Distribution")
+                        st.info("Automatically distribute leads among all active VAs")
 
-                    st.markdown("---")
-
-                    # Auto-Distribution
-                    st.markdown("#### 🔄 Auto-Distribution (Split Among All VAs)")
-                    col_a, col_b, col_c = st.columns(3)
-
-                    with col_a:
                         distribution_method = st.radio(
-                            "Method",
-                            ["equal", "by_quota"],
-                            format_func=lambda x: {"equal": "📊 Equal Split", "by_quota": "📈 By Quota"}[x]
+                            "Distribution Method",
+                            ["equal", "by_quota", "by_performance"],
+                            format_func=lambda x: {
+                                "equal": "📊 Equal Split",
+                                "by_quota": "📈 Based on Daily Quota",
+                                "by_performance": "⭐ Based on Performance"
+                            }[x]
                         )
-                    with col_b:
-                        auto_num_leads = st.slider("Total leads", 10, min(200, len(leads_with_phone)), min(50, len(leads_with_phone)), key="auto_leads")
-                    with col_c:
-                        if st.button("🔄 Auto-Distribute", type="primary", use_container_width=True):
-                            to_distribute = leads_with_phone.head(auto_num_leads)
-                            if len(to_distribute) > 0:
-                                result = va_manager.auto_distribute_leads(to_distribute, distribution=distribution_method)
+
+                        auto_num_leads = st.slider("Total leads to distribute", 50, 500, 100, key="auto_leads")
+                        auto_min_score = st.slider("Minimum score", 0, 100, 40, key="auto_score")
+
+                        if st.button("🔄 Auto-Distribute", use_container_width=True):
+                            filtered = leads_df[leads_df['motivation_score'] >= auto_min_score].head(auto_num_leads)
+                            if len(filtered) > 0:
+                                result = va_manager.auto_distribute_leads(filtered, distribution=distribution_method)
                                 st.success("✅ Leads distributed!")
-                                for va_name, count in result.items():
-                                    st.write(f"• **{va_name}**: {count} leads")
+                                for va_id, count in result.items():
+                                    va_info = vas_df[vas_df['user_id'] == va_id].iloc[0]
+                                    st.write(f"• {va_info['name']}: {count} leads")
                             else:
-                                st.warning("No leads to distribute")
+                                st.warning("No leads match criteria")
+            else:
+                st.warning("⚠️ No leads found. Generate leads first!")
 
         # TAB 3: Performance
         with tab3:
@@ -2876,38 +2313,26 @@ elif page == "👥 VA Management":
                     if not perf_df.empty:
                         st.markdown("#### 📈 Team Performance")
 
-                        # Ensure columns exist with defaults (using VAManager's column names)
-                        if 'total_calls' not in perf_df.columns:
-                            perf_df['total_calls'] = 0
-                        if 'conversations' not in perf_df.columns:
-                            perf_df['conversations'] = 0
-                        if 'appointments' not in perf_df.columns:
-                            perf_df['appointments'] = 0
-                        if 'conversion_rate' not in perf_df.columns:
-                            perf_df['conversion_rate'] = 0.0
-                        if 'calls_per_day' not in perf_df.columns:
-                            perf_df['calls_per_day'] = 0.0
-
                         # Metrics row
                         col1, col2, col3, col4 = st.columns(4)
                         with col1:
-                            st.metric("Total Calls", int(perf_df['total_calls'].sum()))
+                            st.metric("Total Calls", int(perf_df['calls_made'].sum()))
                         with col2:
-                            st.metric("Total Contacts", int(perf_df['conversations'].sum()))
+                            st.metric("Total Contacts", int(perf_df['contacts_reached'].sum()))
                         with col3:
-                            st.metric("Appointments", int(perf_df['appointments'].sum()))
+                            st.metric("Appointments", int(perf_df['appointments_set'].sum()))
                         with col4:
-                            avg_rate = perf_df['conversion_rate'].mean() if len(perf_df) > 0 else 0
+                            avg_rate = perf_df['conversion_rate'].mean()
                             st.metric("Avg Conversion", f"{avg_rate:.1f}%")
 
                         # Performance table
                         st.markdown("#### 👥 Individual Performance")
-                        display_df = perf_df[['name', 'total_calls', 'conversations', 'appointments', 'conversion_rate', 'calls_per_day']].copy()
+                        display_df = perf_df[['name', 'calls_made', 'contacts_reached', 'appointments_set', 'conversion_rate', 'calls_per_day']].copy()
                         display_df.columns = ['VA Name', 'Calls', 'Contacts', 'Appointments', 'Conv. Rate %', 'Calls/Day']
                         st.dataframe(display_df, use_container_width=True, hide_index=True)
 
                         # Chart
-                        fig = px.bar(perf_df, x='name', y='total_calls',
+                        fig = px.bar(perf_df, x='name', y='calls_made',
                                     color='conversion_rate',
                                     title="Calls Made by VA (colored by conversion rate)",
                                     color_continuous_scale='RdYlGn')
@@ -2924,20 +2349,20 @@ elif page == "👥 VA Management":
 
                     # Today's progress
                     st.markdown("##### Today's Progress")
-                    progress_pct = (progress['calls'] / progress['quota'] * 100) if progress['quota'] > 0 else 0
+                    progress_pct = (progress['calls_made'] / progress['quota'] * 100) if progress['quota'] > 0 else 0
                     st.progress(min(progress_pct / 100, 1.0))
-                    st.write(f"**{progress['calls']}** / {progress['quota']} calls ({progress_pct:.0f}%)")
+                    st.write(f"**{progress['calls_made']}** / {progress['quota']} calls ({progress_pct:.0f}%)")
 
                     # Period stats
                     col1, col2, col3, col4 = st.columns(4)
                     with col1:
-                        st.metric("Calls Made", perf.get('total_calls', 0))
+                        st.metric("Calls Made", perf['calls_made'])
                     with col2:
-                        st.metric("Contacts", perf.get('conversations', 0))
+                        st.metric("Contacts", perf['contacts_reached'])
                     with col3:
-                        st.metric("Appointments", perf.get('appointments', 0))
+                        st.metric("Appointments", perf['appointments_set'])
                     with col4:
-                        st.metric("Conversion", f"{perf.get('conversion_rate', 0):.1f}%")
+                        st.metric("Conversion", f"{perf['conversion_rate']:.1f}%")
             else:
                 st.info("No VAs added yet")
 
@@ -2955,11 +2380,11 @@ elif page == "👥 VA Management":
                 for idx, (_, va) in enumerate(vas_df.iterrows()):
                     with cols[idx]:
                         progress = va_manager.get_va_today_progress(va['user_id'])
-                        progress_pct = (progress['calls'] / progress['quota'] * 100) if progress['quota'] > 0 else 0
+                        progress_pct = (progress['calls_made'] / progress['quota'] * 100) if progress['quota'] > 0 else 0
 
                         st.markdown(f"**{va['name']}**")
                         st.progress(min(progress_pct / 100, 1.0))
-                        st.caption(f"{progress['calls']}/{progress['quota']} calls")
+                        st.caption(f"{progress['calls_made']}/{progress['quota']} calls")
 
                         # Status indicator
                         if progress_pct >= 100:
@@ -2989,6 +2414,2240 @@ elif page == "👥 VA Management":
                             st.metric("Completed", len(completed))
             else:
                 st.info("No VAs added yet. Add VAs in the 'Manage VAs' tab.")
+
+
+# ========================================
+# INBOUND LEADS PAGE
+# ========================================
+elif page == "📥 Inbound Leads":
+    st.markdown('<h1 class="main-header">📥 Inbound Leads</h1>', unsafe_allow_html=True)
+    st.markdown("Leads captured from your public website - these people reached out to YOU!")
+
+    # Load inbound leads
+    inbound_file = DATA_DIR / "inbound_leads.csv"
+
+    if inbound_file.exists():
+        inbound_df = pd.read_csv(inbound_file)
+
+        if not inbound_df.empty:
+            # Stats row
+            col1, col2, col3, col4 = st.columns(4)
+
+            with col1:
+                st.metric("Total Inbound", len(inbound_df))
+            with col2:
+                today = datetime.now().strftime('%Y-%m-%d')
+                today_count = len(inbound_df[inbound_df['captured_at'].str.startswith(today)]) if 'captured_at' in inbound_df.columns else 0
+                st.metric("Today", today_count)
+            with col3:
+                # Unique source pages
+                if 'source_page' in inbound_df.columns:
+                    sources = inbound_df['source_page'].nunique()
+                else:
+                    sources = 0
+                st.metric("Sources", sources)
+            with col4:
+                st.metric("Hot Leads", "🔥")
+
+            st.markdown("---")
+
+            # Tabs
+            tab1, tab2, tab3 = st.tabs(["📋 All Leads", "🔥 New Today", "📊 Analytics"])
+
+            with tab1:
+                st.markdown("### All Inbound Leads")
+
+                # Sort by most recent
+                if 'captured_at' in inbound_df.columns:
+                    inbound_df = inbound_df.sort_values('captured_at', ascending=False)
+
+                # Display columns
+                display_cols = ['captured_at', 'name', 'phone', 'property_address', 'source_page', 'message']
+                display_cols = [c for c in display_cols if c in inbound_df.columns]
+
+                st.dataframe(inbound_df[display_cols], use_container_width=True, hide_index=True)
+
+                # Export button
+                if st.button("📤 Export to CSV"):
+                    export_path = PROCESSED_DATA_DIR / 'inbound_leads_export.csv'
+                    inbound_df.to_csv(export_path, index=False)
+                    st.success(f"Exported to {export_path}")
+
+            with tab2:
+                st.markdown("### Today's Leads")
+
+                if 'captured_at' in inbound_df.columns:
+                    today = datetime.now().strftime('%Y-%m-%d')
+                    today_leads = inbound_df[inbound_df['captured_at'].str.startswith(today)]
+
+                    if not today_leads.empty:
+                        for _, lead in today_leads.iterrows():
+                            with st.container():
+                                col1, col2 = st.columns([3, 1])
+                                with col1:
+                                    st.markdown(f"**{lead.get('name', 'Unknown')}** - {lead.get('phone', 'No phone')}")
+                                    st.markdown(f"📍 {lead.get('property_address', 'No address')}")
+                                    if lead.get('message'):
+                                        st.caption(f"💬 {lead.get('message')}")
+                                    st.caption(f"Source: {lead.get('source_page', 'Unknown')} | {lead.get('captured_at', '')}")
+                                with col2:
+                                    if st.button("📞 Call", key=f"call_{lead.name}"):
+                                        st.info(f"Call {lead.get('phone', 'No phone')}")
+                                    if st.button("➡️ Add to Tracker", key=f"track_{lead.name}"):
+                                        tracker = CallTracker()
+                                        tracker.log_call(
+                                            address=lead.get('property_address', ''),
+                                            owner_name=lead.get('name', ''),
+                                            phone=lead.get('phone', ''),
+                                            outcome='Interested',
+                                            notes=f"Inbound lead from website: {lead.get('message', '')}"
+                                        )
+                                        st.success("Added to Call Tracker!")
+                                st.markdown("---")
+                    else:
+                        st.info("No leads captured today yet. Check back later!")
+                else:
+                    st.warning("No timestamp data available")
+
+            with tab3:
+                st.markdown("### Lead Analytics")
+
+                if 'source_page' in inbound_df.columns:
+                    # Leads by source
+                    source_counts = inbound_df['source_page'].value_counts()
+
+                    fig = px.pie(
+                        values=source_counts.values,
+                        names=source_counts.index,
+                        title="Leads by Source Page"
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+
+                if 'captured_at' in inbound_df.columns:
+                    # Leads over time
+                    inbound_df['date'] = pd.to_datetime(inbound_df['captured_at']).dt.date
+                    daily_counts = inbound_df.groupby('date').size().reset_index(name='leads')
+
+                    fig2 = px.line(
+                        daily_counts,
+                        x='date',
+                        y='leads',
+                        title="Leads Over Time"
+                    )
+                    st.plotly_chart(fig2, use_container_width=True)
+        else:
+            st.info("No inbound leads yet. Once your public site is live, leads will appear here!")
+    else:
+        st.info("📥 No inbound leads yet.")
+        st.markdown("""
+        ### Get Started with Inbound Leads
+
+        Your public website will capture leads when motivated sellers:
+        - Find your property pages on Google
+        - Use your cash offer calculator
+        - Submit contact forms
+
+        **To launch your public site:**
+        ```bash
+        cd aerial-leads/public_site
+        uvicorn app:app --reload --port 8080
+        ```
+
+        Then visit: http://localhost:8080
+        """)
+
+    st.markdown("---")
+    st.markdown("### 🌐 Public Website Status")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("""
+        **Launch Command:**
+        ```
+        cd public_site && uvicorn app:app --port 8080
+        ```
+        """)
+    with col2:
+        st.markdown("""
+        **Pages Generated:**
+        - Property pages for each lead
+        - Probate landing page
+        - Tax delinquent landing page
+        - Cash offer calculator
+        """)
+
+
+# ========================================
+# DEAL PIPELINE PAGE
+# ========================================
+elif page == "💰 Deal Pipeline":
+    st.markdown('<h1 class="main-header">💰 Deal Pipeline</h1>', unsafe_allow_html=True)
+    st.markdown("Track your deals from lead to close - this is where you make money!")
+
+    # Initialize pipeline
+    pipeline = DealPipeline()
+
+    # Get stats
+    stats = pipeline.get_pipeline_stats()
+
+    # Top metrics row
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.metric("Total Deals", stats['total_deals'])
+    with col2:
+        st.metric("Active Deals", stats['active_deals'])
+    with col3:
+        st.metric("Closed Deals", stats['closed_deals'], delta=f"💰 ${stats['total_closed_profit']:,.0f}")
+    with col4:
+        st.metric("Potential Profit", f"${stats['total_potential_profit']:,.0f}")
+    with col5:
+        st.metric("Conversion Rate", f"{stats['conversion_rate']:.1f}%")
+
+    st.markdown("---")
+
+    # Tabs for different views
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Pipeline Board", "➕ Add Deal", "📊 Analytics", "📜 All Deals"])
+
+    with tab1:
+        st.markdown("### Pipeline Board")
+        st.markdown("Drag deals through your pipeline (click to expand)")
+
+        # Get deals by stage
+        deals_by_stage = pipeline.get_deals_by_stage()
+
+        # Create columns for each stage (except dead)
+        active_stages = [s for s in DEAL_STAGES if s != 'dead']
+        cols = st.columns(len(active_stages))
+
+        for idx, stage in enumerate(active_stages):
+            with cols[idx]:
+                stage_deals = deals_by_stage.get(stage, pd.DataFrame())
+                count = len(stage_deals)
+
+                # Stage header with color
+                st.markdown(f"""
+                <div style='background-color: {STAGE_COLORS.get(stage, "#ccc")}; padding: 10px; border-radius: 8px; text-align: center; color: white; margin-bottom: 10px;'>
+                    <strong>{STAGE_DISPLAY_NAMES.get(stage, stage)}</strong><br>
+                    <span style='font-size: 1.5em;'>{count}</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Deal cards
+                if not stage_deals.empty:
+                    for _, deal in stage_deals.iterrows():
+                        with st.expander(f"📍 {deal['address'][:25]}...", expanded=False):
+                            st.write(f"**Seller:** {deal['seller_name']}")
+                            st.write(f"**Phone:** {deal['seller_phone']}")
+                            if deal['offer_amount'] > 0:
+                                st.write(f"**Offer:** ${deal['offer_amount']:,.0f}")
+                            if deal['assignment_fee'] > 0:
+                                st.write(f"**Fee:** ${deal['assignment_fee']:,.0f}")
+
+                            # Move buttons
+                            st.markdown("**Move to:**")
+                            move_cols = st.columns(2)
+
+                            # Get next and previous stages
+                            stage_idx = DEAL_STAGES.index(stage)
+
+                            with move_cols[0]:
+                                if stage_idx < len(DEAL_STAGES) - 2:  # Not at closed or dead
+                                    next_stage = DEAL_STAGES[stage_idx + 1]
+                                    if st.button(f"→ {STAGE_DISPLAY_NAMES[next_stage]}", key=f"next_{deal['deal_id']}"):
+                                        pipeline.move_to_stage(deal['deal_id'], next_stage)
+                                        st.rerun()
+
+                            with move_cols[1]:
+                                if st.button("❌ Dead", key=f"dead_{deal['deal_id']}"):
+                                    pipeline.move_to_stage(deal['deal_id'], 'dead')
+                                    st.rerun()
+                else:
+                    st.caption("No deals")
+
+        # Show dead deals count
+        dead_count = len(deals_by_stage.get('dead', pd.DataFrame()))
+        if dead_count > 0:
+            st.markdown(f"---\n❌ **Dead Deals:** {dead_count}")
+
+    with tab2:
+        st.markdown("### Add New Deal")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("#### Property Info")
+            new_address = st.text_input("Property Address *", placeholder="123 Main St")
+            new_city = st.text_input("City", value="Columbus")
+            new_state = st.text_input("State", value="OH")
+            new_zip = st.text_input("Zip Code", placeholder="43215")
+
+        with col2:
+            st.markdown("#### Seller Info")
+            new_seller = st.text_input("Seller Name", placeholder="John Smith")
+            new_phone = st.text_input("Seller Phone", placeholder="614-555-1234")
+            new_source = st.selectbox("Lead Source", ["", "Probate", "Tax Delinquent", "Code Violation", "Driving for Dollars", "Direct Mail", "Cold Call", "Referral", "Website", "Other"])
+            new_type = st.selectbox("Lead Type", ["", "probate", "tax_delinquent", "code_violation", "vacant", "tired_landlord", "pre_foreclosure", "other"])
+
+        st.markdown("#### Deal Info")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            new_asking = st.number_input("Asking Price ($)", value=0, step=5000)
+        with col2:
+            new_arv = st.number_input("ARV ($)", value=0, step=5000)
+        with col3:
+            new_repairs = st.number_input("Repair Estimate ($)", value=0, step=1000)
+
+        new_notes = st.text_area("Notes", placeholder="Any additional details...")
+
+        if st.button("💾 Create Deal", type="primary"):
+            if new_address:
+                deal_id = pipeline.create_deal(
+                    address=new_address,
+                    city=new_city,
+                    state=new_state,
+                    zip_code=new_zip,
+                    seller_name=new_seller,
+                    seller_phone=new_phone,
+                    lead_source=new_source,
+                    lead_type=new_type,
+                    notes=new_notes
+                )
+
+                # Update financials
+                if new_asking > 0 or new_arv > 0 or new_repairs > 0:
+                    pipeline.update_deal(deal_id, {
+                        'asking_price': new_asking,
+                        'arv': new_arv,
+                        'repair_estimate': new_repairs
+                    })
+
+                st.success(f"✅ Deal created! ID: {deal_id}")
+                st.balloons()
+            else:
+                st.error("Property address is required")
+
+        # Quick add from existing lead
+        st.markdown("---")
+        st.markdown("#### Or Import from Leads")
+
+        all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+        if all_leads_file.exists():
+            leads_df = pd.read_csv(all_leads_file)
+            if not leads_df.empty and 'address' in leads_df.columns:
+                # Filter to high-score leads
+                if 'motivation_score' in leads_df.columns:
+                    hot_leads = leads_df[leads_df['motivation_score'] >= 70].head(20)
+                else:
+                    hot_leads = leads_df.head(20)
+
+                selected_lead = st.selectbox(
+                    "Select a lead to convert",
+                    options=[""] + hot_leads['address'].tolist(),
+                    format_func=lambda x: f"{x}" if x else "Select a lead..."
+                )
+
+                if selected_lead and st.button("📥 Import Selected Lead"):
+                    lead_data = hot_leads[hot_leads['address'] == selected_lead].iloc[0].to_dict()
+                    deal_id = pipeline.create_deal_from_lead(lead_data)
+                    st.success(f"✅ Deal created from lead! ID: {deal_id}")
+                    st.rerun()
+
+    with tab3:
+        st.markdown("### Pipeline Analytics")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            # Stage distribution chart
+            stage_data = []
+            for stage in DEAL_STAGES:
+                if stage != 'dead':
+                    stage_data.append({
+                        'Stage': STAGE_DISPLAY_NAMES.get(stage, stage),
+                        'Count': stats['by_stage'].get(stage, 0),
+                        'Color': STAGE_COLORS.get(stage, '#ccc')
+                    })
+
+            if stage_data:
+                fig = px.bar(
+                    stage_data,
+                    x='Stage',
+                    y='Count',
+                    color='Stage',
+                    color_discrete_map={d['Stage']: d['Color'] for d in stage_data},
+                    title="Deals by Stage"
+                )
+                fig.update_layout(showlegend=False)
+                st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            # Revenue over time
+            monthly = pipeline.get_monthly_revenue()
+            if not monthly.empty:
+                fig = px.line(
+                    monthly,
+                    x='month',
+                    y='revenue',
+                    title="Monthly Revenue",
+                    markers=True
+                )
+                fig.update_layout(yaxis_tickprefix='$')
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Close some deals to see revenue trends!")
+
+        # Key metrics
+        st.markdown("### Key Metrics")
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric("Average Deal Value", f"${stats['avg_deal_value']:,.0f}")
+        with col2:
+            st.metric("Total Revenue (Closed)", f"${stats['total_closed_profit']:,.0f}")
+        with col3:
+            win_rate = (stats['closed_deals'] / (stats['closed_deals'] + stats['dead_deals']) * 100) if (stats['closed_deals'] + stats['dead_deals']) > 0 else 0
+            st.metric("Win Rate", f"{win_rate:.1f}%")
+
+    with tab4:
+        st.markdown("### All Deals")
+
+        all_deals = pipeline.get_all_deals()
+
+        if all_deals.empty:
+            st.info("No deals yet. Add your first deal above!")
+        else:
+            # Filters
+            col1, col2 = st.columns(2)
+            with col1:
+                filter_stage = st.selectbox("Filter by Stage", ["All"] + [STAGE_DISPLAY_NAMES[s] for s in DEAL_STAGES])
+            with col2:
+                search_deal = st.text_input("Search by address", placeholder="Type to search...")
+
+            # Apply filters
+            filtered = all_deals.copy()
+            if filter_stage != "All":
+                stage_key = [k for k, v in STAGE_DISPLAY_NAMES.items() if v == filter_stage][0]
+                filtered = filtered[filtered['stage'] == stage_key]
+            if search_deal:
+                filtered = filtered[filtered['address'].str.contains(search_deal, case=False, na=False)]
+
+            st.markdown(f"**{len(filtered)}** deals")
+
+            # Display deals
+            for _, deal in filtered.iterrows():
+                stage_emoji = STAGE_DISPLAY_NAMES.get(deal['stage'], deal['stage'])
+                profit = deal['actual_profit'] if deal['stage'] == 'closed' else deal['assignment_fee']
+
+                with st.expander(f"{stage_emoji} | {deal['address']} | ${profit:,.0f}"):
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown("**Property:**")
+                        st.write(f"📍 {deal['address']}")
+                        st.write(f"🏙️ {deal['city']}, {deal['state']} {deal['zip_code']}")
+                        st.write(f"📋 Source: {deal['lead_source']}")
+
+                        st.markdown("**Seller:**")
+                        st.write(f"👤 {deal['seller_name']}")
+                        st.write(f"📞 {deal['seller_phone']}")
+
+                    with col2:
+                        st.markdown("**Financials:**")
+                        st.write(f"💵 Asking: ${deal['asking_price']:,.0f}")
+                        st.write(f"📝 Offer: ${deal['offer_amount']:,.0f}")
+                        st.write(f"📋 Contract: ${deal['contract_price']:,.0f}")
+                        st.write(f"🏠 ARV: ${deal['arv']:,.0f}")
+                        st.write(f"🔧 Repairs: ${deal['repair_estimate']:,.0f}")
+                        st.write(f"💰 Assignment Fee: ${deal['assignment_fee']:,.0f}")
+
+                    st.markdown("**Dates:**")
+                    st.write(f"Offer: {deal['offer_date']} | Contract: {deal['contract_date']} | Closing: {deal['closing_date']}")
+
+                    # Quick update form
+                    st.markdown("---")
+                    st.markdown("**Quick Update:**")
+
+                    update_col1, update_col2 = st.columns(2)
+                    with update_col1:
+                        new_offer = st.number_input("Offer Amount", value=float(deal['offer_amount']), key=f"offer_{deal['deal_id']}")
+                        new_contract = st.number_input("Contract Price", value=float(deal['contract_price']), key=f"contract_{deal['deal_id']}")
+                    with update_col2:
+                        new_fee = st.number_input("Assignment Fee", value=float(deal['assignment_fee']), key=f"fee_{deal['deal_id']}")
+                        new_profit = st.number_input("Actual Profit", value=float(deal['actual_profit']), key=f"profit_{deal['deal_id']}")
+
+                    if st.button("💾 Update Deal", key=f"update_{deal['deal_id']}"):
+                        pipeline.update_deal(deal['deal_id'], {
+                            'offer_amount': new_offer,
+                            'contract_price': new_contract,
+                            'assignment_fee': new_fee,
+                            'actual_profit': new_profit
+                        })
+                        st.success("Updated!")
+                        st.rerun()
+
+
+# ========================================
+# APPOINTMENTS PAGE
+# ========================================
+elif page == "📅 Appointments":
+    st.markdown('<h1 class="main-header">📅 Appointments</h1>', unsafe_allow_html=True)
+    st.markdown("Schedule and track appointments with sellers - never miss a deal!")
+
+    # Initialize scheduler
+    scheduler = AppointmentScheduler()
+
+    # Get stats
+    apt_stats = scheduler.get_stats()
+
+    # Top metrics
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.metric("Today", apt_stats['today'])
+    with col2:
+        st.metric("This Week", apt_stats['this_week'])
+    with col3:
+        st.metric("Completed", apt_stats['completed'])
+    with col4:
+        st.metric("No-Shows", apt_stats['no_show'])
+    with col5:
+        st.metric("Show Rate", f"{apt_stats['show_rate']:.0f}%")
+
+    st.markdown("---")
+
+    # Tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Today's Appointments", "📆 Schedule New", "🗓️ All Appointments", "📊 Stats"])
+
+    with tab1:
+        st.markdown("### Today's Schedule")
+
+        today_apts = scheduler.get_todays_appointments()
+
+        if today_apts.empty:
+            st.info("No appointments scheduled for today!")
+            if st.button("📆 Schedule One Now"):
+                st.session_state['apt_tab'] = 1
+                st.rerun()
+        else:
+            for _, apt in today_apts.iterrows():
+                status_color = APT_STATUS_COLORS.get(apt['status'], '#ccc')
+                apt_type_display = APPOINTMENT_TYPE_DISPLAY.get(apt['appointment_type'], apt['appointment_type'])
+
+                with st.expander(f"⏰ {apt['scheduled_time']} | {apt_type_display} | {apt['address'][:30]}...", expanded=True):
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown(f"**Type:** {apt_type_display}")
+                        st.markdown(f"**Address:** {apt['address']}")
+                        st.markdown(f"**Seller:** {apt['seller_name']}")
+                        st.markdown(f"**Phone:** {apt['seller_phone']}")
+
+                    with col2:
+                        st.markdown(f"**Status:** <span style='color:{status_color}'>{apt['status'].upper()}</span>", unsafe_allow_html=True)
+                        st.markdown(f"**Duration:** {apt['duration_minutes']} min")
+                        st.markdown(f"**Assigned:** {apt['assigned_to']}")
+
+                    if apt['notes']:
+                        st.markdown(f"**Notes:** {apt['notes']}")
+
+                    st.markdown("---")
+                    st.markdown("**Quick Actions:**")
+                    action_cols = st.columns(4)
+
+                    with action_cols[0]:
+                        if apt['status'] == 'scheduled':
+                            if st.button("✅ Confirm", key=f"confirm_{apt['appointment_id']}"):
+                                scheduler.mark_status(apt['appointment_id'], 'confirmed')
+                                st.rerun()
+
+                    with action_cols[1]:
+                        if apt['status'] in ['scheduled', 'confirmed']:
+                            if st.button("✔️ Complete", key=f"complete_{apt['appointment_id']}"):
+                                scheduler.mark_status(apt['appointment_id'], 'completed')
+                                st.success("Marked complete!")
+                                st.rerun()
+
+                    with action_cols[2]:
+                        if apt['status'] in ['scheduled', 'confirmed']:
+                            if st.button("❌ No-Show", key=f"noshow_{apt['appointment_id']}"):
+                                scheduler.mark_status(apt['appointment_id'], 'no_show', follow_up_needed=True)
+                                st.rerun()
+
+                    with action_cols[3]:
+                        if st.button("📅 Reschedule", key=f"resched_{apt['appointment_id']}"):
+                            st.session_state[f'resched_{apt["appointment_id"]}'] = True
+                            st.rerun()
+
+        # Upcoming this week
+        st.markdown("---")
+        st.markdown("### Coming Up This Week")
+
+        upcoming = scheduler.get_upcoming_appointments(days=7)
+        upcoming = upcoming[upcoming['scheduled_date'] != datetime.now().strftime('%Y-%m-%d')]  # Exclude today
+
+        if upcoming.empty:
+            st.info("No other appointments this week")
+        else:
+            for _, apt in upcoming.head(10).iterrows():
+                apt_type_display = APPOINTMENT_TYPE_DISPLAY.get(apt['appointment_type'], apt['appointment_type'])
+                st.markdown(f"📆 **{apt['scheduled_date']}** {apt['scheduled_time']} - {apt_type_display} - {apt['address'][:40]}...")
+
+    with tab2:
+        st.markdown("### Schedule New Appointment")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            new_date = st.date_input("Date", value=datetime.now())
+            new_time = st.time_input("Time", value=datetime.now().replace(hour=10, minute=0))
+            new_type = st.selectbox("Appointment Type", APPOINTMENT_TYPES, format_func=lambda x: APPOINTMENT_TYPE_DISPLAY.get(x, x))
+            new_duration = st.number_input("Duration (minutes)", value=30, step=15, min_value=15, max_value=180)
+
+        with col2:
+            new_address = st.text_input("Property Address", placeholder="123 Main St")
+            new_seller = st.text_input("Seller Name", placeholder="John Smith")
+            new_phone = st.text_input("Seller Phone", placeholder="614-555-1234")
+            new_assigned = st.text_input("Assigned To", placeholder="VA name")
+
+        new_notes = st.text_area("Notes", placeholder="Any special instructions...")
+
+        # Option to link to existing deal
+        pipeline = DealPipeline()
+        all_deals = pipeline.get_all_deals()
+        deal_options = ["None"] + all_deals['deal_id'].tolist() if not all_deals.empty else ["None"]
+        linked_deal = st.selectbox("Link to Deal (optional)", deal_options)
+
+        if st.button("📅 Schedule Appointment", type="primary"):
+            if new_address:
+                apt_id = scheduler.schedule_appointment(
+                    scheduled_date=new_date.strftime('%Y-%m-%d'),
+                    scheduled_time=new_time.strftime('%H:%M'),
+                    appointment_type=new_type,
+                    address=new_address,
+                    seller_name=new_seller,
+                    seller_phone=new_phone,
+                    deal_id=linked_deal if linked_deal != "None" else "",
+                    assigned_to=new_assigned,
+                    duration_minutes=new_duration,
+                    notes=new_notes
+                )
+                st.success(f"✅ Appointment scheduled! ID: {apt_id}")
+                st.balloons()
+            else:
+                st.error("Property address is required")
+
+    with tab3:
+        st.markdown("### All Appointments")
+
+        # Filters
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            filter_status = st.selectbox("Filter by Status", ["All"] + APPOINTMENT_STATUS)
+        with col2:
+            filter_start = st.date_input("From Date", value=datetime.now() - timedelta(days=30), key="filter_start")
+        with col3:
+            filter_end = st.date_input("To Date", value=datetime.now() + timedelta(days=30), key="filter_end")
+
+        # Get filtered appointments
+        all_apts = scheduler.get_all_appointments(
+            status=filter_status if filter_status != "All" else None,
+            start_date=filter_start.strftime('%Y-%m-%d'),
+            end_date=filter_end.strftime('%Y-%m-%d')
+        )
+
+        st.markdown(f"**{len(all_apts)}** appointments found")
+
+        if not all_apts.empty:
+            for _, apt in all_apts.iterrows():
+                status_color = APT_STATUS_COLORS.get(apt['status'], '#ccc')
+                apt_type_display = APPOINTMENT_TYPE_DISPLAY.get(apt['appointment_type'], apt['appointment_type'])
+
+                with st.expander(f"{apt['scheduled_date']} {apt['scheduled_time']} | {apt_type_display} | {apt['status'].upper()}"):
+                    st.markdown(f"**Address:** {apt['address']}")
+                    st.markdown(f"**Seller:** {apt['seller_name']} | **Phone:** {apt['seller_phone']}")
+                    st.markdown(f"**Assigned To:** {apt['assigned_to']}")
+
+                    if apt['outcome']:
+                        st.markdown(f"**Outcome:** {apt['outcome']}")
+
+                    # Status update
+                    new_status = st.selectbox(
+                        "Update Status",
+                        APPOINTMENT_STATUS,
+                        index=APPOINTMENT_STATUS.index(apt['status']) if apt['status'] in APPOINTMENT_STATUS else 0,
+                        key=f"status_{apt['appointment_id']}"
+                    )
+
+                    if new_status != apt['status']:
+                        if st.button(f"Update to {new_status}", key=f"update_status_{apt['appointment_id']}"):
+                            scheduler.mark_status(apt['appointment_id'], new_status)
+                            st.rerun()
+
+    with tab4:
+        st.markdown("### Appointment Statistics")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            # Status breakdown
+            status_data = []
+            for status in APPOINTMENT_STATUS:
+                count = apt_stats.get(status, 0)
+                if count > 0 or status in ['scheduled', 'confirmed', 'completed']:
+                    status_data.append({
+                        'Status': status.replace('_', ' ').title(),
+                        'Count': count,
+                        'Color': APT_STATUS_COLORS.get(status, '#ccc')
+                    })
+
+            if status_data:
+                fig = px.bar(
+                    status_data,
+                    x='Status',
+                    y='Count',
+                    color='Status',
+                    color_discrete_map={d['Status']: d['Color'] for d in status_data},
+                    title="Appointments by Status"
+                )
+                fig.update_layout(showlegend=False)
+                st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            # Show rate gauge
+            show_rate = apt_stats['show_rate']
+            fig = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=show_rate,
+                title={'text': "Show Rate %"},
+                gauge={
+                    'axis': {'range': [0, 100]},
+                    'bar': {'color': "#28a745" if show_rate >= 70 else "#ffc107" if show_rate >= 50 else "#dc3545"},
+                    'steps': [
+                        {'range': [0, 50], 'color': "#ffcccc"},
+                        {'range': [50, 70], 'color': "#fff3cd"},
+                        {'range': [70, 100], 'color': "#d4edda"}
+                    ]
+                }
+            ))
+            st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("### Key Metrics")
+
+        met_col1, met_col2, met_col3 = st.columns(3)
+        with met_col1:
+            st.metric("Total Appointments", apt_stats['total'])
+        with met_col2:
+            st.metric("Completion Rate", f"{(apt_stats['completed'] / apt_stats['total'] * 100) if apt_stats['total'] > 0 else 0:.0f}%")
+        with met_col3:
+            st.metric("No-Show Rate", f"{(apt_stats['no_show'] / apt_stats['total'] * 100) if apt_stats['total'] > 0 else 0:.0f}%")
+
+
+# ========================================
+# SMS CAMPAIGNS PAGE
+# ========================================
+elif page == "💬 SMS Campaigns":
+    st.markdown('<h1 class="main-header">💬 SMS Campaigns</h1>', unsafe_allow_html=True)
+    st.markdown("Send text messages to leads - quick, personal outreach that gets responses!")
+
+    # Initialize SMS manager
+    sms_manager = SMSCampaigns()
+
+    # Get stats
+    sms_stats = sms_manager.get_stats()
+
+    # Top metrics
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.metric("Total Campaigns", sms_stats['total_campaigns'])
+    with col2:
+        st.metric("Messages Sent", sms_stats['total_messages_sent'])
+    with col3:
+        st.metric("Responses", sms_stats['total_responses'])
+    with col4:
+        st.metric("Response Rate", f"{sms_stats['response_rate']:.1f}%")
+    with col5:
+        st.metric("Opt-outs", sms_stats['total_optouts'])
+
+    st.markdown("---")
+
+    # Tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Campaigns", "✉️ Create Campaign", "📝 Templates", "📊 Analytics"])
+
+    with tab1:
+        st.markdown("### All Campaigns")
+
+        all_campaigns = sms_manager.get_all_campaigns()
+
+        if all_campaigns.empty:
+            st.info("No SMS campaigns yet. Create your first one!")
+        else:
+            for _, camp in all_campaigns.iterrows():
+                status_color = "#28a745" if camp['status'] == 'completed' else "#17a2b8" if camp['status'] == 'sending' else "#6c757d"
+
+                with st.expander(f"📱 {camp['name']} | {camp['status'].upper()} | {int(camp['sent_count'])} sent"):
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown(f"**Status:** <span style='color:{status_color}'>{camp['status'].upper()}</span>", unsafe_allow_html=True)
+                        st.markdown(f"**Recipients:** {int(camp['total_recipients'])}")
+                        st.markdown(f"**Sent:** {int(camp['sent_count'])}")
+                        st.markdown(f"**Failed:** {int(camp['failed_count'])}")
+
+                    with col2:
+                        st.markdown(f"**Responses:** {int(camp['response_count'])}")
+                        st.markdown(f"**Opt-outs:** {int(camp['optout_count'])}")
+                        st.markdown(f"**Created:** {camp['created_at'][:10]}")
+                        st.markdown(f"**By:** {camp['created_by']}")
+
+                    if camp['description']:
+                        st.markdown(f"**Description:** {camp['description']}")
+
+                    # Actions
+                    st.markdown("---")
+                    action_cols = st.columns(3)
+
+                    with action_cols[0]:
+                        if camp['status'] == 'draft':
+                            if st.button("📤 Send Now", key=f"send_{camp['campaign_id']}"):
+                                result = sms_manager.send_campaign(camp['campaign_id'])
+                                st.success(f"Sent {result['sent_count']} messages!")
+                                st.rerun()
+
+                    with action_cols[1]:
+                        if camp['status'] == 'sending':
+                            if st.button("⏸️ Pause", key=f"pause_{camp['campaign_id']}"):
+                                sms_manager.update_campaign_status(camp['campaign_id'], 'paused')
+                                st.rerun()
+
+                    with action_cols[2]:
+                        if st.button("📊 View Messages", key=f"view_{camp['campaign_id']}"):
+                            st.session_state['view_campaign'] = camp['campaign_id']
+                            st.rerun()
+
+                    # Show messages if viewing
+                    if st.session_state.get('view_campaign') == camp['campaign_id']:
+                        st.markdown("---")
+                        st.markdown("**Messages:**")
+                        messages = sms_manager.get_campaign_messages(camp['campaign_id'])
+                        if not messages.empty:
+                            for _, msg in messages.head(10).iterrows():
+                                st.markdown(f"📞 **{msg['recipient_phone']}** ({msg['recipient_name']}) - {msg['status']}")
+                                if msg['response']:
+                                    st.markdown(f"  ↪️ *Response: {msg['response']}*")
+
+    with tab2:
+        st.markdown("### Create SMS Campaign")
+
+        # Campaign info
+        new_name = st.text_input("Campaign Name", placeholder="Holiday Outreach 2024")
+        new_desc = st.text_area("Description (optional)", placeholder="Reaching out to probate leads...")
+
+        # Select template
+        templates = sms_manager.get_templates()
+        template_options = templates['template_id'].tolist() if not templates.empty else []
+        template_names = templates['name'].tolist() if not templates.empty else []
+
+        if template_options:
+            selected_template = st.selectbox(
+                "Select Template",
+                options=template_options,
+                format_func=lambda x: templates[templates['template_id'] == x]['name'].iloc[0] if not templates.empty else x
+            )
+
+            # Preview template
+            if selected_template:
+                tpl = sms_manager.get_template(selected_template)
+                if tpl:
+                    st.markdown("**Template Preview:**")
+                    st.info(tpl['message'])
+
+        # Select recipients
+        st.markdown("---")
+        st.markdown("### Select Recipients")
+
+        recipient_source = st.radio(
+            "Get recipients from:",
+            ["All Leads", "High Score Leads (70+)", "Probate Leads", "Upload Custom"],
+            horizontal=True
+        )
+
+        leads_df = pd.DataFrame()
+        all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+
+        if all_leads_file.exists():
+            leads_df = pd.read_csv(all_leads_file)
+
+            # Filter based on selection
+            if recipient_source == "High Score Leads (70+)" and 'motivation_score' in leads_df.columns:
+                leads_df = leads_df[leads_df['motivation_score'] >= 70]
+            elif recipient_source == "Probate Leads" and 'lead_type' in leads_df.columns:
+                leads_df = leads_df[leads_df['lead_type'].str.contains('probate', case=False, na=False)]
+
+            # Only keep leads with phone numbers
+            phone_cols = ['phone', 'phone_1', 'phone_2']
+            has_phone = pd.Series([False] * len(leads_df))
+            for col in phone_cols:
+                if col in leads_df.columns:
+                    has_phone = has_phone | leads_df[col].notna()
+            leads_df = leads_df[has_phone]
+
+            st.markdown(f"**{len(leads_df)}** leads available with phone numbers")
+
+            if not leads_df.empty:
+                # Show sample - only include columns that exist
+                display_cols = []
+                for col in ['address', 'owner_name', 'owner', 'city', 'phone', 'phone_1']:
+                    if col in leads_df.columns:
+                        display_cols.append(col)
+                if display_cols:
+                    st.dataframe(leads_df[display_cols[:4]].head(5))
+                else:
+                    st.dataframe(leads_df.head(5))
+
+        # Sender info
+        st.markdown("---")
+        st.markdown("### Sender Info")
+        col1, col2 = st.columns(2)
+        with col1:
+            sender_phone = st.text_input("Sender Phone", placeholder="614-555-0123")
+            sender_name = st.text_input("Your Name", placeholder="John from Lifeline")
+        with col2:
+            company_name = st.text_input("Company", value="Lifeline Home Buyers")
+            created_by = st.text_input("Created By", placeholder="Your name")
+
+        if st.button("📱 Create Campaign", type="primary"):
+            if new_name and selected_template and not leads_df.empty:
+                # Prepare recipients
+                recipients = leads_df.to_dict('records')
+
+                campaign_id = sms_manager.create_campaign(
+                    name=new_name,
+                    template_id=selected_template,
+                    recipients=recipients,
+                    sender_phone=sender_phone,
+                    description=new_desc,
+                    created_by=created_by
+                )
+
+                st.success(f"✅ Campaign created! ID: {campaign_id}")
+                st.info("Campaign is in DRAFT mode. Click 'Send Now' to start sending.")
+                st.balloons()
+            else:
+                st.error("Please fill in campaign name, select a template, and have leads available")
+
+    with tab3:
+        st.markdown("### SMS Templates")
+
+        templates = sms_manager.get_templates()
+
+        if not templates.empty:
+            for _, tpl in templates.iterrows():
+                with st.expander(f"📝 {tpl['name']} ({tpl['category']})"):
+                    st.markdown(f"**Message:**")
+                    st.info(tpl['message'])
+                    st.caption(f"Template ID: {tpl['template_id']}")
+
+        st.markdown("---")
+        st.markdown("### Create New Template")
+
+        new_tpl_name = st.text_input("Template Name", placeholder="My Custom Template")
+        new_tpl_category = st.selectbox("Category", ["outreach", "follow_up", "reminder", "custom"])
+        new_tpl_message = st.text_area(
+            "Message (160 chars recommended)",
+            placeholder="Hi {owner_name}, we're interested in buying {address}...",
+            help="Use placeholders: {owner_name}, {address}, {city}, {sender_name}, {phone}, {company}"
+        )
+
+        if len(new_tpl_message) > 0:
+            st.caption(f"Character count: {len(new_tpl_message)} / 160")
+            if len(new_tpl_message) > 160:
+                st.warning("Message exceeds 160 chars - will be sent as multiple texts")
+
+        if st.button("💾 Save Template"):
+            if new_tpl_name and new_tpl_message:
+                tpl_id = sms_manager.create_template(new_tpl_name, new_tpl_message, new_tpl_category)
+                st.success(f"Template saved! ID: {tpl_id}")
+                st.rerun()
+            else:
+                st.error("Name and message are required")
+
+    with tab4:
+        st.markdown("### SMS Analytics")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            # Campaign performance
+            campaigns = sms_manager.get_all_campaigns()
+            if not campaigns.empty:
+                fig = px.bar(
+                    campaigns.head(10),
+                    x='name',
+                    y=['sent_count', 'response_count'],
+                    title="Campaign Performance",
+                    barmode='group'
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No campaign data yet")
+
+        with col2:
+            # Response rate over campaigns
+            if not campaigns.empty and campaigns['sent_count'].sum() > 0:
+                campaigns['response_rate'] = campaigns.apply(
+                    lambda x: (x['response_count'] / x['sent_count'] * 100) if x['sent_count'] > 0 else 0, axis=1
+                )
+                fig = px.line(
+                    campaigns.sort_values('created_at'),
+                    x='name',
+                    y='response_rate',
+                    title="Response Rate by Campaign",
+                    markers=True
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("### Key Metrics")
+
+        met_col1, met_col2, met_col3, met_col4 = st.columns(4)
+        with met_col1:
+            st.metric("Total Messages Sent", sms_stats['total_messages_sent'])
+        with met_col2:
+            st.metric("Total Responses", sms_stats['total_responses'])
+        with met_col3:
+            st.metric("Overall Response Rate", f"{sms_stats['response_rate']:.1f}%")
+        with met_col4:
+            st.metric("Opt-out Rate", f"{(sms_stats['total_optouts'] / sms_stats['total_messages_sent'] * 100) if sms_stats['total_messages_sent'] > 0 else 0:.1f}%")
+
+
+# ========================================
+# FOLLOW-UPS PAGE
+# ========================================
+elif page == "🔄 Follow-ups":
+    st.markdown('<h1 class="main-header">🔄 Automated Follow-ups</h1>', unsafe_allow_html=True)
+    st.markdown("Never let a lead go cold - automated follow-up sequences win deals!")
+
+    # Initialize
+    follow_up_manager = FollowUpSequences()
+
+    # Get stats
+    fu_stats = follow_up_manager.get_stats()
+
+    # Top metrics
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.metric("Active Sequences", fu_stats['active_sequences'])
+    with col2:
+        st.metric("Leads in Sequences", fu_stats['active_leads'])
+    with col3:
+        st.metric("Today's Actions", fu_stats['todays_actions'])
+    with col4:
+        st.metric("Converted", fu_stats['converted_leads'])
+    with col5:
+        st.metric("Conversion Rate", f"{fu_stats['conversion_rate']:.1f}%")
+
+    st.markdown("---")
+
+    # Tabs
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📋 Today's Actions", "📊 Sequences", "➕ Enroll Leads", "👥 Active Leads", "📈 Stats"])
+
+    with tab1:
+        st.markdown("### Today's Follow-up Actions")
+        st.markdown("Complete these actions to keep leads engaged!")
+
+        todays_actions = follow_up_manager.get_todays_actions()
+
+        if todays_actions.empty:
+            st.success("All caught up! No follow-up actions for today.")
+        else:
+            for _, action in todays_actions.iterrows():
+                action_display = ACTION_TYPE_DISPLAY.get(action['action_type'], action['action_type'])
+
+                with st.expander(f"{action_display} | {action['lead_name']} | {action['lead_address'][:30]}...", expanded=True):
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown(f"**Action:** {action_display}")
+                        st.markdown(f"**Description:** {action['description']}")
+                        st.markdown(f"**Lead:** {action['lead_name']}")
+
+                    with col2:
+                        st.markdown(f"**Phone:** {action['lead_phone']}")
+                        st.markdown(f"**Address:** {action['lead_address']}")
+                        st.markdown(f"**Step:** {int(action['step_number'])}")
+
+                    st.markdown("---")
+
+                    result_col1, result_col2, result_col3 = st.columns(3)
+
+                    with result_col1:
+                        result = st.selectbox(
+                            "Result",
+                            ["", "Completed", "No Answer", "Left Message", "Callback Scheduled", "Not Interested", "Wrong Number"],
+                            key=f"result_{action['action_id']}"
+                        )
+
+                    with result_col2:
+                        notes = st.text_input("Notes", key=f"notes_{action['action_id']}")
+
+                    with result_col3:
+                        if st.button("✅ Complete", key=f"complete_{action['action_id']}", type="primary"):
+                            follow_up_manager.complete_action(action['action_id'], result=result, notes=notes)
+                            st.success("Action completed!")
+                            st.rerun()
+
+                        if st.button("⏭️ Skip", key=f"skip_{action['action_id']}"):
+                            follow_up_manager.skip_action(action['action_id'], reason=notes or "Skipped by user")
+                            st.rerun()
+
+        # Upcoming actions
+        st.markdown("---")
+        st.markdown("### Coming Up This Week")
+
+        upcoming = follow_up_manager.get_upcoming_actions(days=7)
+        upcoming = upcoming[upcoming['scheduled_date'] != datetime.now().strftime('%Y-%m-%d')]
+
+        if upcoming.empty:
+            st.info("No upcoming actions this week")
+        else:
+            for _, action in upcoming.head(15).iterrows():
+                action_display = ACTION_TYPE_DISPLAY.get(action['action_type'], action['action_type'])
+                st.markdown(f"📅 **{action['scheduled_date']}** - {action_display} - {action['lead_name']} - {action['lead_address'][:30]}...")
+
+    with tab2:
+        st.markdown("### Follow-up Sequences")
+
+        sequences = follow_up_manager.get_all_sequences()
+
+        if sequences.empty:
+            st.info("No sequences yet")
+        else:
+            for _, seq in sequences.iterrows():
+                status_color = "#28a745" if seq['status'] == 'active' else "#6c757d"
+
+                with st.expander(f"📋 {seq['name']} | {int(seq['total_steps'])} steps | {int(seq['leads_enrolled'])} enrolled"):
+                    st.markdown(f"**Status:** <span style='color:{status_color}'>{seq['status'].upper()}</span>", unsafe_allow_html=True)
+                    st.markdown(f"**Description:** {seq['description']}")
+
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Enrolled", int(seq['leads_enrolled']))
+                    with col2:
+                        st.metric("Completed", int(seq['leads_completed']))
+                    with col3:
+                        st.metric("Converted", int(seq['leads_converted']))
+
+                    # Show steps
+                    st.markdown("**Steps:**")
+                    steps = follow_up_manager.get_sequence_steps(seq['sequence_id'])
+                    for _, step in steps.iterrows():
+                        action_icon = ACTION_TYPE_DISPLAY.get(step['action_type'], '📋')
+                        st.markdown(f"  Day {int(step['day_offset'])}: {action_icon} - {step['description']}")
+
+        # Create new sequence
+        st.markdown("---")
+        st.markdown("### Create New Sequence")
+
+        new_seq_name = st.text_input("Sequence Name", placeholder="My Custom Sequence")
+        new_seq_desc = st.text_area("Description", placeholder="Follow-up for...")
+
+        st.markdown("**Add Steps:**")
+        if 'new_seq_steps' not in st.session_state:
+            st.session_state['new_seq_steps'] = []
+
+        step_col1, step_col2, step_col3 = st.columns(3)
+        with step_col1:
+            step_day = st.number_input("Day", min_value=0, max_value=90, value=0)
+        with step_col2:
+            step_action = st.selectbox("Action", ACTION_TYPES, format_func=lambda x: ACTION_TYPE_DISPLAY.get(x, x))
+        with step_col3:
+            step_desc = st.text_input("Description", placeholder="What to do...")
+
+        if st.button("➕ Add Step"):
+            st.session_state['new_seq_steps'].append({
+                'day_offset': step_day,
+                'action_type': step_action,
+                'description': step_desc
+            })
+            st.rerun()
+
+        if st.session_state['new_seq_steps']:
+            st.markdown("**Current Steps:**")
+            for i, step in enumerate(st.session_state['new_seq_steps']):
+                st.markdown(f"  {i+1}. Day {step['day_offset']}: {ACTION_TYPE_DISPLAY.get(step['action_type'], step['action_type'])} - {step['description']}")
+
+            if st.button("💾 Save Sequence", type="primary"):
+                if new_seq_name:
+                    seq_id = follow_up_manager.create_sequence(
+                        name=new_seq_name,
+                        description=new_seq_desc,
+                        steps=st.session_state['new_seq_steps']
+                    )
+                    st.success(f"Sequence created! ID: {seq_id}")
+                    st.session_state['new_seq_steps'] = []
+                    st.rerun()
+                else:
+                    st.error("Sequence name is required")
+
+    with tab3:
+        st.markdown("### Enroll Leads in Sequence")
+
+        # Select sequence
+        sequences = follow_up_manager.get_all_sequences(status='active')
+        if sequences.empty:
+            st.warning("No active sequences. Create one first!")
+        else:
+            seq_options = sequences['sequence_id'].tolist()
+            selected_seq = st.selectbox(
+                "Select Sequence",
+                seq_options,
+                format_func=lambda x: sequences[sequences['sequence_id'] == x]['name'].iloc[0]
+            )
+
+            # Show sequence info
+            if selected_seq:
+                seq = follow_up_manager.get_sequence(selected_seq)
+                if seq:
+                    st.info(f"**{seq['name']}** - {seq['description']}")
+
+            # Select leads to enroll
+            st.markdown("---")
+            st.markdown("### Select Leads")
+
+            lead_source = st.radio(
+                "Get leads from:",
+                ["All Leads", "High Score (70+)", "Not in Sequence", "Manual Entry"],
+                horizontal=True
+            )
+
+            leads_df = pd.DataFrame()
+            all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+
+            if lead_source != "Manual Entry" and all_leads_file.exists():
+                leads_df = pd.read_csv(all_leads_file)
+
+                if lead_source == "High Score (70+)" and 'motivation_score' in leads_df.columns:
+                    leads_df = leads_df[leads_df['motivation_score'] >= 70]
+
+                # Filter out leads already in active sequences
+                enrollments = follow_up_manager.get_enrollments(status='active')
+                if not enrollments.empty and 'lead_address' in enrollments.columns:
+                    enrolled_addresses = set(enrollments['lead_address'].str.lower().tolist())
+                    if 'address' in leads_df.columns:
+                        leads_df = leads_df[~leads_df['address'].str.lower().isin(enrolled_addresses)]
+
+                st.markdown(f"**{len(leads_df)}** leads available")
+
+                if not leads_df.empty:
+                    # Multi-select leads
+                    selected_leads = st.multiselect(
+                        "Select leads to enroll",
+                        options=leads_df['address'].tolist() if 'address' in leads_df.columns else [],
+                        default=[]
+                    )
+
+                    assigned_to = st.text_input("Assign to VA", placeholder="VA name")
+
+                    if st.button("📥 Enroll Selected Leads", type="primary"):
+                        if selected_leads and selected_seq:
+                            enrolled = 0
+                            for addr in selected_leads:
+                                lead_data = leads_df[leads_df['address'] == addr].iloc[0].to_dict()
+                                follow_up_manager.enroll_lead(selected_seq, lead_data, assigned_to=assigned_to)
+                                enrolled += 1
+                            st.success(f"Enrolled {enrolled} leads!")
+                            st.balloons()
+                        else:
+                            st.error("Select at least one lead")
+
+            elif lead_source == "Manual Entry":
+                manual_address = st.text_input("Address")
+                manual_name = st.text_input("Owner Name")
+                manual_phone = st.text_input("Phone")
+                assigned_to = st.text_input("Assign to VA", key="manual_assign")
+
+                if st.button("📥 Enroll Lead", type="primary"):
+                    if manual_address and selected_seq:
+                        lead_data = {
+                            'address': manual_address,
+                            'owner_name': manual_name,
+                            'phone': manual_phone
+                        }
+                        enroll_id = follow_up_manager.enroll_lead(selected_seq, lead_data, assigned_to=assigned_to)
+                        st.success(f"Enrolled! ID: {enroll_id}")
+
+    with tab4:
+        st.markdown("### Active Leads in Sequences")
+
+        enrollments = follow_up_manager.get_enrollments(status='active')
+
+        if enrollments.empty:
+            st.info("No leads currently in sequences")
+        else:
+            st.markdown(f"**{len(enrollments)}** active enrollments")
+
+            for _, enr in enrollments.iterrows():
+                seq = follow_up_manager.get_sequence(enr['sequence_id'])
+                seq_name = seq['name'] if seq else enr['sequence_id']
+
+                with st.expander(f"👤 {enr['lead_name']} | {enr['lead_address'][:30]}... | Step {int(enr['current_step'])}"):
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown(f"**Sequence:** {seq_name}")
+                        st.markdown(f"**Phone:** {enr['lead_phone']}")
+                        st.markdown(f"**Assigned:** {enr['assigned_to']}")
+
+                    with col2:
+                        st.markdown(f"**Enrolled:** {enr['enrolled_at'][:10]}")
+                        st.markdown(f"**Next Action:** {enr['next_action_date']}")
+                        st.markdown(f"**Status:** {enr['status']}")
+
+                    st.markdown("---")
+                    action_cols = st.columns(3)
+
+                    with action_cols[0]:
+                        if st.button("⏸️ Pause", key=f"pause_{enr['enrollment_id']}"):
+                            follow_up_manager.pause_enrollment(enr['enrollment_id'])
+                            st.rerun()
+
+                    with action_cols[1]:
+                        if st.button("❌ Remove", key=f"remove_{enr['enrollment_id']}"):
+                            follow_up_manager.pause_enrollment(enr['enrollment_id'])  # Use pause as remove
+                            st.rerun()
+
+                    with action_cols[2]:
+                        if st.button("💰 Mark Converted", key=f"convert_{enr['enrollment_id']}"):
+                            follow_up_manager.mark_converted(enr['enrollment_id'])
+                            st.success("Marked as converted!")
+                            st.rerun()
+
+    with tab5:
+        st.markdown("### Follow-up Statistics")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            # Sequence performance
+            sequences = follow_up_manager.get_all_sequences()
+            if not sequences.empty:
+                fig = px.bar(
+                    sequences,
+                    x='name',
+                    y=['leads_enrolled', 'leads_completed', 'leads_converted'],
+                    title="Sequence Performance",
+                    barmode='group'
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No sequence data yet")
+
+        with col2:
+            # Conversion funnel
+            if fu_stats['total_enrolled'] > 0:
+                funnel_data = {
+                    'Stage': ['Enrolled', 'Active', 'Completed', 'Converted'],
+                    'Count': [fu_stats['total_enrolled'], fu_stats['active_leads'], fu_stats['completed_leads'], fu_stats['converted_leads']]
+                }
+                fig = px.funnel(
+                    funnel_data,
+                    x='Count',
+                    y='Stage',
+                    title="Lead Conversion Funnel"
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("---")
+        st.markdown("### Key Metrics")
+
+        met_col1, met_col2, met_col3, met_col4 = st.columns(4)
+        with met_col1:
+            st.metric("Total Enrolled", fu_stats['total_enrolled'])
+        with met_col2:
+            st.metric("Pending Actions", fu_stats['pending_actions'])
+        with met_col3:
+            st.metric("Completion Rate", f"{(fu_stats['completed_leads'] / fu_stats['total_enrolled'] * 100) if fu_stats['total_enrolled'] > 0 else 0:.0f}%")
+        with met_col4:
+            st.metric("Conversion Rate", f"{fu_stats['conversion_rate']:.1f}%")
+
+
+# ========================================
+# REVERSE TARGETING PAGE
+# ========================================
+elif page == "🎯 Reverse Targeting":
+    st.markdown('<h1 class="main-header">🎯 Reverse Targeting</h1>', unsafe_allow_html=True)
+    st.markdown("**Find people ACTIVELY trying to sell** - these are your hottest leads!")
+
+    # Initialize scraper
+    rt_scraper = ReverseTargetingScraper()
+
+    # Get stats
+    rt_stats = rt_scraper.get_stats()
+
+    # Stats row
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Leads", rt_stats.get('total', 0))
+    with col2:
+        st.metric("New (Uncontacted)", rt_stats.get('new', 0))
+    with col3:
+        st.metric("With Phone", rt_stats.get('with_phone', 0))
+    with col4:
+        st.metric("Contacted", rt_stats.get('contacted', 0))
+
+    st.markdown("---")
+
+    # Tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["🔥 Hot Leads", "🔍 Scrape New", "➕ Add Manual", "📊 By Source"])
+
+    with tab1:
+        st.markdown("### 🔥 Active Seller Leads")
+        st.markdown("These people listed their property - they WANT to sell!")
+
+        # Get leads
+        leads_df = rt_scraper.get_all_leads()
+
+        if not leads_df.empty:
+            # Filter options
+            col1, col2 = st.columns(2)
+            with col1:
+                status_filter = st.selectbox("Filter by Status", ["all", "new", "contacted", "interested", "closed", "dead"])
+            with col2:
+                source_filter = st.selectbox("Filter by Source", ["all"] + list(rt_stats.get('by_source', {}).keys()))
+
+            # Apply filters
+            filtered_df = leads_df.copy()
+            if status_filter != "all":
+                filtered_df = filtered_df[filtered_df['status'] == status_filter]
+            if source_filter != "all":
+                filtered_df = filtered_df[filtered_df['source'] == source_filter]
+
+            st.markdown(f"**Showing {len(filtered_df)} leads**")
+
+            # Display each lead as a card
+            for idx, lead in filtered_df.head(20).iterrows():
+                with st.container():
+                    col1, col2, col3 = st.columns([3, 2, 1])
+
+                    with col1:
+                        st.markdown(f"**{lead.get('title', 'No Title')}**")
+                        st.caption(f"📍 {lead.get('address', 'No address')} | 💰 ${lead.get('price', 'N/A')}")
+                        if lead.get('phone'):
+                            st.markdown(f"📞 **{lead.get('phone')}**")
+                        if lead.get('email'):
+                            st.caption(f"✉️ {lead.get('email')}")
+
+                    with col2:
+                        status = lead.get('status', 'new')
+                        status_emoji = {"new": "🆕", "contacted": "📞", "interested": "🔥", "closed": "✅", "dead": "❌"}.get(status, "")
+                        st.markdown(f"Status: {status_emoji} **{status}**")
+                        st.caption(f"Source: {lead.get('source', 'unknown')}")
+                        st.caption(f"Posted: {lead.get('posted_date', 'N/A')}")
+                        if lead.get('url'):
+                            st.markdown(f"[View Listing]({lead.get('url')})")
+
+                    with col3:
+                        lead_id = lead.get('id', '')
+                        new_status = st.selectbox(
+                            "Update",
+                            ["new", "contacted", "interested", "closed", "dead"],
+                            index=["new", "contacted", "interested", "closed", "dead"].index(status) if status in ["new", "contacted", "interested", "closed", "dead"] else 0,
+                            key=f"status_{lead_id}"
+                        )
+                        if st.button("Update", key=f"update_{lead_id}"):
+                            rt_scraper.update_lead_status(lead_id, new_status)
+                            st.success("Updated!")
+                            st.rerun()
+
+                        if lead.get('phone') and st.button("📱 Call", key=f"call_rt_{lead_id}"):
+                            # Add to call tracker
+                            tracker = CallTracker()
+                            tracker.log_call(
+                                address=lead.get('address', ''),
+                                owner_name=lead.get('title', ''),
+                                phone=lead.get('phone', ''),
+                                outcome='Attempted',
+                                notes=f"Reverse targeting lead from {lead.get('source', 'unknown')}"
+                            )
+                            st.info(f"Added to call tracker: {lead.get('phone')}")
+
+                    st.markdown("---")
+        else:
+            st.info("No reverse targeting leads yet. Scrape some or add manually!")
+
+    with tab2:
+        st.markdown("### 🔍 Scrape Active Seller Listings")
+
+        st.markdown("""
+        **Craigslist FSBO** - Find people selling their home without an agent.
+        These are motivated sellers who want to avoid realtor fees!
+        """)
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            city = st.text_input("City", value="columbus")
+        with col2:
+            state = st.text_input("State", value="ohio")
+        with col3:
+            max_pages = st.number_input("Max Pages", min_value=1, max_value=10, value=2)
+
+        if st.button("🚀 Scrape Craigslist FSBO", type="primary"):
+            with st.spinner(f"Scraping Craigslist {city}..."):
+                leads = rt_scraper.scrape_craigslist(city, state, max_pages)
+                saved = rt_scraper.save_leads(leads)
+
+                st.success(f"Found {len(leads)} listings, saved {saved} new leads!")
+
+                if saved > 0:
+                    st.balloons()
+                    st.info("💡 Click the '🔥 Hot Leads' tab above to view your scraped leads!")
+
+        st.markdown("---")
+
+        st.markdown("### 📞 Enrich Leads with Contact Info")
+        st.markdown("Scrape phone numbers and emails from listing detail pages.")
+
+        enrich_limit = st.slider("Number of leads to enrich", 1, 25, 5)
+
+        if st.button("📞 Enrich Leads"):
+            with st.spinner("Enriching leads..."):
+                rt_scraper.enrich_leads(limit=enrich_limit)
+                st.success(f"Enrichment complete!")
+                st.rerun()
+
+        st.markdown("---")
+
+        # Facebook Marketplace instructions
+        st.markdown("### 📘 Facebook Marketplace")
+        st.info(rt_scraper.scrape_facebook_marketplace_manual())
+
+    with tab3:
+        st.markdown("### ➕ Add Manual Lead")
+        st.markdown("Found a lead while driving for dollars, browsing Facebook, or from a referral? Add it here!")
+
+        with st.form("manual_lead_form"):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                m_source = st.selectbox("Source", ["Facebook Marketplace", "Driving for Dollars", "Bandit Sign", "Referral", "Other"])
+                m_title = st.text_input("Listing Title / Description", placeholder="3BR house needs work")
+                m_address = st.text_input("Property Address *", placeholder="123 Main St, Columbus, OH")
+                m_price = st.text_input("Asking Price", placeholder="85000")
+
+            with col2:
+                m_phone = st.text_input("Phone Number", placeholder="614-555-1234")
+                m_email = st.text_input("Email", placeholder="seller@email.com")
+                m_url = st.text_input("Listing URL", placeholder="https://...")
+                m_notes = st.text_area("Notes", placeholder="Any additional info...")
+
+            submitted = st.form_submit_button("➕ Add Lead", type="primary")
+
+            if submitted:
+                if m_address:
+                    lead_id = rt_scraper.add_manual_lead(
+                        source=m_source,
+                        title=m_title,
+                        address=m_address,
+                        price=m_price,
+                        phone=m_phone,
+                        email=m_email,
+                        url=m_url,
+                        notes=m_notes
+                    )
+                    st.success(f"Lead added! ID: {lead_id}")
+                    st.rerun()
+                else:
+                    st.error("Property address is required!")
+
+    with tab4:
+        st.markdown("### 📊 Leads by Source")
+
+        by_source = rt_stats.get('by_source', {})
+
+        if by_source:
+            # Pie chart
+            fig = px.pie(
+                values=list(by_source.values()),
+                names=list(by_source.keys()),
+                title="Lead Distribution by Source"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Table
+            source_df = pd.DataFrame([
+                {"Source": k, "Count": v, "Percentage": f"{v/sum(by_source.values())*100:.1f}%"}
+                for k, v in by_source.items()
+            ])
+            st.dataframe(source_df, hide_index=True)
+        else:
+            st.info("No leads yet - start scraping to see analytics!")
+
+        st.markdown("---")
+        st.markdown("""
+        ### 💡 Tips for Reverse Targeting
+
+        **Why it works:**
+        - These sellers RAISED THEIR HAND - they want to sell
+        - No cold calling random people
+        - Higher conversion rates
+        - Less competition (most investors ignore these)
+
+        **Best sources:**
+        1. **Craigslist FSBO** - Motivated, avoiding agents
+        2. **Facebook Marketplace** - Often distressed situations
+        3. **Driving for Dollars** - Vacant/distressed properties
+        4. **Bandit Signs** - "We Buy Houses" sign responses
+        """)
+
+
+# ========================================
+# DIRECT MAIL PAGE
+# ========================================
+elif page == "📬 Direct Mail":
+    st.markdown('<h1 class="main-header">📬 Direct Mail Manager</h1>', unsafe_allow_html=True)
+    st.markdown("Create and manage direct mail campaigns for motivated sellers")
+
+    # Initialize manager
+    mail_manager = DirectMailManager()
+
+    # Get campaigns
+    campaigns = mail_manager.get_campaigns()
+
+    # Quick stats
+    total_sent = 0
+    total_responses = 0
+    for campaign in campaigns:
+        total_sent += campaign.get('stats', {}).get('mail_sent', 0)
+        total_responses += campaign.get('stats', {}).get('responses', 0)
+
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Campaigns", len(campaigns))
+    with col2:
+        active = len([c for c in campaigns if c.get('status') == 'active'])
+        st.metric("Active", active)
+    with col3:
+        st.metric("Mail Sent", total_sent)
+    with col4:
+        st.metric("Responses", total_responses)
+
+    st.markdown("---")
+
+    # Tabs
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📋 Campaigns", "➕ New Campaign", "📤 Generate List", "📊 Track Responses", "📈 Analytics"])
+
+    with tab1:
+        st.markdown("### Active Campaigns")
+
+        if campaigns:
+            for campaign in campaigns:
+                with st.expander(f"**{campaign.get('name')}** - {campaign.get('status', 'active').upper()}", expanded=campaign.get('status') == 'active'):
+                    col1, col2 = st.columns([3, 1])
+
+                    with col1:
+                        st.markdown(f"**ID:** {campaign.get('id')}")
+                        st.markdown(f"**Type:** {campaign.get('lead_type', 'All')} | **Mail Type:** {campaign.get('mail_type', 'postcard')}")
+                        st.markdown(f"**Touches:** {campaign.get('touches', 1)} | **Days Between:** {campaign.get('days_between_touches', 14)}")
+                        if campaign.get('description'):
+                            st.caption(campaign.get('description'))
+
+                        # Stats
+                        stats = campaign.get('stats', {})
+                        st.markdown(f"📬 Sent: **{stats.get('mail_sent', 0)}** | 📞 Responses: **{stats.get('responses', 0)}** | ✅ Deals: **{stats.get('deals_closed', 0)}**")
+
+                    with col2:
+                        campaign_id = campaign.get('id')
+                        status = campaign.get('status', 'active')
+
+                        if status == 'active':
+                            if st.button("⏸️ Pause", key=f"pause_{campaign_id}"):
+                                mail_manager.update_campaign_status(campaign_id, 'paused')
+                                st.rerun()
+                        elif status == 'paused':
+                            if st.button("▶️ Resume", key=f"resume_{campaign_id}"):
+                                mail_manager.update_campaign_status(campaign_id, 'active')
+                                st.rerun()
+
+                        if st.button("✅ Complete", key=f"complete_{campaign_id}"):
+                            mail_manager.update_campaign_status(campaign_id, 'completed')
+                            st.rerun()
+        else:
+            st.info("No campaigns yet. Create one to get started!")
+
+    with tab2:
+        st.markdown("### Create New Campaign")
+
+        with st.form("new_campaign_form"):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                c_name = st.text_input("Campaign Name *", placeholder="Probate Q1 2025")
+                c_lead_type = st.selectbox("Target Lead Type", ["", "probate", "tax_delinquent", "code_violation", "sheriff_sale"])
+                c_mail_type = st.selectbox("Mail Type", ["postcard", "letter", "yellow_letter"])
+                c_description = st.text_area("Description", placeholder="First probate mailing campaign...")
+
+            with col2:
+                c_touches = st.number_input("Number of Touches", min_value=1, max_value=10, value=3)
+                c_days = st.number_input("Days Between Touches", min_value=7, max_value=60, value=14)
+                c_min_score = st.slider("Minimum Motivation Score", 0, 100, 50)
+                c_zip_filter = st.text_input("ZIP Codes (comma-separated)", placeholder="43215, 43201, 43220")
+
+            submitted = st.form_submit_button("Create Campaign", type="primary")
+
+            if submitted:
+                if c_name:
+                    filters = {'min_score': c_min_score}
+                    if c_zip_filter:
+                        filters['zip_codes'] = [z.strip() for z in c_zip_filter.split(',')]
+
+                    campaign_id = mail_manager.create_campaign(
+                        name=c_name,
+                        lead_type=c_lead_type if c_lead_type else None,
+                        mail_type=c_mail_type,
+                        touches=c_touches,
+                        days_between_touches=c_days,
+                        description=c_description,
+                        filters=filters
+                    )
+                    st.success(f"Campaign created! ID: {campaign_id}")
+                    st.rerun()
+                else:
+                    st.error("Campaign name is required!")
+
+    with tab3:
+        st.markdown("### Generate Mail List")
+
+        if campaigns:
+            active_campaigns = [c for c in campaigns if c.get('status') == 'active']
+
+            if active_campaigns:
+                campaign_options = {c['name']: c['id'] for c in active_campaigns}
+                selected_campaign = st.selectbox("Select Campaign", list(campaign_options.keys()))
+                selected_id = campaign_options[selected_campaign]
+
+                campaign = mail_manager.get_campaign(selected_id)
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    touch_number = st.number_input("Touch Number", min_value=1, max_value=campaign.get('touches', 3), value=1)
+                with col2:
+                    limit = st.number_input("Max Addresses", min_value=10, max_value=5000, value=500)
+
+                exclude_mailed = st.checkbox("Exclude already mailed addresses", value=True)
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    if st.button("👁️ Preview List", type="secondary"):
+                        preview = mail_manager.generate_mail_list(selected_id, touch_number, limit=20)
+                        if not preview.empty:
+                            st.dataframe(preview[['owner_name', 'address_line_1', 'city', 'state', 'zip']], hide_index=True)
+                            st.info(f"Showing 20 of estimated {len(preview)} addresses")
+                        else:
+                            st.warning("No addresses match your criteria")
+
+                with col2:
+                    if st.button("📤 Export to CSV", type="primary"):
+                        export_path = mail_manager.export_mail_list(selected_id, touch_number, limit=limit)
+                        if export_path:
+                            st.success(f"Exported to: {export_path}")
+
+                            # Option to log as sent
+                            if st.button("✅ Mark as Sent"):
+                                mail_list = mail_manager.generate_mail_list(selected_id, touch_number, limit=limit)
+                                addresses = mail_list['address_line_1'].tolist()
+                                count = mail_manager.log_mail_sent(selected_id, addresses, touch_number)
+                                st.success(f"Logged {count} mail pieces as sent!")
+                                st.rerun()
+                        else:
+                            st.error("Failed to export - no addresses found")
+
+                st.markdown("---")
+                st.markdown("### Mail Templates")
+
+                for key, template in MAIL_TEMPLATES.items():
+                    with st.expander(f"📝 {template['name']}"):
+                        st.markdown(f"**Size:** {template.get('size', 'postcard')}")
+                        st.code(template['body'])
+
+            else:
+                st.warning("No active campaigns. Create or activate a campaign first.")
+        else:
+            st.info("Create a campaign first!")
+
+    with tab4:
+        st.markdown("### Track Responses")
+
+        if campaigns:
+            st.markdown("#### Log New Response")
+
+            with st.form("log_response_form"):
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    campaign_options = {c['name']: c['id'] for c in campaigns}
+                    resp_campaign = st.selectbox("Campaign", list(campaign_options.keys()), key="resp_campaign")
+                    resp_type = st.selectbox("Response Type", ["call", "text", "email", "web_form"])
+
+                with col2:
+                    resp_phone = st.text_input("Caller Phone", placeholder="614-555-1234")
+                    resp_notes = st.text_area("Notes", placeholder="What did they say?")
+
+                if st.form_submit_button("Log Response", type="primary"):
+                    campaign_id = campaign_options[resp_campaign]
+                    response_id = mail_manager.log_response(
+                        campaign_id=campaign_id,
+                        response_type=resp_type,
+                        phone=resp_phone,
+                        notes=resp_notes
+                    )
+                    st.success(f"Response logged! ID: {response_id}")
+                    st.rerun()
+
+            st.markdown("---")
+            st.markdown("#### Recent Responses")
+
+            responses = mail_manager.get_responses()
+            if not responses.empty:
+                for idx, resp in responses.head(20).iterrows():
+                    col1, col2 = st.columns([3, 1])
+
+                    with col1:
+                        campaign_name = next((c['name'] for c in campaigns if c['id'] == resp.get('campaign_id')), 'Unknown')
+                        st.markdown(f"**{resp.get('response_type', 'call').upper()}** from **{resp.get('phone', 'Unknown')}**")
+                        st.caption(f"Campaign: {campaign_name} | {resp.get('response_date', '')}")
+                        if resp.get('notes'):
+                            st.caption(f"Notes: {resp.get('notes')}")
+
+                    with col2:
+                        outcome = resp.get('outcome', 'new')
+                        outcome_emoji = {'new': '🆕', 'interested': '🔥', 'not_interested': '❌', 'deal_closed': '✅'}.get(outcome, '❓')
+                        st.markdown(f"{outcome_emoji} {outcome}")
+
+                        new_outcome = st.selectbox(
+                            "Update",
+                            ["new", "interested", "not_interested", "deal_closed"],
+                            index=["new", "interested", "not_interested", "deal_closed"].index(outcome) if outcome in ["new", "interested", "not_interested", "deal_closed"] else 0,
+                            key=f"outcome_{resp.get('response_id')}"
+                        )
+                        if st.button("Update", key=f"update_resp_{resp.get('response_id')}"):
+                            mail_manager.update_response_outcome(resp.get('response_id'), new_outcome)
+                            st.rerun()
+
+                    st.markdown("---")
+            else:
+                st.info("No responses logged yet")
+        else:
+            st.info("Create a campaign first!")
+
+    with tab5:
+        st.markdown("### Campaign Analytics")
+
+        if campaigns:
+            campaign_options = {c['name']: c['id'] for c in campaigns}
+            analytics_campaign = st.selectbox("Select Campaign", list(campaign_options.keys()), key="analytics_campaign")
+            analytics_id = campaign_options[analytics_campaign]
+
+            stats = mail_manager.get_campaign_stats(analytics_id)
+
+            if stats:
+                col1, col2, col3 = st.columns(3)
+
+                mail_stats = stats.get('mail', {})
+                resp_stats = stats.get('responses', {})
+
+                with col1:
+                    st.markdown("#### Mail Stats")
+                    st.metric("Total Sent", mail_stats.get('total_sent', 0))
+                    st.metric("Returned", mail_stats.get('returned', 0))
+                    st.metric("Return Rate", f"{mail_stats.get('return_rate', 0):.1f}%")
+
+                with col2:
+                    st.markdown("#### Responses")
+                    st.metric("Total Responses", resp_stats.get('total', 0))
+                    st.metric("Response Rate", f"{resp_stats.get('response_rate', 0):.1f}%")
+
+                with col3:
+                    st.markdown("#### ROI")
+                    campaign_stats = stats.get('campaign', {}).get('stats', {})
+                    deals = campaign_stats.get('deals_closed', 0)
+                    st.metric("Deals Closed", deals)
+                    # Assume $0.50 per piece for rough ROI
+                    cost = mail_stats.get('total_sent', 0) * 0.50
+                    st.metric("Est. Cost", f"${cost:,.2f}")
+
+                # By Touch breakdown
+                if mail_stats.get('by_touch'):
+                    st.markdown("---")
+                    st.markdown("#### Mail by Touch")
+
+                    touch_data = mail_stats.get('by_touch', {})
+                    if touch_data:
+                        fig = px.bar(
+                            x=list(touch_data.keys()),
+                            y=list(touch_data.values()),
+                            labels={'x': 'Touch Number', 'y': 'Mail Sent'},
+                            title="Mail Sent by Touch"
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+
+                # Response types
+                if resp_stats.get('by_type'):
+                    st.markdown("---")
+                    st.markdown("#### Response Types")
+
+                    resp_type_data = resp_stats.get('by_type', {})
+                    if resp_type_data:
+                        fig2 = px.pie(
+                            values=list(resp_type_data.values()),
+                            names=list(resp_type_data.keys()),
+                            title="Responses by Type"
+                        )
+                        st.plotly_chart(fig2, use_container_width=True)
+            else:
+                st.info("No data for this campaign yet")
+        else:
+            st.info("Create a campaign first!")
+
+
+# ========================================
+# RVM & NUMBER ROTATION PAGE
+# ========================================
+elif page == "📲 RVM & Numbers":
+    st.markdown('<h1 class="main-header">📲 RVM & Number Rotation</h1>', unsafe_allow_html=True)
+    st.markdown("Solve the spam risk problem: warm leads with RVM and rotate numbers")
+
+    # Initialize managers
+    num_manager = NumberRotationManager()
+    rvm_manager = RVMManager()
+
+    # Get stats
+    rotation_stats = num_manager.get_rotation_stats()
+    rvm_campaigns = rvm_manager.get_campaigns()
+
+    # Quick stats row
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Phone Numbers", rotation_stats.get('total_numbers', 0))
+    with col2:
+        st.metric("Available", rotation_stats.get('available_numbers', 0))
+    with col3:
+        st.metric("RVM Campaigns", len(rvm_campaigns))
+    with col4:
+        total_drops = sum(c.get('stats', {}).get('total_drops', 0) for c in rvm_campaigns)
+        st.metric("Total RVM Drops", total_drops)
+
+    st.markdown("---")
+
+    # Tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["📞 Number Rotation", "📲 RVM Campaigns", "📝 RVM Scripts", "📊 Analytics"])
+
+    with tab1:
+        st.markdown("### Phone Number Rotation")
+        st.markdown("""
+        **Why rotate numbers?**
+        - Avoid spam flags from carriers
+        - Maintain local presence
+        - Higher answer rates
+
+        **Best Practices:**
+        - Rotate every 20-30 calls
+        - Rest numbers for 24+ hours
+        - Use local area codes when possible
+        """)
+
+        st.markdown("---")
+
+        # Add new number
+        st.markdown("#### Add Phone Number")
+        with st.form("add_number_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                new_number = st.text_input("Phone Number", placeholder="614-555-1234")
+                new_provider = st.selectbox("Provider", ["manual", "twilio", "openphone", "other"])
+            with col2:
+                new_area_code = st.text_input("Area Code (auto-detected)", placeholder="614")
+                new_notes = st.text_input("Notes", placeholder="Main line, etc.")
+
+            if st.form_submit_button("Add Number", type="primary"):
+                if new_number:
+                    num_id = num_manager.add_number(
+                        phone_number=new_number,
+                        area_code=new_area_code if new_area_code else None,
+                        provider=new_provider,
+                        notes=new_notes
+                    )
+                    st.success(f"Added number! ID: {num_id}")
+                    st.rerun()
+                else:
+                    st.error("Phone number is required")
+
+        st.markdown("---")
+
+        # Current numbers
+        st.markdown("#### Your Numbers")
+
+        numbers = rotation_stats.get('numbers', [])
+        if numbers:
+            for num in numbers:
+                col1, col2, col3 = st.columns([2, 2, 1])
+
+                with col1:
+                    status_emoji = {'active': '✅', 'flagged': '🚫', 'resting': '😴'}.get(num.get('status'), '❓')
+
+                    # Check if resting
+                    is_resting = False
+                    if num.get('resting_until'):
+                        rest_until = datetime.fromisoformat(num['resting_until'])
+                        if datetime.now() < rest_until:
+                            is_resting = True
+                            status_emoji = '😴'
+
+                    st.markdown(f"{status_emoji} **{num.get('formatted', num.get('phone_number'))}**")
+                    st.caption(f"Area: {num.get('area_code')} | Provider: {num.get('provider')}")
+
+                with col2:
+                    health = num.get('health_score', 100)
+                    health_color = 'green' if health >= 70 else 'orange' if health >= 40 else 'red'
+                    st.markdown(f"Health: **{health}/100** | Calls Today: **{num.get('calls_today', 0)}**")
+                    st.caption(f"Total Calls: {num.get('total_calls', 0)} | Since Rotation: {num.get('calls_since_rotation', 0)}")
+
+                    if is_resting:
+                        st.caption(f"⏰ Resting until: {rest_until.strftime('%m/%d %H:%M')}")
+
+                with col3:
+                    if num.get('status') == 'active':
+                        if st.button("🚫 Flag Spam", key=f"flag_{num.get('id')}"):
+                            num_manager.report_spam(num.get('id'))
+                            st.warning("Number flagged!")
+                            st.rerun()
+
+                st.markdown("---")
+        else:
+            st.info("No phone numbers added yet. Add numbers above to start rotating.")
+
+        # Get next number preview
+        st.markdown("#### Next Number Preview")
+        next_num = num_manager.get_next_number()
+        if next_num:
+            st.success(f"Next call will use: **{next_num.get('formatted')}** (Area: {next_num.get('area_code')})")
+        else:
+            st.warning("No numbers available! Add numbers or wait for resting numbers to come back online.")
+
+    with tab2:
+        st.markdown("### RVM (Ringless Voicemail) Campaigns")
+        st.markdown("""
+        **Why use RVM?**
+        - Drop voicemail directly without ringing
+        - Warm leads BEFORE cold calling
+        - Higher callback rates
+        - Less intrusive than cold calls
+        """)
+
+        st.markdown("---")
+
+        # Create new campaign
+        st.markdown("#### Create RVM Campaign")
+
+        scripts = rvm_manager.get_scripts()
+
+        with st.form("create_rvm_campaign"):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                rvm_name = st.text_input("Campaign Name", placeholder="Probate RVM Q1")
+                rvm_lead_type = st.selectbox("Target Lead Type", ["", "probate", "tax_delinquent", "code_violation"])
+
+            with col2:
+                script_options = list(scripts.keys()) if scripts else ["No scripts - add some first"]
+                rvm_script = st.selectbox("Voicemail Script", script_options)
+                rvm_description = st.text_input("Description", placeholder="First RVM touch for probate...")
+
+            if st.form_submit_button("Create Campaign", type="primary"):
+                if rvm_name and scripts:
+                    campaign_id = rvm_manager.create_campaign(
+                        name=rvm_name,
+                        script_id=rvm_script,
+                        lead_type=rvm_lead_type if rvm_lead_type else None,
+                        description=rvm_description
+                    )
+                    st.success(f"Campaign created! ID: {campaign_id}")
+                    st.rerun()
+                elif not scripts:
+                    st.error("Add voicemail scripts first!")
+                else:
+                    st.error("Campaign name is required")
+
+        st.markdown("---")
+
+        # Active campaigns
+        st.markdown("#### Active Campaigns")
+
+        if rvm_campaigns:
+            for campaign in rvm_campaigns:
+                with st.expander(f"**{campaign.get('name')}** - {campaign.get('status', 'active').upper()}"):
+                    col1, col2 = st.columns([3, 1])
+
+                    with col1:
+                        st.markdown(f"**ID:** {campaign.get('id')}")
+                        st.markdown(f"**Script:** {campaign.get('script_id')} | **Lead Type:** {campaign.get('lead_type', 'All')}")
+
+                        stats = campaign.get('stats', {})
+                        st.markdown(f"📲 Drops: **{stats.get('total_drops', 0)}** | 📞 Callbacks: **{stats.get('callbacks', 0)}**")
+
+                        if stats.get('total_drops', 0) > 0:
+                            callback_rate = stats.get('callbacks', 0) / stats.get('total_drops', 1) * 100
+                            st.caption(f"Callback Rate: {callback_rate:.1f}%")
+
+                    with col2:
+                        campaign_id = campaign.get('id')
+
+                        # Generate drop list button
+                        if st.button("📋 Generate List", key=f"gen_{campaign_id}"):
+                            drop_list = rvm_manager.generate_drop_list(campaign_id, limit=100)
+                            if not drop_list.empty:
+                                st.dataframe(drop_list[['target_number', 'owner_name', 'address']].head(10), hide_index=True)
+                                st.info(f"Preview of {len(drop_list)} numbers ready for drop")
+
+                                # Export option
+                                export_path = DATA_DIR / f"rvm_drop_list_{campaign_id}.csv"
+                                drop_list.to_csv(export_path, index=False)
+                                st.success(f"Exported to: {export_path}")
+                            else:
+                                st.warning("No numbers available for this campaign")
+        else:
+            st.info("No RVM campaigns yet. Create one above!")
+
+    with tab3:
+        st.markdown("### Voicemail Scripts")
+
+        # Add default scripts if none exist
+        if not scripts:
+            st.info("Adding default scripts...")
+            for script_id, script_data in DEFAULT_RVM_SCRIPTS.items():
+                rvm_manager.add_script(
+                    script_id=script_id,
+                    name=script_data['name'],
+                    script_text=script_data['script_text'],
+                    duration_seconds=script_data['duration_seconds']
+                )
+            st.success("Default scripts added!")
+            st.rerun()
+
+        # Display scripts
+        scripts = rvm_manager.get_scripts()
+
+        if scripts:
+            for script_id, script in scripts.items():
+                with st.expander(f"📝 {script.get('name', script_id)}"):
+                    st.markdown(f"**ID:** `{script_id}`")
+                    st.markdown(f"**Duration:** ~{script.get('duration_seconds', 30)} seconds")
+
+                    st.markdown("**Script:**")
+                    st.code(script.get('script_text', ''))
+
+                    if script.get('audio_url'):
+                        st.markdown(f"**Audio:** {script.get('audio_url')}")
+
+        st.markdown("---")
+
+        # Add new script
+        st.markdown("#### Add New Script")
+
+        with st.form("add_script_form"):
+            script_id = st.text_input("Script ID", placeholder="my_custom_script")
+            script_name = st.text_input("Script Name", placeholder="Custom Probate Script")
+            script_text = st.text_area("Script Text", placeholder="Hi, this is Willy from Lifeline Home Buyers...", height=200)
+            script_duration = st.number_input("Estimated Duration (seconds)", min_value=10, max_value=120, value=30)
+            audio_url = st.text_input("Audio URL (optional)", placeholder="https://...")
+
+            if st.form_submit_button("Add Script", type="primary"):
+                if script_id and script_name and script_text:
+                    rvm_manager.add_script(
+                        script_id=script_id,
+                        name=script_name,
+                        script_text=script_text,
+                        duration_seconds=script_duration,
+                        audio_url=audio_url
+                    )
+                    st.success("Script added!")
+                    st.rerun()
+                else:
+                    st.error("Script ID, name, and text are required")
+
+    with tab4:
+        st.markdown("### RVM & Number Analytics")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("#### Number Health")
+
+            numbers = rotation_stats.get('numbers', [])
+            if numbers:
+                health_data = {n.get('formatted', n.get('phone_number')): n.get('health_score', 100) for n in numbers}
+
+                fig = px.bar(
+                    x=list(health_data.keys()),
+                    y=list(health_data.values()),
+                    labels={'x': 'Number', 'y': 'Health Score'},
+                    title="Number Health Scores",
+                    color=list(health_data.values()),
+                    color_continuous_scale=['red', 'yellow', 'green']
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Add numbers to see health analytics")
+
+        with col2:
+            st.markdown("#### RVM Callback Rates")
+
+            if rvm_campaigns:
+                campaign_data = []
+                for c in rvm_campaigns:
+                    stats = c.get('stats', {})
+                    drops = stats.get('total_drops', 0)
+                    callbacks = stats.get('callbacks', 0)
+                    rate = (callbacks / drops * 100) if drops > 0 else 0
+                    campaign_data.append({
+                        'Campaign': c.get('name'),
+                        'Drops': drops,
+                        'Callbacks': callbacks,
+                        'Rate': f"{rate:.1f}%"
+                    })
+
+                st.dataframe(pd.DataFrame(campaign_data), hide_index=True)
+            else:
+                st.info("Create RVM campaigns to see analytics")
+
+        st.markdown("---")
+
+        st.markdown("#### Today's Activity")
+        st.metric("Calls Today (All Numbers)", rotation_stats.get('calls_today', 0))
+        st.metric("Numbers Resting", rotation_stats.get('resting_numbers', 0))
+        st.metric("Flagged Numbers", rotation_stats.get('flagged_numbers', 0))
+
+        st.markdown("---")
+
+        st.markdown("""
+        ### Integration Guide
+
+        **For RVM Delivery:**
+        - [Slybroadcast](https://slybroadcast.com) - $0.02-0.03/drop
+        - [Drop Cowboy](https://dropcowboy.com) - $0.04-0.05/drop
+
+        **For Number Rotation:**
+        - [Twilio](https://twilio.com) - $1/month per number
+        - [OpenPhone](https://openphone.com) - $15/month for teams
+
+        **Workflow:**
+        1. Add your phone numbers
+        2. Create RVM campaign with script
+        3. Generate drop list
+        4. Upload to RVM provider
+        5. Track callbacks
+        6. Call back warm leads using rotated numbers
+        """)
 
 
 # ========================================
@@ -3120,50 +4779,10 @@ elif page == "🔍 Search Owner":
 elif page == "📊 View Leads":
     st.markdown('<h1 class="main-header">📊 View Leads</h1>', unsafe_allow_html=True)
 
-    # Check for batches
-    batches_dir = PROCESSED_DATA_DIR / 'batches'
-    batch_files = []
-    if batches_dir.exists():
-        batch_files = sorted(batches_dir.glob('batch_*_*.csv'), reverse=True)
-        # Filter out tier-specific files (only show main batch files)
-        batch_files = [f for f in batch_files if '_tier_' not in f.name]
-
-    # Batch selector
-    if batch_files:
-        st.markdown("### 📁 Select Batch")
-        batch_options = ["📋 Latest (All Combined)"] + [f.name for f in batch_files]
-        selected_batch = st.selectbox("Choose which batch to view:", batch_options)
-
-        if selected_batch == "📋 Latest (All Combined)":
-            all_leads_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
-            if not all_leads_file.exists():
-                all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
-        else:
-            all_leads_file = batches_dir / selected_batch
-
-        # Show batch summary
-        st.markdown("#### 📊 Available Batches")
-        batch_summary = []
-        for bf in batch_files[:10]:  # Show last 10 batches
-            try:
-                batch_df = pd.read_csv(bf)
-                batch_summary.append({
-                    'Batch': bf.name,
-                    'Leads': len(batch_df),
-                    'Tier 1': len(batch_df[batch_df['tier'] == 1]) if 'tier' in batch_df.columns else 0,
-                    'Tier 2': len(batch_df[batch_df['tier'] == 2]) if 'tier' in batch_df.columns else 0,
-                    'Tier 3': len(batch_df[batch_df['tier'] == 3]) if 'tier' in batch_df.columns else 0,
-                })
-            except:
-                pass
-        if batch_summary:
-            st.dataframe(pd.DataFrame(batch_summary), use_container_width=True, hide_index=True)
-        st.markdown("---")
-    else:
-        # No batches yet, use legacy file
-        all_leads_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
-        if not all_leads_file.exists():
-            all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+    # Check if data exists - try new format first, then old
+    all_leads_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+    if not all_leads_file.exists():
+        all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
 
     if not all_leads_file.exists():
         st.warning("⚠️ No leads found. Generate leads first!")
@@ -3246,11 +4865,11 @@ elif page == "📊 View Leads":
         with col4:
             # Bathrooms filter
             if 'bathrooms' in df.columns:
-                max_baths = float(df['bathrooms'].max()) if df['bathrooms'].max() > 0 else 10.0
+                max_baths = float(df['bathrooms'].max()) if df['bathrooms'].max() > 0 else 10
                 min_bathrooms = st.number_input(
                     "Min Bathrooms",
                     min_value=0.0,
-                    max_value=float(max_baths),
+                    max_value=max_baths,
                     value=0.0,
                     step=0.5,
                     help="Minimum number of bathrooms"
@@ -3654,973 +5273,6 @@ elif page == "🐋 Whale Owners":
 
 
 # ========================================
-# INVESTOR FINDER PAGE
-# ========================================
-elif page == "💰 Investor Finder":
-    st.markdown('<h1 class="main-header">💰 Investor Finder</h1>', unsafe_allow_html=True)
-    st.markdown("Find cash buyers for your deals - scored and ranked by investment activity")
-
-    # Investor data directory
-    BUYERS_DATA_DIR = DATA_DIR / 'buyers' / 'processed'
-    BUYERS_RAW_DIR = DATA_DIR / 'buyers' / 'raw'
-
-    # County configuration
-    COUNTY_OPTIONS = {
-        'franklin': {'name': 'Franklin County', 'city': 'Columbus'},
-        'hamilton': {'name': 'Hamilton County', 'city': 'Cincinnati'}
-    }
-
-    # Tabs for different functions
-    inv_tab1, inv_tab2, inv_tab3, inv_tab4, inv_tab5 = st.tabs(["📋 View Investors", "🔄 Run Pipeline", "📞 Bulk Skip Trace", "🔍 Lookup Contact", "💾 Saved Contacts"])
-
-    # ---- TAB 1: VIEW INVESTORS ----
-    with inv_tab1:
-        col1, col2, col3 = st.columns([1, 1, 2])
-        with col1:
-            county_select = st.selectbox(
-                "Select County",
-                options=list(COUNTY_OPTIONS.keys()),
-                format_func=lambda x: f"{COUNTY_OPTIONS[x]['city']} ({COUNTY_OPTIONS[x]['name']})"
-            )
-        with col2:
-            tier_filter = st.selectbox(
-                "Filter by Tier",
-                ["All Tiers", "Tier 1 (80-100)", "Tier 2 (60-79)", "Tier 3 (40-59)"]
-            )
-
-        # Load investor data for selected county
-        @st.cache_data
-        def load_investors_by_county(county, tier=None):
-            investors = []
-            tier_map = {
-                'Tier 1 (80-100)': f'investor_prospects_{county}_tier_1.csv',
-                'Tier 2 (60-79)': f'investor_prospects_{county}_tier_2.csv',
-                'Tier 3 (40-59)': f'investor_prospects_{county}_tier_3.csv',
-            }
-
-            if tier and tier != "All Tiers":
-                files = {tier: tier_map[tier]}
-            else:
-                files = tier_map
-
-            for tier_name, filename in files.items():
-                filepath = BUYERS_DATA_DIR / filename
-                if filepath.exists():
-                    df = pd.read_csv(filepath)
-                    df['tier'] = tier_name
-                    investors.append(df)
-
-            if investors:
-                return pd.concat(investors, ignore_index=True)
-            return pd.DataFrame()
-
-        df = load_investors_by_county(county_select, tier_filter)
-
-        if len(df) > 0:
-            # Stats
-            st.markdown("---")
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.metric("Total Investors", f"{len(df):,}")
-            with col2:
-                if 'investor_score' in df.columns:
-                    st.metric("Avg Score", f"{df['investor_score'].mean():.1f}")
-            with col3:
-                if 'portfolio_size' in df.columns:
-                    st.metric("Avg Portfolio", f"{df['portfolio_size'].mean():.1f} properties")
-            with col4:
-                tier1_count = len(df[df['tier'] == 'Tier 1 (80-100)']) if 'tier' in df.columns else 0
-                st.metric("Tier 1 (Hot)", tier1_count)
-
-            st.markdown("---")
-
-            # Search
-            search = st.text_input("🔍 Search investors by name or address", key="inv_search")
-
-            if search:
-                mask = df.astype(str).apply(lambda x: x.str.contains(search, case=False, na=False)).any(axis=1)
-                df = df[mask]
-
-            # Display columns
-            display_cols = ['owner_name', 'investor_score', 'portfolio_size', 'entity_type', 'mailing_address', 'tier']
-            available_cols = [c for c in display_cols if c in df.columns]
-
-            st.dataframe(
-                df[available_cols].sort_values('investor_score', ascending=False) if 'investor_score' in df.columns else df[available_cols],
-                use_container_width=True,
-                height=400
-            )
-
-            # Export options
-            st.markdown("---")
-            col1, col2 = st.columns(2)
-            with col1:
-                csv = df.to_csv(index=False)
-                st.download_button(
-                    "📥 Export Full CSV",
-                    csv,
-                    f"investors_{county_select}_{tier_filter.replace(' ', '_').lower()}.csv",
-                    "text/csv"
-                )
-            with col2:
-                # Export formatted for skip tracing
-                skip_cols = ['owner_name', 'mailing_address', 'entity_type', 'investor_score', 'portfolio_size']
-                skip_available = [c for c in skip_cols if c in df.columns]
-                skip_csv = df[skip_available].to_csv(index=False)
-                st.download_button(
-                    "📥 Export for Skip Tracing",
-                    skip_csv,
-                    f"investors_skip_trace_{county_select}.csv",
-                    "text/csv"
-                )
-        else:
-            st.warning(f"⚠️ No investor data found for {COUNTY_OPTIONS[county_select]['city']}.")
-            st.info("Go to 'Run Pipeline' tab to scrape and identify investors.")
-
-    # ---- TAB 2: RUN PIPELINE ----
-    with inv_tab2:
-        st.subheader("🔄 Run Investor Pipeline")
-        st.markdown("Scrape property records and identify cash buyers")
-
-        pipeline_county = st.selectbox(
-            "Select County to Process",
-            options=list(COUNTY_OPTIONS.keys()),
-            format_func=lambda x: f"{COUNTY_OPTIONS[x]['city']} ({COUNTY_OPTIONS[x]['name']})",
-            key="pipeline_county"
-        )
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown("**Run Full Pipeline**")
-            st.caption("Loads property data, identifies multi-property owners, scores investors")
-            if st.button("🚀 Run Pipeline", use_container_width=True):
-                with st.spinner(f"Running pipeline for {COUNTY_OPTIONS[pipeline_county]['city']}..."):
-                    try:
-                        from buyers.pipeline.investor_pipeline import InvestorPipeline
-                        pipeline = InvestorPipeline(county=pipeline_county)
-                        df = pipeline.run()
-                        pipeline.export_investors(df)
-
-                        st.success(f"✅ Pipeline complete! Found {len(df)} investors")
-                        if 'investor_tier' in df.columns:
-                            tier_counts = df['investor_tier'].value_counts()
-                            st.write("**Results:**")
-                            st.write(f"- Tier 1: {tier_counts.get('tier_1', 0)}")
-                            st.write(f"- Tier 2: {tier_counts.get('tier_2', 0)}")
-                            st.write(f"- Tier 3: {tier_counts.get('tier_3', 0)}")
-                        st.cache_data.clear()
-                    except Exception as e:
-                        st.error(f"❌ Pipeline failed: {str(e)}")
-
-        with col2:
-            if pipeline_county == 'hamilton':
-                st.markdown("**Scrape Hamilton County**")
-                st.caption("Scrape fresh data from Hamilton County Auditor")
-                if st.button("🌐 Scrape Hamilton", use_container_width=True):
-                    with st.spinner("Scraping Hamilton County (this may take a while)..."):
-                        try:
-                            from buyers.scrapers.hamilton_county import HamiltonCountyScraper
-                            scraper = HamiltonCountyScraper(headless=True)
-                            path = scraper.scrape_and_save()
-                            st.success(f"✅ Scrape complete! Saved to {path}")
-                        except Exception as e:
-                            st.error(f"❌ Scrape failed: {str(e)}")
-
-    # ---- TAB 3: BULK SKIP TRACE ----
-    with inv_tab3:
-        st.subheader("📞 Bulk Skip Trace Investors")
-        st.markdown("Skip trace multiple investors at once to get phone numbers and emails")
-
-        # County selector for bulk skip trace
-        bulk_county = st.selectbox(
-            "Select County",
-            options=list(COUNTY_OPTIONS.keys()),
-            format_func=lambda x: f"{COUNTY_OPTIONS[x]['city']} ({COUNTY_OPTIONS[x]['name']})",
-            key="bulk_skip_county"
-        )
-
-        # Load investors for this county
-        bulk_tier_map = {
-            'Tier 1 (80-100)': f'investor_prospects_{bulk_county}_tier_1.csv',
-            'Tier 2 (60-79)': f'investor_prospects_{bulk_county}_tier_2.csv',
-            'Tier 3 (40-59)': f'investor_prospects_{bulk_county}_tier_3.csv',
-        }
-
-        # Check which tiers have data
-        available_tiers = []
-        for tier_name, filename in bulk_tier_map.items():
-            if (BUYERS_DATA_DIR / filename).exists():
-                available_tiers.append(tier_name)
-
-        if not available_tiers:
-            st.warning(f"⚠️ No investor data for {COUNTY_OPTIONS[bulk_county]['city']}. Run the pipeline first.")
-        else:
-            bulk_tier = st.selectbox("Select Tier to Skip Trace", available_tiers, key="bulk_skip_tier")
-
-            # Load the selected tier
-            tier_file = BUYERS_DATA_DIR / bulk_tier_map[bulk_tier]
-            inv_df = pd.read_csv(tier_file)
-
-            # Count how many need skip tracing
-            has_phone = inv_df['phone'].notna() & (inv_df['phone'] != '') if 'phone' in inv_df.columns else pd.Series([False] * len(inv_df))
-            needs_trace = ~has_phone
-
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Total in Tier", len(inv_df))
-            with col2:
-                st.metric("Already Have Phone", has_phone.sum())
-            with col3:
-                st.metric("Need Skip Trace", needs_trace.sum())
-
-            if needs_trace.sum() == 0:
-                st.success("✅ All investors in this tier already have phone numbers!")
-            else:
-                st.markdown("---")
-
-                # Slider to select how many to trace
-                max_trace = min(needs_trace.sum(), 100)  # Cap at 100 per batch
-                if max_trace > 1:
-                    num_to_trace = st.slider(
-                        "How many to skip trace?",
-                        min_value=1,
-                        max_value=max_trace,
-                        value=min(10, max_trace),
-                        key="bulk_inv_trace_count"
-                    )
-                else:
-                    num_to_trace = 1
-                    st.info("1 investor to skip trace")
-
-                # Cost estimate
-                cost_estimate = num_to_trace * 0.20  # Approximate cost per lookup
-                st.caption(f"💰 Estimated cost: ${cost_estimate:.2f} ({num_to_trace} x $0.20)")
-
-                if st.button(f"📞 Skip Trace {num_to_trace} Investors", use_container_width=True, type="primary"):
-                    # Get investors that need tracing
-                    to_trace = inv_df[needs_trace].head(num_to_trace)
-
-                    progress_bar = st.progress(0)
-                    status_text = st.empty()
-                    results_container = st.empty()
-
-                    success_count = 0
-                    failed_count = 0
-
-                    try:
-                        from sellers.skip_tracing.skip_tracer import SkipTracer
-                        tracer = SkipTracer()
-
-                        for idx, (i, row) in enumerate(to_trace.iterrows()):
-                            progress = (idx + 1) / num_to_trace
-                            progress_bar.progress(progress)
-                            status_text.text(f"Processing {idx + 1}/{num_to_trace}: {row.get('owner_name', 'Unknown')[:30]}...")
-
-                            name = row.get('owner_name', '')
-                            address = row.get('mailing_address', '') or row.get('owner_address', '')
-
-                            if not name:
-                                failed_count += 1
-                                continue
-
-                            try:
-                                result = tracer.skip_trace_single(name, address, '', 'OH')
-
-                                if result and (result.get('phone') or result.get('email')):
-                                    inv_df.loc[i, 'phone'] = result.get('phone', '')
-                                    inv_df.loc[i, 'email'] = result.get('email', '')
-                                    success_count += 1
-                                else:
-                                    failed_count += 1
-                            except Exception as e:
-                                failed_count += 1
-
-                            # Small delay to avoid rate limiting
-                            time.sleep(0.5)
-
-                        # Save updated data
-                        inv_df.to_csv(tier_file, index=False)
-
-                        progress_bar.progress(1.0)
-                        status_text.empty()
-
-                        st.success(f"✅ Skip trace complete!")
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            st.metric("Found Contact Info", success_count)
-                        with col2:
-                            st.metric("No Results", failed_count)
-
-                        if success_count > 0:
-                            st.info("Data saved! Refresh the View Investors tab to see phone numbers.")
-                            st.cache_data.clear()
-
-                    except Exception as e:
-                        st.error(f"❌ Skip trace failed: {str(e)}")
-
-    # ---- TAB 4: LOOKUP CONTACT ----
-    with inv_tab4:
-        st.subheader("🔍 Contact Lookup")
-        st.markdown("Find contact info for investors - supports both individuals and LLCs")
-
-        lookup_name = st.text_input("Owner/Business Name", key="lookup_name")
-        lookup_address = st.text_input("Address (optional, helps with accuracy)", key="lookup_addr")
-
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            if st.button("🔍 Full Lookup", use_container_width=True, help="Smart lookup: detects LLC vs individual"):
-                if lookup_name:
-                    with st.spinner("Looking up..."):
-                        try:
-                            # Detect if business
-                            business_keywords = ['LLC', 'L.L.C', 'INC', 'CORP', 'TRUST', 'LP', 'LTD', 'COMPANY', 'PARTNERS']
-                            is_business = any(kw in lookup_name.upper() for kw in business_keywords)
-
-                            if is_business:
-                                st.info("Detected business entity - checking Ohio SOS...")
-                                from buyers.scrapers.ohio_sos import OhioSOSScraper
-                                scraper = OhioSOSScraper(headless=True)
-                                sos_result = scraper.search_business(lookup_name)
-
-                                if sos_result:
-                                    st.success("✅ Found on Ohio SOS")
-                                    st.write(f"**Agent:** {sos_result.agent_name}")
-                                    st.write(f"**Agent Address:** {sos_result.agent_address}")
-                                    st.write(f"**Status:** {sos_result.status}")
-
-                                    # Store for saving
-                                    st.session_state['last_lookup'] = {
-                                        'llc_name': lookup_name,
-                                        'agent_name': sos_result.agent_name,
-                                        'agent_address': sos_result.agent_address,
-                                        'status': sos_result.status
-                                    }
-                                else:
-                                    st.warning("Not found on Ohio SOS")
-                            else:
-                                st.info("Detected individual - skip tracing...")
-                                from sellers.skip_tracing.skip_tracer import SkipTracer
-                                tracer = SkipTracer()
-                                result = tracer.skip_trace_single(lookup_name, lookup_address, '', 'OH')
-
-                                if result and (result.get('phone') or result.get('email')):
-                                    st.success("✅ Found contact info!")
-                                    st.write(f"**Phone:** {result.get('phone', 'N/A')}")
-                                    st.write(f"**Email:** {result.get('email', 'N/A')}")
-                                    st.session_state['last_lookup'] = {
-                                        'name': lookup_name,
-                                        'phone': result.get('phone', ''),
-                                        'email': result.get('email', '')
-                                    }
-                                else:
-                                    st.warning("No contact info found")
-                        except Exception as e:
-                            st.error(f"Lookup failed: {str(e)}")
-                else:
-                    st.warning("Enter a name to lookup")
-
-        with col2:
-            if st.button("🏢 Ohio SOS Only", use_container_width=True, help="Search Ohio Secretary of State"):
-                if lookup_name:
-                    with st.spinner("Searching Ohio SOS..."):
-                        try:
-                            from buyers.scrapers.ohio_sos import OhioSOSScraper
-                            scraper = OhioSOSScraper(headless=True)
-                            result = scraper.search_business(lookup_name)
-
-                            if result:
-                                st.success("✅ Found!")
-                                st.json(result.to_dict() if hasattr(result, 'to_dict') else str(result))
-                            else:
-                                st.warning("Not found on Ohio SOS")
-                        except Exception as e:
-                            st.error(f"SOS lookup failed: {str(e)}")
-                else:
-                    st.warning("Enter a business name")
-
-        with col3:
-            if st.button("📞 Skip Trace Only", use_container_width=True, help="Get phone/email"):
-                if lookup_name:
-                    with st.spinner("Skip tracing..."):
-                        try:
-                            from sellers.skip_tracing.skip_tracer import SkipTracer
-                            tracer = SkipTracer()
-                            result = tracer.skip_trace_single(lookup_name, lookup_address, '', 'OH')
-
-                            if result:
-                                st.success("✅ Results:")
-                                st.write(f"**Phone:** {result.get('phone', 'N/A')}")
-                                st.write(f"**Email:** {result.get('email', 'N/A')}")
-                            else:
-                                st.warning("No results found")
-                        except Exception as e:
-                            st.error(f"Skip trace failed: {str(e)}")
-                else:
-                    st.warning("Enter a name")
-
-        # Save contact button
-        if 'last_lookup' in st.session_state and st.session_state['last_lookup']:
-            st.markdown("---")
-            if st.button("💾 Save This Contact", use_container_width=True):
-                import json
-                contacts_file = DATA_DIR / 'buyers' / 'saved_contacts.json'
-                contacts_file.parent.mkdir(parents=True, exist_ok=True)
-
-                existing = []
-                if contacts_file.exists():
-                    with open(contacts_file, 'r') as f:
-                        existing = json.load(f)
-
-                contact = st.session_state['last_lookup']
-                contact['saved_at'] = datetime.now().isoformat()
-                existing.append(contact)
-
-                with open(contacts_file, 'w') as f:
-                    json.dump(existing, f, indent=2)
-
-                st.success("✅ Contact saved!")
-                st.session_state['last_lookup'] = None
-
-    # ---- TAB 5: SAVED CONTACTS ----
-    with inv_tab5:
-        st.subheader("💾 Saved Contacts")
-
-        import json
-        contacts_file = DATA_DIR / 'buyers' / 'saved_contacts.json'
-
-        if contacts_file.exists():
-            with open(contacts_file, 'r') as f:
-                contacts = json.load(f)
-
-            if contacts:
-                st.metric("Total Saved", len(contacts))
-
-                contacts_df = pd.DataFrame(contacts)
-                st.dataframe(contacts_df, use_container_width=True, height=300)
-
-                col1, col2 = st.columns(2)
-                with col1:
-                    csv = contacts_df.to_csv(index=False)
-                    st.download_button(
-                        "📥 Export Contacts CSV",
-                        csv,
-                        "saved_investor_contacts.csv",
-                        "text/csv"
-                    )
-                with col2:
-                    if st.button("🗑️ Clear All Contacts"):
-                        with open(contacts_file, 'w') as f:
-                            json.dump([], f)
-                        st.success("Contacts cleared!")
-                        st.rerun()
-            else:
-                st.info("No saved contacts yet. Use the Lookup tab to find and save contacts.")
-        else:
-            st.info("No saved contacts yet. Use the Lookup tab to find and save contacts.")
-
-# ========================================
-# DEAL ANALYZER PAGE
-# ========================================
-elif page == "💵 Deal Analyzer":
-    st.markdown('<h1 class="main-header">💵 Deal Analyzer</h1>', unsafe_allow_html=True)
-    st.markdown("Calculate MAO and match leads to buyers")
-
-    deal_tab1, deal_tab2 = st.tabs(["🧮 MAO Calculator", "🤝 Match Lead to Buyer"])
-
-    # ---- TAB 1: MAO CALCULATOR ----
-    with deal_tab1:
-        # Option to load from leads or enter manually
-        data_source = st.radio(
-            "Data Source",
-            ["📋 Select from Leads", "✏️ Enter Manually"],
-            horizontal=True,
-            key="mao_data_source"
-        )
-
-        # Initialize values
-        address = ""
-        arv = 150000
-        repairs = 25000
-        sqft = 0
-        zip_code = ""
-        condition = "fair"
-
-        if data_source == "📋 Select from Leads":
-            # Lead source selector
-            lead_sources = {
-                "📋 All Leads": PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv',
-                "⚖️ Probate Leads": PROCESSED_DATA_DIR / 'probate_leads.csv',
-                "🏛️ Sheriff Sales": PROCESSED_DATA_DIR / 'sheriff_sale_leads.csv',
-                "⭐ Tier 1 (Hot)": PROCESSED_DATA_DIR / 'columbus_oh_tier_1_leads.csv',
-                "📊 Tier 2": PROCESSED_DATA_DIR / 'columbus_oh_tier_2_leads.csv',
-                "📉 Tier 3": PROCESSED_DATA_DIR / 'columbus_oh_tier_3_leads.csv',
-            }
-
-            # Filter to existing files only
-            available_sources = {k: v for k, v in lead_sources.items() if v.exists()}
-
-            if not available_sources:
-                st.warning("No lead files found. Generate leads first!")
-            else:
-                lead_source = st.selectbox(
-                    "Lead Source",
-                    options=list(available_sources.keys()),
-                    key="mao_lead_source"
-                )
-
-                leads_df = pd.read_csv(available_sources[lead_source])
-
-                # Create lead options
-                lead_options = ["-- Select a property --"]
-                for idx, row in leads_df.head(100).iterrows():
-                    addr = row.get('property_address', row.get('address', 'Unknown'))
-                    score = row.get('motivation_score', 0)
-                    lead_type = row.get('lead_type', row.get('source', ''))
-                    if lead_type:
-                        lead_options.append(f"{addr} ({lead_type}, Score: {score})")
-                    else:
-                        lead_options.append(f"{addr} (Score: {score})")
-
-                selected = st.selectbox("Select Property", lead_options, key="mao_lead_select")
-
-                if selected != "-- Select a property --":
-                    # Get the selected lead
-                    selected_idx = lead_options.index(selected) - 1  # -1 for the placeholder
-                    lead_row = leads_df.iloc[selected_idx]
-
-                    # Extract data
-                    street_address = lead_row.get('property_address', lead_row.get('address', ''))
-                    city = lead_row.get('property_city', lead_row.get('city', 'Columbus')).replace(' CITY', '').title()
-                    state = lead_row.get('state', 'OH')
-                    zip_code = str(lead_row.get('property_zip', lead_row.get('zip_code', lead_row.get('zip', ''))))[:5]
-
-                    # Build full address for lookup
-                    address = f"{street_address}, {city}, {state} {zip_code}"
-
-                    sqft = float(lead_row.get('square_feet', lead_row.get('sqft', 0)) or 0)
-                    years_del = int(lead_row.get('years_delinquent', 0) or 0)
-                    violations = int(lead_row.get('code_violations', lead_row.get('violations', 0)) or 0)
-
-                    # Use CompsEstimator
-                    estimator = CompsEstimator()
-
-                    if sqft > 0:
-                        # Option to refresh from Zillow for more accurate data
-                        refresh_col1, refresh_col2 = st.columns([3, 1])
-                        with refresh_col1:
-                            st.caption(f"📊 Current data: {sqft:,.0f} sqft from tax records")
-                        with refresh_col2:
-                            refresh_zillow = st.button("🔄 Get Zillow Data", key="refresh_zillow_btn")
-
-                        if refresh_zillow:
-                            from shared.utils.property_lookup import PropertyLookup
-                            lookup = PropertyLookup()
-                            with st.spinner("🔍 Fetching from Zillow..."):
-                                try:
-                                    zillow_data = lookup.lookup_by_address(address)
-                                finally:
-                                    lookup.close()
-
-                            if zillow_data and zillow_data.get('square_feet'):
-                                sqft = zillow_data['square_feet']
-                                st.success(f"✅ Updated from Zillow: {sqft:,} sqft, {zillow_data.get('bedrooms', 'N/A')} bed, {zillow_data.get('bathrooms', 'N/A')} bath")
-
-                        estimated_arv, details = estimator.estimate_arv(
-                            zip_code=zip_code,
-                            square_feet=sqft,
-                            years_delinquent=years_del,
-                            violations=violations
-                        )
-                        arv = int(estimated_arv)
-                        repairs = int(details.get('repair_cost_estimate', 25000))
-                        condition = details.get('condition', 'fair')
-
-                        # Show property details
-                        st.markdown("---")
-                        st.subheader("📍 Property Analysis")
-
-                        col1, col2, col3, col4 = st.columns(4)
-                        with col1:
-                            st.metric("Square Feet", f"{sqft:,.0f}")
-                        with col2:
-                            st.metric("Zip Code", zip_code)
-                        with col3:
-                            st.metric("Market $/sqft", f"${details.get('market_psf', 100)}")
-                        with col4:
-                            st.metric("Condition", condition.title())
-
-                        st.info(f"**Estimated based on:** {sqft:,.0f} sqft × ${details.get('market_psf', 100)}/sqft = ${arv:,}")
-
-                        # Quick Links for Real Comps
-                        st.markdown("---")
-                        st.subheader("🔗 Research Real Comps")
-                        st.caption("Click these links to verify ARV with actual market data:")
-
-                        # Format address for URLs
-                        import urllib.parse
-                        addr_encoded = urllib.parse.quote(address)
-                        addr_plus = address.replace(' ', '+')
-                        city_state = "Columbus+OH"
-
-                        link_col1, link_col2, link_col3, link_col4 = st.columns(4)
-
-                        with link_col1:
-                            zillow_url = f"https://www.zillow.com/homes/{addr_plus},-{city_state}_rb/"
-                            st.link_button("🏠 Zillow", zillow_url, use_container_width=True)
-
-                        with link_col2:
-                            redfin_url = f"https://www.redfin.com/city/35241/OH/Columbus/filter/include=sold-3mo"
-                            st.link_button("🔴 Redfin Sold", redfin_url, use_container_width=True)
-
-                        with link_col3:
-                            realtor_url = f"https://www.realtor.com/realestateandhomes-search/Columbus_OH/show-recently-sold"
-                            st.link_button("🏡 Realtor.com", realtor_url, use_container_width=True)
-
-                        with link_col4:
-                            auditor_url = f"https://property.franklincountyauditor.com/_web/search/commonsearch.aspx?mode=address"
-                            st.link_button("📋 County Auditor", auditor_url, use_container_width=True)
-
-                        st.caption("💡 **Tip:** Look for 3-5 similar properties sold in last 90 days within 0.5 miles")
-                    else:
-                        # No sqft data - try auto-lookup from County Auditor
-                        st.markdown("---")
-                        st.subheader("📍 Property: " + address)
-
-                        import urllib.parse
-                        addr_plus = address.replace(' ', '+')
-                        city_state = "Columbus+OH"
-
-                        # Try auto-lookup using Selenium
-                        from shared.utils.property_lookup import PropertyLookup
-                        lookup = PropertyLookup()
-
-                        with st.spinner("🔍 Looking up property details (this may take a few seconds)..."):
-                            try:
-                                property_details = lookup.lookup_by_address(address)
-                            finally:
-                                lookup.close()  # Always close the browser
-
-                        if property_details and property_details.get('square_feet', 0) > 0:
-                            # Found sqft automatically!
-                            auto_sqft = property_details['square_feet']
-                            source = property_details.get('source', 'Online')
-                            st.success(f"✅ Found property data from {source}!")
-
-                            # Calculate ARV with auto-found sqft
-                            estimated_arv, details = estimator.estimate_arv(
-                                zip_code=zip_code,
-                                square_feet=auto_sqft,
-                                years_delinquent=years_del,
-                                violations=violations
-                            )
-                            arv = int(estimated_arv)
-                            repairs = int(details.get('repair_cost_estimate', 25000))
-                            condition = details.get('condition', 'fair')
-                            sqft = auto_sqft
-
-                            st.info(f"**Estimated ARV:** ${arv:,} based on {auto_sqft:,} sqft × ${details.get('market_psf', 100)}/sqft")
-
-                            col1, col2, col3, col4 = st.columns(4)
-                            with col1:
-                                st.metric("Square Feet", f"{auto_sqft:,.0f}")
-                            with col2:
-                                st.metric("Zip Code", zip_code)
-                            with col3:
-                                st.metric("Market $/sqft", f"${details.get('market_psf', 100)}")
-                            with col4:
-                                st.metric("Condition", condition.title())
-
-                            # Show other details if found
-                            if property_details.get('year_built'):
-                                st.caption(f"📅 Year Built: {property_details['year_built']}")
-                            if property_details.get('bedrooms'):
-                                st.caption(f"🛏️ Bedrooms: {property_details['bedrooms']}")
-
-                            # Quick Links for comps
-                            st.markdown("---")
-                            st.subheader("🔗 Verify with Real Comps")
-                            link_col1, link_col2, link_col3 = st.columns(3)
-                            with link_col1:
-                                zillow_url = f"https://www.zillow.com/homes/{addr_plus},-{city_state}_rb/"
-                                st.link_button("🏠 Zillow", zillow_url, use_container_width=True)
-                            with link_col2:
-                                redfin_url = f"https://www.redfin.com/city/35241/OH/Columbus/filter/include=sold-3mo"
-                                st.link_button("🔴 Redfin Sold", redfin_url, use_container_width=True)
-                            with link_col3:
-                                realtor_url = f"https://www.realtor.com/realestateandhomes-search/Columbus_OH/show-recently-sold"
-                                st.link_button("🏡 Realtor.com", realtor_url, use_container_width=True)
-                        else:
-                            # Auto-lookup failed - manual entry
-                            st.warning("⚠️ Couldn't auto-fetch property data. Enter manually:")
-
-                            # Link to County Auditor to look up sqft
-                            auditor_url = f"https://property.franklincountyauditor.com/_web/search/commonsearch.aspx?mode=address"
-                            st.link_button("🔍 Look Up on County Auditor", auditor_url, use_container_width=False)
-
-                            manual_sqft = st.number_input("Square Footage", min_value=0, value=0, step=100, key="manual_sqft_input")
-
-                            if manual_sqft > 0:
-                                # Calculate ARV with manual sqft
-                                estimated_arv, details = estimator.estimate_arv(
-                                    zip_code=zip_code,
-                                    square_feet=manual_sqft,
-                                    years_delinquent=years_del,
-                                    violations=violations
-                                )
-                                arv = int(estimated_arv)
-                                repairs = int(details.get('repair_cost_estimate', 25000))
-                                condition = details.get('condition', 'fair')
-                                sqft = manual_sqft
-
-                                st.success(f"✅ ARV calculated: **${arv:,}** based on {manual_sqft:,} sqft × ${details.get('market_psf', 100)}/sqft")
-
-                                col1, col2, col3, col4 = st.columns(4)
-                                with col1:
-                                    st.metric("Square Feet", f"{manual_sqft:,.0f}")
-                                with col2:
-                                    st.metric("Zip Code", zip_code)
-                                with col3:
-                                    st.metric("Market $/sqft", f"${details.get('market_psf', 100)}")
-                                with col4:
-                                    st.metric("Condition", condition.title())
-
-                                # Quick Links for comps
-                                st.markdown("---")
-                                st.subheader("🔗 Verify with Real Comps")
-                                link_col1, link_col2, link_col3 = st.columns(3)
-                                with link_col1:
-                                    zillow_url = f"https://www.zillow.com/homes/{addr_plus},-{city_state}_rb/"
-                                    st.link_button("🏠 Zillow", zillow_url, use_container_width=True)
-                                with link_col2:
-                                    redfin_url = f"https://www.redfin.com/city/35241/OH/Columbus/filter/include=sold-3mo"
-                                    st.link_button("🔴 Redfin Sold", redfin_url, use_container_width=True)
-                                with link_col3:
-                                    realtor_url = f"https://www.realtor.com/realestateandhomes-search/Columbus_OH/show-recently-sold"
-                                    st.link_button("🏡 Realtor.com", realtor_url, use_container_width=True)
-
-        st.markdown("---")
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.subheader("Property Details")
-            address = st.text_input("Property Address", value=address, key="mao_address")
-            arv = st.number_input("ARV (After Repair Value)", min_value=0, value=arv, step=5000, key="mao_arv",
-                                  help="Estimated value after repairs - adjust based on your comps research")
-
-            st.markdown("**Repair Estimates:**")
-            st.caption("Light: $15/sqft | Moderate: $35/sqft | Heavy: $60/sqft | Gut: $100/sqft")
-            repairs = st.number_input("Estimated Repairs", min_value=0, value=repairs, step=1000, key="mao_repairs",
-                                      help="Estimated repair costs - adjust based on property condition")
-
-        with col2:
-            st.subheader("Deal Parameters")
-            arv_percentage = st.slider("Investor ARV %", 60, 80, 70, key="mao_arv_pct",
-                                       help="Most investors want to pay 65-75% of ARV") / 100
-            assignment_fee = st.number_input("Your Assignment Fee", min_value=0, value=10000, step=1000, key="mao_fee",
-                                             help="Your profit from the deal - typically $5k-$15k")
-
-        # Calculate
-        if st.button("🧮 Calculate MAO", use_container_width=True, key="mao_calc_btn"):
-            investor_max = arv * arv_percentage
-            investor_offer = investor_max - repairs
-            mao = investor_offer - assignment_fee
-
-            # Investor numbers
-            total_investor_cost = investor_offer + repairs
-            investor_profit = arv - total_investor_cost
-            investor_roi = (investor_profit / total_investor_cost) * 100 if total_investor_cost > 0 else 0
-
-            st.markdown("---")
-
-            # Results
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.metric("YOUR MAO", f"${mao:,.0f}", help="Maximum you should offer the seller")
-            with col2:
-                st.metric("Your Profit", f"${assignment_fee:,.0f}")
-            with col3:
-                st.metric("Investor ROI", f"{investor_roi:.1f}%")
-
-            st.markdown("---")
-
-            # Breakdown
-            st.subheader("Deal Breakdown")
-
-            breakdown = f"""
-| Item | Amount |
-|------|--------|
-| ARV (After Repair Value) | ${arv:,.0f} |
-| Investor Max ({arv_percentage*100:.0f}% of ARV) | ${investor_max:,.0f} |
-| Minus Repairs | -${repairs:,.0f} |
-| **Max Investor Pays** | **${investor_offer:,.0f}** |
-| Minus Your Fee | -${assignment_fee:,.0f} |
-| **YOUR MAO** | **${mao:,.0f}** |
-"""
-            st.markdown(breakdown)
-
-            # Deal Rating
-            st.markdown("---")
-            if investor_roi >= 20 and assignment_fee >= 5000:
-                st.success("✅ **STRONG DEAL** - Good margins for both you and investor")
-            elif investor_roi >= 15 and assignment_fee >= 3000:
-                st.warning("⚠️ **DECENT DEAL** - Acceptable margins, may need negotiation")
-            elif investor_roi >= 10:
-                st.warning("⚠️ **THIN DEAL** - Margins are tight, experienced investors only")
-            else:
-                st.error("❌ **PASS** - Not enough margin, renegotiate or walk away")
-
-            # Negotiation tips
-            st.markdown("---")
-            st.subheader("Negotiation Strategy")
-            low_offer = mao * 0.85
-            st.markdown(f"""
-- **Start at:** ${low_offer:,.0f}
-- **Walk-away point:** ${mao:,.0f}
-- Never exceed your MAO!
-""")
-
-    # ---- TAB 2: MATCH LEAD TO BUYER ----
-    with deal_tab2:
-        st.subheader("🤝 Match Seller Lead to Cash Buyer")
-        st.markdown("Select a motivated seller lead and find matching investors")
-
-        # Lead source selector
-        match_lead_sources = {
-            "📋 All Leads": PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv',
-            "⚖️ Probate Leads": PROCESSED_DATA_DIR / 'probate_leads.csv',
-            "🏛️ Sheriff Sales": PROCESSED_DATA_DIR / 'sheriff_sale_leads.csv',
-            "⭐ Tier 1 (Hot)": PROCESSED_DATA_DIR / 'columbus_oh_tier_1_leads.csv',
-        }
-
-        # Filter to existing files only
-        match_available_sources = {k: v for k, v in match_lead_sources.items() if v.exists()}
-
-        # Load investor data
-        BUYERS_DATA_DIR = DATA_DIR / 'buyers' / 'processed'
-
-        if not match_available_sources:
-            st.warning("⚠️ No seller leads found. Generate leads first!")
-        else:
-            match_lead_source = st.selectbox(
-                "Lead Source",
-                options=list(match_available_sources.keys()),
-                key="match_lead_source"
-            )
-
-            leads_df = pd.read_csv(match_available_sources[match_lead_source])
-
-            # Filter to leads with phone numbers (ready to contact)
-            if 'phone' in leads_df.columns:
-                callable_leads = leads_df[leads_df['phone'].notna() & (leads_df['phone'] != '')]
-            else:
-                callable_leads = leads_df
-
-            if len(callable_leads) == 0:
-                st.warning("No callable leads found. Skip trace your leads first!")
-            else:
-                st.info(f"📋 {len(callable_leads)} callable leads available from {match_lead_source}")
-
-                # Select a lead
-                lead_options = []
-                for idx, row in callable_leads.head(100).iterrows():
-                    addr = row.get('property_address', row.get('address', 'Unknown'))
-                    score = row.get('motivation_score', 0)
-                    lead_options.append(f"{addr} (Score: {score})")
-
-                selected_lead = st.selectbox("Select a Lead", lead_options, key="match_lead_select")
-
-                if selected_lead:
-                    # Get the selected lead data
-                    selected_idx = lead_options.index(selected_lead)
-                    lead_row = callable_leads.iloc[selected_idx]
-
-                    # Display lead info
-                    st.markdown("---")
-                    st.subheader("📍 Selected Property")
-
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.write(f"**Address:** {lead_row.get('property_address', lead_row.get('address', 'N/A'))}")
-                        st.write(f"**Owner:** {lead_row.get('owner_name', 'N/A')}")
-                    with col2:
-                        st.write(f"**Motivation Score:** {lead_row.get('motivation_score', 'N/A')}")
-                        st.write(f"**Lead Type:** {lead_row.get('lead_type', lead_row.get('source', 'N/A'))}")
-                    with col3:
-                        st.write(f"**Phone:** {lead_row.get('phone', 'N/A')}")
-                        st.write(f"**Email:** {lead_row.get('email', 'N/A')}")
-
-                    # Find matching buyers button
-                    st.markdown("---")
-
-                    if st.button("🔍 Find Matching Buyers", use_container_width=True, type="primary"):
-                        # Load investor data (Tier 1 and 2 - active buyers)
-                        investors = []
-
-                        for tier in ['tier_1', 'tier_2']:
-                            tier_file = BUYERS_DATA_DIR / f'investor_prospects_franklin_{tier}.csv'
-                            if tier_file.exists():
-                                df = pd.read_csv(tier_file)
-                                df['tier'] = tier
-                                investors.append(df)
-
-                        if not investors:
-                            st.warning("⚠️ No investor data found. Run the Investor Finder pipeline first!")
-                        else:
-                            inv_df = pd.concat(investors, ignore_index=True)
-
-                            # Filter to investors with contact info
-                            if 'phone' in inv_df.columns:
-                                has_contact = inv_df['phone'].notna() & (inv_df['phone'] != '')
-                                contactable = inv_df[has_contact]
-                            else:
-                                contactable = inv_df
-
-                            # Sort by investor score
-                            if 'investor_score' in contactable.columns:
-                                contactable = contactable.sort_values('investor_score', ascending=False)
-
-                            st.success(f"✅ Found {len(contactable)} potential buyers!")
-
-                            # Display top matches
-                            st.subheader("🏆 Top Matching Buyers")
-
-                            display_cols = ['owner_name', 'investor_score', 'portfolio_size', 'entity_type', 'phone', 'email', 'tier']
-                            available_cols = [c for c in display_cols if c in contactable.columns]
-
-                            st.dataframe(
-                                contactable[available_cols].head(20),
-                                use_container_width=True,
-                                height=400
-                            )
-
-                            # Export matches
-                            st.markdown("---")
-                            col1, col2 = st.columns(2)
-
-                            with col1:
-                                # Export top 20 matches
-                                top_matches = contactable.head(20)
-                                csv = top_matches.to_csv(index=False)
-                                property_addr = str(lead_row.get('property_address', 'property'))[:20].replace(' ', '_')
-                                st.download_button(
-                                    "📥 Export Top 20 Matches",
-                                    csv,
-                                    f"buyers_for_{property_addr}.csv",
-                                    "text/csv"
-                                )
-
-                            with col2:
-                                # Quick stats
-                                st.write(f"**Tier 1 Buyers:** {len(contactable[contactable['tier'] == 'tier_1'])}")
-                                st.write(f"**Tier 2 Buyers:** {len(contactable[contactable['tier'] == 'tier_2'])}")
-                                if 'portfolio_size' in contactable.columns:
-                                    st.write(f"**Avg Portfolio:** {contactable['portfolio_size'].mean():.1f} properties")
-
-# ========================================
 # STATISTICS PAGE
 # ========================================
 elif page == "📈 Statistics":
@@ -4856,94 +5508,6 @@ elif page == "📋 Data Quality":
 
 
 # ========================================
-# DATA HISTORY PAGE
-# ========================================
-elif page == "📁 Data History":
-    st.markdown('<h1 class="main-header">📁 Data History & Archives</h1>', unsafe_allow_html=True)
-    st.markdown("### View, restore, or manage archived lead data")
-
-    archiver = DataArchiver()
-
-    # Get all archives
-    archives = archiver.get_archives()
-
-    if not archives:
-        st.info("📭 No archived data yet. Archives are created automatically when you generate new leads.")
-        st.markdown("""
-        **How archiving works:**
-        - When you scrape new leads, the old data is automatically saved
-        - Archives are organized by type: Delinquent, Probate, Sheriff Sales
-        - You can restore old data anytime
-        """)
-    else:
-        # Summary stats
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("📁 Total Archives", len(archives))
-        with col2:
-            delinquent_count = len([a for a in archives if a['category'] == 'delinquent'])
-            st.metric("🏦 Delinquent", delinquent_count)
-        with col3:
-            probate_count = len([a for a in archives if a['category'] == 'probate'])
-            st.metric("⚖️ Probate", probate_count)
-        with col4:
-            sheriff_count = len([a for a in archives if a['category'] == 'sheriff'])
-            st.metric("🏠 Sheriff", sheriff_count)
-
-        st.markdown("---")
-
-        # Filter by category
-        categories = ['All'] + list(set([a['category'] for a in archives]))
-        selected_category = st.selectbox("Filter by Type", categories)
-
-        if selected_category != 'All':
-            filtered_archives = [a for a in archives if a['category'] == selected_category]
-        else:
-            filtered_archives = archives
-
-        st.markdown(f"### 📋 Archives ({len(filtered_archives)} files)")
-
-        for archive in filtered_archives:
-            with st.expander(f"📄 {archive['original_name']} - {archive['timestamp']}", expanded=False):
-                col1, col2, col3 = st.columns([2, 1, 1])
-
-                with col1:
-                    st.markdown(f"**Category:** {archive['category'].title()}")
-                    st.markdown(f"**Rows:** {archive['rows']:,}")
-                    st.markdown(f"**Size:** {archive['size_kb']} KB")
-                    st.markdown(f"**Archived:** {archive['archived_date'].strftime('%Y-%m-%d %H:%M')}")
-
-                with col2:
-                    if st.button("🔄 Restore", key=f"restore_{archive['filename']}", use_container_width=True):
-                        if archiver.restore_archive(archive['filepath']):
-                            st.success(f"✅ Restored {archive['original_name']}!")
-                            st.rerun()
-                        else:
-                            st.error("Failed to restore")
-
-                with col3:
-                    if st.button("🗑️ Delete", key=f"delete_{archive['filename']}", use_container_width=True):
-                        if archiver.delete_archive(archive['filepath']):
-                            st.success("Deleted!")
-                            st.rerun()
-
-        st.markdown("---")
-
-        # Cleanup section
-        st.markdown("### 🧹 Cleanup Old Archives")
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            days_to_keep = st.slider("Delete archives older than (days)", 7, 90, 30)
-        with col2:
-            if st.button("🗑️ Cleanup Old Archives", use_container_width=True):
-                deleted = archiver.cleanup_old_archives(days=days_to_keep)
-                if deleted > 0:
-                    st.success(f"Deleted {deleted} old archives")
-                    st.rerun()
-                else:
-                    st.info("No archives to clean up")
-
-# ========================================
 # DATA MANAGEMENT PAGE
 # ========================================
 elif page == "⚙️ Data Management":
@@ -5097,8 +5661,8 @@ elif page == "📱 Dialer":
 
     # Import dialer modules
     try:
-        from sellers.dialer.twilio_client import TwilioClient
-        from sellers.dialer.call_manager import CallManager, CallDisposition, LeadStatus
+        from dialer.twilio_client import TwilioClient
+        from dialer.call_manager import CallManager, CallDisposition, LeadStatus
         twilio_available = True
     except ImportError as e:
         twilio_available = False
@@ -5373,7 +5937,7 @@ elif page == "📱 Dialer":
                                 callback_date = f"{callback_date}T{callback_time}"
 
                         if st.button("💾 Save & Next Lead"):
-                            # Save to CallManager
+                            # Save to call manager
                             call_mgr.record_call(
                                 lead_id=lead['id'],
                                 disposition=disposition,
@@ -5382,34 +5946,41 @@ elif page == "📱 Dialer":
                                 callback_date=callback_date
                             )
 
-                            # Also log to CallTracker for unified tracking
-                            try:
-                                # Map disposition to CallTracker outcome
-                                disposition_to_outcome = {
-                                    'no_answer': 'No Answer',
-                                    'voicemail': 'Left Voicemail',
-                                    'wrong_number': 'Wrong Number',
-                                    'not_interested': 'Not Interested',
-                                    'callback_requested': 'Callback Requested',
-                                    'interested': 'Interested',
-                                    'appointment_set': 'Appointment Set',
-                                    'do_not_call': 'Do Not Call',
-                                    'disconnected': 'Disconnected'
-                                }
-                                outcome = disposition_to_outcome.get(disposition, 'No Answer')
+                            # Also log to Call Tracker for follow-up tracking
+                            tracker = CallTracker()
 
-                                tracker = CallTracker()
-                                tracker.log_call(
-                                    address=lead.get('address', 'Unknown'),
-                                    owner_name=lead.get('owner_name', 'Unknown'),
-                                    phone=lead.get('phone', ''),
-                                    outcome=outcome,
-                                    notes=notes,
-                                    follow_up_date=str(callback_date).split('T')[0] if callback_date else None,
-                                    follow_up_notes=f"Callback from Dialer" if callback_date else ''
-                                )
-                            except Exception as e:
-                                pass  # Don't fail if tracker has issues
+                            # Map dialer disposition to tracker outcome
+                            disposition_to_outcome = {
+                                'not_called': 'No Answer',
+                                'no_answer': 'No Answer',
+                                'voicemail': 'Left Voicemail',
+                                'busy': 'No Answer',
+                                'wrong_number': 'Wrong Number',
+                                'disconnected': 'Wrong Number',
+                                'dnc_request': 'Do Not Call',
+                                'not_interested': 'Not Interested',
+                                'callback_requested': 'Call Back Later',
+                                'interested': 'Interested',
+                                'hot_lead': 'Appointment Set',
+                                'deal_made': 'Offer Made'
+                            }
+
+                            tracker_outcome = disposition_to_outcome.get(disposition, 'No Answer')
+
+                            # Parse callback date for follow-up
+                            follow_up_date = None
+                            if callback_date and isinstance(callback_date, str) and 'T' in callback_date:
+                                follow_up_date = callback_date.split('T')[0]
+
+                            tracker.log_call(
+                                address=lead.get('address', ''),
+                                owner_name=lead.get('owner_name', ''),
+                                phone=lead.get('phone', ''),
+                                outcome=tracker_outcome,
+                                notes=notes,
+                                follow_up_date=follow_up_date,
+                                follow_up_notes=f"Callback scheduled" if follow_up_date else ''
+                            )
 
                             st.success("✅ Saved to Dialer & Call Tracker!")
                             st.session_state.current_lead = None
@@ -5492,3 +6063,155 @@ elif page == "📱 Dialer":
                     st.dataframe(history_df, use_container_width=True)
                 else:
                     st.info("No calls recorded yet")
+
+
+# ========================================
+# USER MANAGEMENT PAGE
+# ========================================
+elif page == "🔐 User Management":
+    st.markdown('<h1 class="main-header">🔐 User Management</h1>', unsafe_allow_html=True)
+    st.markdown("Manage VA login credentials and access")
+
+    # Initialize auth
+    auth = VAAuth()
+
+    # Get all users
+    users = auth.get_all_users(include_inactive=True)
+
+    # Stats
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Users", len(users))
+    with col2:
+        active = len(users[users['is_active'] == True]) if not users.empty else 0
+        st.metric("Active", active)
+    with col3:
+        admins = len(users[users['role'] == 'admin']) if not users.empty else 0
+        st.metric("Admins", admins)
+    with col4:
+        vas = len(users[users['role'] == 'va']) if not users.empty else 0
+        st.metric("VAs", vas)
+
+    st.markdown("---")
+
+    # Tabs
+    tab1, tab2, tab3 = st.tabs(["👥 All Users", "➕ Add User", "🔐 Reset Password"])
+
+    with tab1:
+        st.markdown("### All Users")
+
+        if users.empty:
+            st.info("No users yet")
+        else:
+            for _, user in users.iterrows():
+                status_color = "#28a745" if user['is_active'] else "#dc3545"
+                role_badge = "Admin" if user['role'] == 'admin' else "Manager" if user['role'] == 'manager' else "VA"
+
+                with st.expander(f"👤 {user['full_name']} (@{user['username']}) - {role_badge}"):
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown(f"**Username:** {user['username']}")
+                        st.markdown(f"**Full Name:** {user['full_name']}")
+                        st.markdown(f"**Email:** {user['email'] or 'Not set'}")
+
+                    with col2:
+                        st.markdown(f"**Role:** {user['role']}")
+                        st.markdown(f"**Status:** <span style='color:{status_color}'>{'Active' if user['is_active'] else 'Inactive'}</span>", unsafe_allow_html=True)
+                        st.markdown(f"**Last Login:** {user['last_login'][:10] if user['last_login'] else 'Never'}")
+
+                    st.markdown("---")
+
+                    # Actions
+                    action_cols = st.columns(4)
+
+                    with action_cols[0]:
+                        if user['is_active']:
+                            if st.button("⏸️ Deactivate", key=f"deact_{user['username']}"):
+                                auth.deactivate_user(user['username'])
+                                st.warning("User deactivated")
+                                st.rerun()
+                        else:
+                            if st.button("▶️ Activate", key=f"act_{user['username']}"):
+                                auth.activate_user(user['username'])
+                                st.success("User activated")
+                                st.rerun()
+
+                    with action_cols[1]:
+                        new_role = st.selectbox(
+                            "Change Role",
+                            ROLES,
+                            index=ROLES.index(user['role']) if user['role'] in ROLES else 1,
+                            key=f"role_{user['username']}"
+                        )
+                        if new_role != user['role']:
+                            if st.button("Update Role", key=f"update_role_{user['username']}"):
+                                auth.update_user(user['username'], {'role': new_role})
+                                st.success("Role updated")
+                                st.rerun()
+
+    with tab2:
+        st.markdown("### Add New User")
+
+        new_username = st.text_input("Username", placeholder="jsmith")
+        new_password = st.text_input("Password", type="password", placeholder="Temporary password")
+        new_fullname = st.text_input("Full Name", placeholder="John Smith")
+        new_email = st.text_input("Email (optional)", placeholder="john@example.com")
+        new_role = st.selectbox("Role", ROLES, index=1)  # Default to VA
+
+        if st.button("➕ Create User", type="primary"):
+            if new_username and new_password and new_fullname:
+                user_id = auth.create_user(
+                    username=new_username,
+                    password=new_password,
+                    full_name=new_fullname,
+                    email=new_email,
+                    role=new_role,
+                    created_by="admin"
+                )
+
+                if user_id:
+                    st.success(f"User created! Username: {new_username}")
+                    st.info("Ask the user to change their password on first login.")
+                    st.balloons()
+                else:
+                    st.error("Username already exists")
+            else:
+                st.error("Username, password, and full name are required")
+
+    with tab3:
+        st.markdown("### Reset User Password")
+
+        if not users.empty:
+            reset_user = st.selectbox(
+                "Select User",
+                users['username'].tolist(),
+                format_func=lambda x: f"{x} - {users[users['username'] == x]['full_name'].iloc[0]}"
+            )
+
+            reset_password = st.text_input("New Password", type="password", placeholder="Enter new password")
+
+            if st.button("🔐 Reset Password", type="primary"):
+                if reset_user and reset_password:
+                    success, message = auth.reset_password(reset_user, reset_password, admin_user="admin")
+                    if success:
+                        st.success(message)
+                    else:
+                        st.error(message)
+                else:
+                    st.error("Select a user and enter new password")
+        else:
+            st.info("No users to reset")
+
+    st.markdown("---")
+    st.markdown("### Active Sessions")
+
+    sessions = auth.get_active_sessions()
+    if sessions.empty:
+        st.info("No active sessions")
+    else:
+        st.dataframe(sessions[['username', 'created_at', 'expires_at', 'ip_address']], use_container_width=True)
+
+    # Security note
+    st.markdown("---")
+    st.caption("Default admin credentials: username 'admin', password 'admin123' - change immediately!")

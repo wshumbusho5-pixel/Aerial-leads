@@ -1,0 +1,116 @@
+# Cleveland, Ohio Market Configuration
+# Aerial Leads - Market-specific settings for Cuyahoga County
+
+market:
+  id: "cleveland_oh"
+  name: "Cleveland, Ohio"
+  state: "OH"
+  county: "Cuyahoga"
+  timezone: "America/New_York"
+
+# Tax delinquency data source
+tax_data:
+  type: "web_scraper"  # Cleveland uses web scraper (no bulk Excel available)
+  source: "cuyahoga_county_treasurer"
+
+  urls:
+    web_search: "https://treasurer.cuyahogacounty.us/en-US/Tax-Search.aspx"
+    auditor_search: "https://myplace.cuyahogacounty.us/app/search/"
+    gis_portal: "https://gis.cuyahogacounty.us/"
+
+  # Column mappings (different from Franklin County!)
+  field_mappings:
+    parcel_id: "PARCEL_ID"
+    taxes_owed: "TOTAL_DUE"
+    address: "SITE_ADDR"
+    owner_name: "OWNER_NAME"
+    owner_address: "OWNER_ADDR"
+    mailing_address: "MAIL_ADDR"
+    zip_code: "ZIP"
+    property_type: "PROPERTY_CLASS"
+    assessed_value: "TOTAL_APPRAISED"
+    market_value: "MARKET_VALUE"
+
+# Code violations data source
+violations:
+  type: "arcgis_api"
+  source: "cleveland_open_data"
+
+  # Cleveland uses different ArcGIS endpoint
+  url: "https://gis.clevelandohio.gov/arcgis/rest/services/OpenData/MapServer/0"
+
+  query_field: "parcel_no"
+  max_records_per_request: 1000
+
+  field_mappings:
+    case_id: "case_number"
+    parcel_number: "parcel_no"
+    address: "address"
+    violation_type: "violation_type"
+    status: "status"
+    file_date: "created_date"
+
+# Geographic boundaries
+geography:
+  zip_codes:
+    # Cleveland proper
+    - "44101"
+    - "44102"
+    - "44103"
+    - "44104"
+    - "44105"
+    - "44106"
+    - "44107"
+    - "44108"
+    - "44109"
+    - "44110"
+    - "44111"
+    - "44112"
+    - "44113"
+    - "44114"
+    - "44115"
+    - "44116"
+    - "44117"
+    - "44118"
+    - "44119"
+    - "44120"
+    - "44121"
+    - "44122"
+    - "44123"
+    - "44124"
+    - "44125"
+    - "44126"
+    - "44127"
+    - "44128"
+    - "44129"
+    - "44130"
+    - "44131"
+    - "44132"
+    - "44133"
+    - "44134"
+    - "44135"
+    - "44136"
+    - "44137"
+    - "44138"
+    - "44139"
+    - "44140"
+    - "44141"
+    - "44142"
+    - "44143"
+    - "44144"
+    - "44145"
+    - "44146"
+
+# Market-specific scoring adjustments
+scoring:
+  tax_debt_ratio:
+    high: 0.15      # Cleveland has lower property values, adjust thresholds
+    medium: 0.08
+    low: 0.04
+
+  estimated_annual_tax_rate: 0.035  # 3.5% - slightly lower than Columbus
+
+data_quality:
+  min_amount_owed: 800.0   # Lower threshold for Cleveland market
+  min_years_delinquent: 2
+  max_data_age_days: 30

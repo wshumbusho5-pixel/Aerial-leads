@@ -1,0 +1,1 @@
+campaign_id,created_at,updated_at,name,description,template_id,status,scheduled_at,total_recipients,sent_count,delivered_count,failed_count,response_count,optout_count,created_by,sender_phone

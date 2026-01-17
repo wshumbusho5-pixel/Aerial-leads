@@ -1,0 +1,123 @@
+# Cincinnati, Ohio Market Configuration
+# Aerial Leads - Market-specific settings for Hamilton County
+
+market:
+  id: "cincinnati_oh"
+  name: "Cincinnati, Ohio"
+  state: "OH"
+  county: "Hamilton"
+  timezone: "America/New_York"
+
+# Tax delinquency data source
+tax_data:
+  type: "web_scraper"
+  source: "hamilton_county_auditor"
+
+  urls:
+    web_search: "https://www.hamiltoncountyauditor.org/search"
+    treasurer: "https://www.hamiltoncountytreasurer.org/"
+    gis_portal: "https://cagisonline.hamilton-co.org/"
+
+  field_mappings:
+    parcel_id: "PARCEL_NUMBER"
+    taxes_owed: "AMOUNT_DUE"
+    address: "PROPERTY_ADDRESS"
+    owner_name: "OWNER"
+    owner_address: "OWNER_ADDRESS"
+    mailing_address: "MAILING_ADDRESS"
+    zip_code: "ZIP_CODE"
+    property_type: "USE_CODE"
+    assessed_value: "TOTAL_VALUE"
+    market_value: "APPRAISED_VALUE"
+
+# Code violations data source
+violations:
+  type: "arcgis_api"
+  source: "cincinnati_open_data"
+
+  url: "https://gisdata.hamilton-co.org/arcgis/rest/services/OpenData/MapServer/0"
+
+  query_field: "PARCEL_ID"
+  max_records_per_request: 1000
+
+  field_mappings:
+    case_id: "CASE_ID"
+    parcel_number: "PARCEL_ID"
+    address: "ADDRESS"
+    violation_type: "TYPE"
+    status: "STATUS"
+    file_date: "DATE_FILED"
+
+# Geographic boundaries
+geography:
+  zip_codes:
+    # Cincinnati proper
+    - "45201"
+    - "45202"
+    - "45203"
+    - "45204"
+    - "45205"
+    - "45206"
+    - "45207"
+    - "45208"
+    - "45209"
+    - "45210"
+    - "45211"
+    - "45212"
+    - "45213"
+    - "45214"
+    - "45215"
+    - "45216"
+    - "45217"
+    - "45218"
+    - "45219"
+    - "45220"
+    - "45221"
+    - "45222"
+    - "45223"
+    - "45224"
+    - "45225"
+    - "45226"
+    - "45227"
+    - "45228"
+    - "45229"
+    - "45230"
+    - "45231"
+    - "45232"
+    - "45233"
+    - "45234"
+    - "45235"
+    - "45236"
+    - "45237"
+    - "45238"
+    - "45239"
+    - "45240"
+    - "45241"
+    - "45242"
+    - "45243"
+    - "45244"
+    - "45245"
+    - "45246"
+    - "45247"
+    - "45248"
+    - "45249"
+    - "45250"
+    - "45251"
+    - "45252"
+    - "45253"
+    - "45254"
+    - "45255"
+
+# Market-specific scoring adjustments
+scoring:
+  tax_debt_ratio:
+    high: 0.18
+    medium: 0.09
+    low: 0.05
+
+  estimated_annual_tax_rate: 0.038
+
+data_quality:
+  min_amount_owed: 1000.0
+  min_years_delinquent: 2
+  max_data_age_days: 30

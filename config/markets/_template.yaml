@@ -1,0 +1,103 @@
+# Market Configuration Template
+# Copy this file and rename to {city}_{state}.yaml (e.g., dayton_oh.yaml)
+# Then fill in the details for your market
+
+market:
+  id: "city_state"           # Unique identifier (lowercase, underscore separated)
+  name: "City, State"        # Display name
+  state: "XX"                # Two-letter state code
+  county: "County Name"      # County name
+  timezone: "America/New_York"  # Timezone
+
+# Tax delinquency data source
+# Determine how this county provides tax data
+tax_data:
+  # Options: excel, web_scraper, api
+  # - excel: County provides bulk Excel/CSV downloads (fastest, most reliable)
+  # - web_scraper: Need to scrape county website
+  # - api: County has a public API
+  type: "excel"
+  source: "county_name_auditor"
+
+  urls:
+    # Find these URLs on the county auditor/treasurer website
+    bulk_download: ""        # URL for bulk data downloads (if available)
+    web_search: ""           # URL for property search page
+    auditor_search: ""       # URL for auditor's property search
+
+  # For type: excel
+  files:
+    tax_detail: "TaxDetail.xlsx"
+    parcel: "Parcel.xlsx"
+    value: "Value.xlsx"
+
+  # Map county's column names to our internal schema
+  # Look at the county's data files/website to find these column names
+  field_mappings:
+    parcel_id: "PARCEL_ID"           # Unique parcel identifier
+    taxes_owed: "AMOUNT_DUE"         # Total tax amount owed
+    address: "PROPERTY_ADDRESS"       # Property street address
+    owner_name: "OWNER_NAME"          # Property owner name
+    owner_address: "OWNER_ADDRESS"    # Owner's address (may differ from property)
+    mailing_address: "MAILING_ADDRESS"  # Tax bill mailing address
+    zip_code: "ZIP_CODE"              # Property zip code
+    property_type: "PROPERTY_TYPE"    # Residential, commercial, etc.
+    assessed_value: "ASSESSED_VALUE"  # Tax-assessed value
+    market_value: "MARKET_VALUE"      # Market/appraised value
+
+# Code violations data source
+violations:
+  # Options: arcgis_api, web_scraper, none
+  # Many cities use ArcGIS for open data - check city's open data portal
+  type: "arcgis_api"
+  source: "city_open_data"
+
+  # ArcGIS REST API endpoint (find on city's open data portal)
+  url: "https://gis.city.gov/arcgis/rest/services/OpenData/MapServer/0"
+
+  # Field name to query by parcel number
+  query_field: "PARCEL_ID"
+  max_records_per_request: 1000
+
+  field_mappings:
+    case_id: "CASE_ID"
+    parcel_number: "PARCEL_ID"
+    address: "ADDRESS"
+    violation_type: "TYPE"
+    status: "STATUS"
+    file_date: "DATE_FILED"
+
+# Geographic boundaries
+geography:
+  # List all zip codes in your target market
+  # Find these on USPS.com or city's website
+  zip_codes:
+    - "00000"
+    - "00001"
+    # Add all zip codes...
+
+# Market-specific scoring adjustments (optional)
+# Adjust thresholds based on local market conditions
+scoring:
+  tax_debt_ratio:
+    high: 0.20      # 20%+ of property value = high motivation
+    medium: 0.10    # 10-20% = medium motivation
+    low: 0.05       # 5-10% = low motivation
+
+  # Average annual property tax rate in this market
+  # Used to estimate years delinquent from total owed
+  estimated_annual_tax_rate: 0.04  # 4%
+
+# Data quality filters
+data_quality:
+  min_amount_owed: 1000.0      # Minimum tax debt to consider
+  min_years_delinquent: 2      # Minimum years behind
+  max_data_age_days: 30        # Re-scrape if data older than this
+
+# Notes for implementers (not used by code)
+# Uncomment and fill in useful information
+# notes:
+#   data_update_frequency: "Monthly"
+#   contact_info: "County Auditor: (555) 123-4567"
+#   special_considerations: "County uses fiscal year starting July 1"
+#   api_rate_limits: "100 requests per minute"

@@ -1,0 +1,1 @@
+message_id,campaign_id,created_at,recipient_phone,recipient_name,address,message_text,status,sent_at,delivered_at,response,response_at,error_message
