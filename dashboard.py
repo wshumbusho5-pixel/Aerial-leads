@@ -10,7 +10,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 # Import our modules - with fallbacks for deployment
@@ -4783,18 +4783,50 @@ elif page == "🔍 Search Owner":
 elif page == "📊 View Leads":
     st.markdown('<h1 class="main-header">📊 View Leads</h1>', unsafe_allow_html=True)
 
-    # Check if data exists - try new format first, then old
-    all_leads_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
-    if not all_leads_file.exists():
-        all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+    # Check for batch files first
+    batches_dir = PROCESSED_DATA_DIR / 'batches'
+    batch_files = []
+    if batches_dir.exists():
+        batch_files = sorted([f for f in batches_dir.glob('batch_*_*.csv') if 'tier' not in f.name], reverse=True)
 
-    if not all_leads_file.exists():
-        st.warning("⚠️ No leads found. Generate leads first!")
-        if st.button("Go to Generate Leads"):
-            st.experimental_rerun()
+    # Batch selector
+    df = pd.DataFrame()
+    if batch_files:
+        batch_options = ['All Batches Combined'] + [f.stem for f in batch_files]
+        selected_batch = st.selectbox("📦 Select Batch", batch_options)
+
+        if selected_batch == 'All Batches Combined':
+            # Combine all batches
+            all_dfs = []
+            for bf in batch_files:
+                try:
+                    batch_df = pd.read_csv(bf)
+                    batch_df['batch'] = bf.stem
+                    all_dfs.append(batch_df)
+                except:
+                    pass
+            if all_dfs:
+                df = pd.concat(all_dfs, ignore_index=True)
+                st.success(f"📦 Showing {len(df):,} leads from {len(batch_files)} batches")
+        else:
+            # Load selected batch
+            batch_file = batches_dir / f"{selected_batch}.csv"
+            if batch_file.exists():
+                df = pd.read_csv(batch_file)
+                st.success(f"📦 Showing {len(df):,} leads from {selected_batch}")
     else:
-        df = pd.read_csv(all_leads_file)
+        # Fallback to old format
+        all_leads_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+        if not all_leads_file.exists():
+            all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
 
+        if all_leads_file.exists():
+            df = pd.read_csv(all_leads_file)
+            st.info(f"📦 Showing {len(df):,} leads")
+
+    if df.empty:
+        st.warning("⚠️ No leads found. Generate leads first!")
+    else:
         # Filters - Row 1: Basic filters
         st.markdown("### Filters")
         col1, col2, col3, col4 = st.columns(4)
