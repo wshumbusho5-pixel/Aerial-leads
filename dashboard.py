@@ -210,13 +210,16 @@ if page == "🏠 Home":
 
     with col1:
         st.markdown("### Franklin County Tax Data")
-        if (RAW_DATA_DIR / 'TaxDetail.xlsx').exists():
+        # Check for either xlsx or csv files
+        tax_xlsx = RAW_DATA_DIR / 'TaxDetail.xlsx'
+        tax_csv = RAW_DATA_DIR / 'TaxDetail.csv'
+        if tax_xlsx.exists() or tax_csv.exists():
             st.success("✅ Tax data loaded")
             st.info("22,858 total delinquent parcels")
             st.info("7,870 Columbus properties available")
         else:
             st.error("❌ Tax data not found")
-            st.warning("Go to Data Management to download")
+            st.warning(f"Looking in: {RAW_DATA_DIR}")
 
     with col2:
         st.markdown("### Code Violations API")
