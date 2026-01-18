@@ -316,7 +316,10 @@ class DealPipeline:
                 'total_potential_profit': 0,
                 'total_closed_profit': 0,
                 'avg_deal_value': 0,
-                'conversion_rate': 0
+                'conversion_rate': 0,
+                'active_deals': 0,
+                'closed_deals': 0,
+                'dead_deals': 0
             }
 
         by_stage = df['stage'].value_counts().to_dict()
