@@ -2133,14 +2133,16 @@ elif page == "👥 VA Management":
 
             if st.button("🔑 Login", use_container_width=True):
                 # Try VAAuth first (User Management system)
-                user = va_auth.authenticate(username, password)
-                if user and user.get('role') == 'admin':
-                    st.session_state.va_authenticated = True
-                    st.session_state.va_user = user
-                    st.success(f"✅ Welcome, {user.get('full_name', username)}!")
-                    st.rerun()
-                elif user:
-                    st.error("❌ Access denied. Admin privileges required.")
+                success, session_id, message = va_auth.authenticate(username, password)
+                if success:
+                    user = va_auth.get_user(username)
+                    if user and user.get('role') == 'admin':
+                        st.session_state.va_authenticated = True
+                        st.session_state.va_user = user
+                        st.success(f"✅ Welcome, {user.get('full_name', username)}!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Access denied. Admin privileges required.")
                 else:
                     # Fallback to VA Manager auth
                     user = va_manager.authenticate(username, password)
