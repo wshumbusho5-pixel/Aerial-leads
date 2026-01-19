@@ -2352,26 +2352,29 @@ elif page == "👥 VA Management":
                     # Individual VA performance
                     va_id = va_options[selected_va]
                     perf = va_manager.get_va_performance(va_id, days=days)
-                    progress = va_manager.get_va_today_progress(va_id)
+                    progress = va_manager.get_va_today_progress(va_id) or {}
 
                     st.markdown(f"#### 📊 {selected_va}'s Performance")
 
                     # Today's progress
                     st.markdown("##### Today's Progress")
-                    progress_pct = (progress['calls_made'] / progress['quota'] * 100) if progress['quota'] > 0 else 0
+                    prog_calls = progress.get('calls_made', 0)
+                    prog_quota = progress.get('quota', 50)
+                    progress_pct = (prog_calls / prog_quota * 100) if prog_quota > 0 else 0
                     st.progress(min(progress_pct / 100, 1.0))
-                    st.write(f"**{progress['calls_made']}** / {progress['quota']} calls ({progress_pct:.0f}%)")
+                    st.write(f"**{prog_calls}** / {prog_quota} calls ({progress_pct:.0f}%)")
 
                     # Period stats
                     col1, col2, col3, col4 = st.columns(4)
                     with col1:
-                        st.metric("Calls Made", perf['calls_made'])
+                        st.metric("Calls Made", perf.get('calls_made', 0) if isinstance(perf, dict) else 0)
                     with col2:
-                        st.metric("Contacts", perf['contacts_reached'])
+                        st.metric("Contacts", perf.get('contacts_reached', 0) if isinstance(perf, dict) else 0)
                     with col3:
-                        st.metric("Appointments", perf['appointments_set'])
+                        st.metric("Appointments", perf.get('appointments_set', 0) if isinstance(perf, dict) else 0)
                     with col4:
-                        st.metric("Conversion", f"{perf['conversion_rate']:.1f}%")
+                        conv_rate = perf.get('conversion_rate', 0) if isinstance(perf, dict) else 0
+                        st.metric("Conversion", f"{conv_rate:.1f}%")
             else:
                 st.info("No VAs added yet")
 
@@ -2388,12 +2391,14 @@ elif page == "👥 VA Management":
                 cols = st.columns(len(vas_df))
                 for idx, (_, va) in enumerate(vas_df.iterrows()):
                     with cols[idx]:
-                        progress = va_manager.get_va_today_progress(va['user_id'])
-                        progress_pct = (progress['calls_made'] / progress['quota'] * 100) if progress['quota'] > 0 else 0
+                        progress = va_manager.get_va_today_progress(va['user_id']) or {}
+                        calls_made = progress.get('calls_made', 0)
+                        quota = progress.get('quota', 50)
+                        progress_pct = (calls_made / quota * 100) if quota > 0 else 0
 
                         st.markdown(f"**{va['name']}**")
                         st.progress(min(progress_pct / 100, 1.0))
-                        st.caption(f"{progress['calls_made']}/{progress['quota']} calls")
+                        st.caption(f"{calls_made}/{quota} calls")
 
                         # Status indicator
                         if progress_pct >= 100:
