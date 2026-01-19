@@ -2317,30 +2317,35 @@ elif page == "👥 VA Management":
                     if not perf_df.empty:
                         st.markdown("#### 📈 Team Performance")
 
-                        # Metrics row
-                        col1, col2, col3, col4 = st.columns(4)
-                        with col1:
-                            st.metric("Total Calls", int(perf_df['calls_made'].sum()))
-                        with col2:
-                            st.metric("Total Contacts", int(perf_df['contacts_reached'].sum()))
-                        with col3:
-                            st.metric("Appointments", int(perf_df['appointments_set'].sum()))
-                        with col4:
-                            avg_rate = perf_df['conversion_rate'].mean()
-                            st.metric("Avg Conversion", f"{avg_rate:.1f}%")
+                        # Check if performance columns exist
+                        if 'calls_made' in perf_df.columns:
+                            # Metrics row
+                            col1, col2, col3, col4 = st.columns(4)
+                            with col1:
+                                st.metric("Total Calls", int(perf_df['calls_made'].sum()))
+                            with col2:
+                                st.metric("Total Contacts", int(perf_df['contacts_reached'].sum()) if 'contacts_reached' in perf_df.columns else 0)
+                            with col3:
+                                st.metric("Appointments", int(perf_df['appointments_set'].sum()) if 'appointments_set' in perf_df.columns else 0)
+                            with col4:
+                                avg_rate = perf_df['conversion_rate'].mean() if 'conversion_rate' in perf_df.columns else 0
+                                st.metric("Avg Conversion", f"{avg_rate:.1f}%")
 
-                        # Performance table
-                        st.markdown("#### 👥 Individual Performance")
-                        display_df = perf_df[['name', 'calls_made', 'contacts_reached', 'appointments_set', 'conversion_rate', 'calls_per_day']].copy()
-                        display_df.columns = ['VA Name', 'Calls', 'Contacts', 'Appointments', 'Conv. Rate %', 'Calls/Day']
-                        st.dataframe(display_df, use_container_width=True, hide_index=True)
+                            # Performance table
+                            st.markdown("#### 👥 Individual Performance")
+                            available_cols = [c for c in ['name', 'calls_made', 'contacts_reached', 'appointments_set', 'conversion_rate', 'calls_per_day'] if c in perf_df.columns]
+                            display_df = perf_df[available_cols].copy()
+                            st.dataframe(display_df, use_container_width=True, hide_index=True)
+                        else:
+                            st.info("No performance data recorded yet. VAs need to make calls to see stats.")
 
-                        # Chart
-                        fig = px.bar(perf_df, x='name', y='calls_made',
-                                    color='conversion_rate',
-                                    title="Calls Made by VA (colored by conversion rate)",
-                                    color_continuous_scale='RdYlGn')
-                        st.plotly_chart(fig, use_container_width=True)
+                        # Chart (only if data exists)
+                        if 'calls_made' in perf_df.columns and 'conversion_rate' in perf_df.columns:
+                            fig = px.bar(perf_df, x='name', y='calls_made',
+                                        color='conversion_rate',
+                                        title="Calls Made by VA (colored by conversion rate)",
+                                        color_continuous_scale='RdYlGn')
+                            st.plotly_chart(fig, use_container_width=True)
                     else:
                         st.info("No performance data yet")
                 else:

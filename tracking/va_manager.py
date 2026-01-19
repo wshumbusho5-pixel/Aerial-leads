@@ -11,7 +11,7 @@ from typing import Optional, List, Dict
 import hashlib
 import secrets
 
-from config.settings import PROCESSED_DATA_DIR
+from config.settings import PROCESSED_DATA_DIR, DATA_DIR
 from config.logging_config import get_logger
 
 
@@ -31,9 +31,11 @@ class VAManager:
     def __init__(self):
         self.logger = get_logger(self.__class__.__name__)
         self.users_file = PROCESSED_DATA_DIR / 'users.csv'
+        self.auth_users_file = DATA_DIR / 'auth_users.csv'  # Also check User Management file
         self.assignments_file = PROCESSED_DATA_DIR / 'lead_assignments.csv'
 
         self._init_files()
+        self._sync_from_auth_users()  # Sync VAs from User Management
 
     def _init_files(self):
         """Initialize user and assignment files."""
@@ -70,6 +72,41 @@ class VAManager:
             email='admin@aerial-leads.com',
             role='admin'
         )
+
+    def _sync_from_auth_users(self):
+        """Sync VAs from User Management (auth_users.csv) to VA Management."""
+        if not self.auth_users_file.exists():
+            return
+
+        try:
+            auth_df = pd.read_csv(self.auth_users_file)
+            users_df = pd.read_csv(self.users_file)
+
+            # Get existing usernames in VA Management
+            existing_usernames = set(users_df['username'].tolist())
+
+            # Find VAs in auth_users that are not in users.csv
+            for _, auth_user in auth_df.iterrows():
+                if auth_user['username'] not in existing_usernames:
+                    # Add to VA Management
+                    new_user = {
+                        'user_id': f"VA-{auth_user['username'].upper()[:8]}-{datetime.now().strftime('%H%M')}",
+                        'username': auth_user['username'],
+                        'password_hash': auth_user.get('password_hash', ''),
+                        'name': auth_user.get('full_name', auth_user['username']),
+                        'email': auth_user.get('email', ''),
+                        'role': auth_user.get('role', 'va'),
+                        'daily_quota': 50,
+                        'is_active': auth_user.get('is_active', True),
+                        'created_at': datetime.now().isoformat(),
+                        'last_login': None
+                    }
+                    users_df = pd.concat([users_df, pd.DataFrame([new_user])], ignore_index=True)
+                    self.logger.info(f"Synced user from User Management: {auth_user['username']}")
+
+            users_df.to_csv(self.users_file, index=False)
+        except Exception as e:
+            self.logger.error(f"Error syncing auth users: {e}")
 
     def _hash_password(self, password: str) -> str:
         """Hash password for storage."""
