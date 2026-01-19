@@ -6416,7 +6416,9 @@ elif page == "🔐 User Management":
                     with col2:
                         st.markdown(f"**Role:** {user['role']}")
                         st.markdown(f"**Status:** <span style='color:{status_color}'>{'Active' if user['is_active'] else 'Inactive'}</span>", unsafe_allow_html=True)
-                        st.markdown(f"**Last Login:** {user['last_login'][:10] if user['last_login'] else 'Never'}")
+                        last_login = user['last_login']
+                        last_login_str = str(last_login)[:10] if pd.notna(last_login) and last_login else 'Never'
+                        st.markdown(f"**Last Login:** {last_login_str}")
 
                     st.markdown("---")
 
