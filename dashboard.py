@@ -2112,8 +2112,9 @@ elif page == "☎️ Call Tracker":
 elif page == "👥 VA Management":
     st.markdown('<h1 class="main-header">👥 VA Management</h1>', unsafe_allow_html=True)
 
-    # Initialize VA Manager
+    # Initialize VA Manager and Auth
     va_manager = VAManager()
+    va_auth = VAAuth()
 
     # Check if user is admin (simple session state for demo)
     if 'va_authenticated' not in st.session_state:
@@ -2131,16 +2132,27 @@ elif page == "👥 VA Management":
             password = st.text_input("Password", type="password")
 
             if st.button("🔑 Login", use_container_width=True):
-                user = va_manager.authenticate(username, password)
-                if user and user['role'] == 'admin':
+                # Try VAAuth first (User Management system)
+                user = va_auth.authenticate(username, password)
+                if user and user.get('role') == 'admin':
                     st.session_state.va_authenticated = True
                     st.session_state.va_user = user
-                    st.success(f"✅ Welcome, {user['name']}!")
+                    st.success(f"✅ Welcome, {user.get('full_name', username)}!")
                     st.rerun()
                 elif user:
                     st.error("❌ Access denied. Admin privileges required.")
                 else:
-                    st.error("❌ Invalid credentials")
+                    # Fallback to VA Manager auth
+                    user = va_manager.authenticate(username, password)
+                    if user and user.get('role') == 'admin':
+                        st.session_state.va_authenticated = True
+                        st.session_state.va_user = user
+                        st.success(f"✅ Welcome, {user.get('name', username)}!")
+                        st.rerun()
+                    elif user:
+                        st.error("❌ Access denied. Admin privileges required.")
+                    else:
+                        st.error("❌ Invalid credentials")
     else:
         # Logout button
         col1, col2 = st.columns([6, 1])
