@@ -1,0 +1,1 @@
+buyer_id,name,company,email,phone,zip_codes,property_types,min_price,max_price,min_arv,max_arv,condition_preference,max_days_to_close,funding_type,notes,deals_purchased,avg_response_time_hrs,status,created_at,updated_at
