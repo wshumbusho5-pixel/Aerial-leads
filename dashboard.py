@@ -2467,120 +2467,139 @@ elif page == "📥 Inbound Leads":
     st.markdown('<h1 class="main-header">📥 Inbound Leads</h1>', unsafe_allow_html=True)
     st.markdown("Leads captured from your public website - these people reached out to YOU!")
 
-    # Load inbound leads
-    inbound_file = DATA_DIR / "inbound_leads.csv"
+    # Load inbound leads from database first, fall back to CSV
+    inbound_df = pd.DataFrame()
 
-    if inbound_file.exists():
-        inbound_df = pd.read_csv(inbound_file)
+    # Try database first
+    if DB_AUTH_AVAILABLE:
+        try:
+            db_auth = DatabaseAuth()
+            if db_auth.db_type == 'postgresql':
+                import psycopg2
+                from psycopg2.extras import RealDictCursor
+                conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+                cursor = conn.cursor(cursor_factory=RealDictCursor)
+                cursor.execute("SELECT * FROM inbound_leads ORDER BY captured_at DESC")
+                rows = cursor.fetchall()
+                conn.close()
+                if rows:
+                    inbound_df = pd.DataFrame(rows)
+                    st.success("📡 Connected to shared database - showing leads from all sources")
+        except Exception as e:
+            st.warning(f"Database not available, using local CSV: {e}")
 
-        if not inbound_df.empty:
-            # Stats row
-            col1, col2, col3, col4 = st.columns(4)
+    # Fall back to CSV if database empty or unavailable
+    if inbound_df.empty:
+        inbound_file = DATA_DIR / "inbound_leads.csv"
+        if inbound_file.exists():
+            inbound_df = pd.read_csv(inbound_file)
 
-            with col1:
-                st.metric("Total Inbound", len(inbound_df))
-            with col2:
+    if not inbound_df.empty:
+        # Stats row
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric("Total Inbound", len(inbound_df))
+        with col2:
+            today = datetime.now().strftime('%Y-%m-%d')
+            today_count = len(inbound_df[inbound_df['captured_at'].str.startswith(today)]) if 'captured_at' in inbound_df.columns else 0
+            st.metric("Today", today_count)
+        with col3:
+            # Unique source pages
+            if 'source_page' in inbound_df.columns:
+                sources = inbound_df['source_page'].nunique()
+            else:
+                sources = 0
+            st.metric("Sources", sources)
+        with col4:
+            st.metric("Hot Leads", "🔥")
+
+        st.markdown("---")
+
+        # Tabs
+        tab1, tab2, tab3 = st.tabs(["📋 All Leads", "🔥 New Today", "📊 Analytics"])
+
+        with tab1:
+            st.markdown("### All Inbound Leads")
+
+            # Sort by most recent
+            if 'captured_at' in inbound_df.columns:
+                inbound_df = inbound_df.sort_values('captured_at', ascending=False)
+
+            # Display columns
+            display_cols = ['captured_at', 'name', 'phone', 'property_address', 'source_page', 'message']
+            display_cols = [c for c in display_cols if c in inbound_df.columns]
+
+            st.dataframe(inbound_df[display_cols], use_container_width=True, hide_index=True)
+
+            # Export button
+            if st.button("📤 Export to CSV"):
+                export_path = PROCESSED_DATA_DIR / 'inbound_leads_export.csv'
+                inbound_df.to_csv(export_path, index=False)
+                st.success(f"Exported to {export_path}")
+
+        with tab2:
+            st.markdown("### Today's Leads")
+
+            if 'captured_at' in inbound_df.columns:
                 today = datetime.now().strftime('%Y-%m-%d')
-                today_count = len(inbound_df[inbound_df['captured_at'].str.startswith(today)]) if 'captured_at' in inbound_df.columns else 0
-                st.metric("Today", today_count)
-            with col3:
-                # Unique source pages
-                if 'source_page' in inbound_df.columns:
-                    sources = inbound_df['source_page'].nunique()
+                today_leads = inbound_df[inbound_df['captured_at'].astype(str).str.startswith(today)]
+
+                if not today_leads.empty:
+                    for _, lead in today_leads.iterrows():
+                        with st.container():
+                            col1, col2 = st.columns([3, 1])
+                            with col1:
+                                st.markdown(f"**{lead.get('name', 'Unknown')}** - {lead.get('phone', 'No phone')}")
+                                st.markdown(f"📍 {lead.get('property_address', 'No address')}")
+                                if lead.get('message'):
+                                    st.caption(f"💬 {lead.get('message')}")
+                                st.caption(f"Source: {lead.get('source_page', 'Unknown')} | {lead.get('captured_at', '')}")
+                            with col2:
+                                if st.button("📞 Call", key=f"call_{lead.name}"):
+                                    st.info(f"Call {lead.get('phone', 'No phone')}")
+                                if st.button("➡️ Add to Tracker", key=f"track_{lead.name}"):
+                                    tracker = CallTracker()
+                                    tracker.log_call(
+                                        address=lead.get('property_address', ''),
+                                        owner_name=lead.get('name', ''),
+                                        phone=lead.get('phone', ''),
+                                        outcome='Interested',
+                                        notes=f"Inbound lead from website: {lead.get('message', '')}"
+                                    )
+                                    st.success("Added to Call Tracker!")
+                            st.markdown("---")
                 else:
-                    sources = 0
-                st.metric("Sources", sources)
-            with col4:
-                st.metric("Hot Leads", "🔥")
+                    st.info("No leads captured today yet. Check back later!")
+            else:
+                st.warning("No timestamp data available")
 
-            st.markdown("---")
+        with tab3:
+            st.markdown("### Lead Analytics")
 
-            # Tabs
-            tab1, tab2, tab3 = st.tabs(["📋 All Leads", "🔥 New Today", "📊 Analytics"])
+            if 'source_page' in inbound_df.columns:
+                # Leads by source
+                source_counts = inbound_df['source_page'].value_counts()
 
-            with tab1:
-                st.markdown("### All Inbound Leads")
+                fig = px.pie(
+                    values=source_counts.values,
+                    names=source_counts.index,
+                    title="Leads by Source Page"
+                )
+                st.plotly_chart(fig, use_container_width=True)
 
-                # Sort by most recent
-                if 'captured_at' in inbound_df.columns:
-                    inbound_df = inbound_df.sort_values('captured_at', ascending=False)
+            if 'captured_at' in inbound_df.columns:
+                # Leads over time
+                inbound_df['date'] = pd.to_datetime(inbound_df['captured_at']).dt.date
+                daily_counts = inbound_df.groupby('date').size().reset_index(name='leads')
 
-                # Display columns
-                display_cols = ['captured_at', 'name', 'phone', 'property_address', 'source_page', 'message']
-                display_cols = [c for c in display_cols if c in inbound_df.columns]
-
-                st.dataframe(inbound_df[display_cols], use_container_width=True, hide_index=True)
-
-                # Export button
-                if st.button("📤 Export to CSV"):
-                    export_path = PROCESSED_DATA_DIR / 'inbound_leads_export.csv'
-                    inbound_df.to_csv(export_path, index=False)
-                    st.success(f"Exported to {export_path}")
-
-            with tab2:
-                st.markdown("### Today's Leads")
-
-                if 'captured_at' in inbound_df.columns:
-                    today = datetime.now().strftime('%Y-%m-%d')
-                    today_leads = inbound_df[inbound_df['captured_at'].str.startswith(today)]
-
-                    if not today_leads.empty:
-                        for _, lead in today_leads.iterrows():
-                            with st.container():
-                                col1, col2 = st.columns([3, 1])
-                                with col1:
-                                    st.markdown(f"**{lead.get('name', 'Unknown')}** - {lead.get('phone', 'No phone')}")
-                                    st.markdown(f"📍 {lead.get('property_address', 'No address')}")
-                                    if lead.get('message'):
-                                        st.caption(f"💬 {lead.get('message')}")
-                                    st.caption(f"Source: {lead.get('source_page', 'Unknown')} | {lead.get('captured_at', '')}")
-                                with col2:
-                                    if st.button("📞 Call", key=f"call_{lead.name}"):
-                                        st.info(f"Call {lead.get('phone', 'No phone')}")
-                                    if st.button("➡️ Add to Tracker", key=f"track_{lead.name}"):
-                                        tracker = CallTracker()
-                                        tracker.log_call(
-                                            address=lead.get('property_address', ''),
-                                            owner_name=lead.get('name', ''),
-                                            phone=lead.get('phone', ''),
-                                            outcome='Interested',
-                                            notes=f"Inbound lead from website: {lead.get('message', '')}"
-                                        )
-                                        st.success("Added to Call Tracker!")
-                                st.markdown("---")
-                    else:
-                        st.info("No leads captured today yet. Check back later!")
-                else:
-                    st.warning("No timestamp data available")
-
-            with tab3:
-                st.markdown("### Lead Analytics")
-
-                if 'source_page' in inbound_df.columns:
-                    # Leads by source
-                    source_counts = inbound_df['source_page'].value_counts()
-
-                    fig = px.pie(
-                        values=source_counts.values,
-                        names=source_counts.index,
-                        title="Leads by Source Page"
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
-
-                if 'captured_at' in inbound_df.columns:
-                    # Leads over time
-                    inbound_df['date'] = pd.to_datetime(inbound_df['captured_at']).dt.date
-                    daily_counts = inbound_df.groupby('date').size().reset_index(name='leads')
-
-                    fig2 = px.line(
-                        daily_counts,
-                        x='date',
-                        y='leads',
-                        title="Leads Over Time"
-                    )
-                    st.plotly_chart(fig2, use_container_width=True)
-        else:
-            st.info("No inbound leads yet. Once your public site is live, leads will appear here!")
+                fig2 = px.line(
+                    daily_counts,
+                    x='date',
+                    y='leads',
+                    title="Leads Over Time"
+                )
+                st.plotly_chart(fig2, use_container_width=True)
     else:
         st.info("📥 No inbound leads yet.")
         st.markdown("""
