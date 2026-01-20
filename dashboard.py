@@ -44,7 +44,9 @@ try:
     from marketing.sms_campaigns import SMSCampaigns, CAMPAIGN_STATUS as SMS_CAMPAIGN_STATUS, DEFAULT_SMS_TEMPLATES
     from marketing.follow_up_sequences import FollowUpSequences, ACTION_TYPES, ACTION_TYPE_DISPLAY, DEFAULT_SEQUENCES
     from auth.va_auth import VAAuth, ROLES
+    from auth.database import DatabaseAuth
     from buyers.buyer_matcher import BuyerMatcher
+    DB_AUTH_AVAILABLE = True
 except ImportError as e:
     DEPLOY_MODE = True
     # Fallback paths for deployment
@@ -63,6 +65,8 @@ except ImportError as e:
     SheriffSaleScraper = LeadIntegrator = CallTracker = VAManager = DummyClass
     DNCChecker = ProbateMatcher = ReverseTargetingScraper = DirectMailManager = DummyClass
     NumberRotationManager = RVMManager = DealPipeline = AppointmentScheduler = SMSCampaigns = FollowUpSequences = VAAuth = DummyClass
+    DatabaseAuth = DummyClass
+    DB_AUTH_AVAILABLE = False
     ROLES = ["admin", "va", "manager"]
     MAIL_TEMPLATES = {}
     DEFAULT_RVM_SCRIPTS = {}
@@ -2132,29 +2136,41 @@ elif page == "👥 VA Management":
             password = st.text_input("Password", type="password")
 
             if st.button("🔑 Login", use_container_width=True):
-                # Try VAAuth first (User Management system)
-                success, session_id, message = va_auth.authenticate(username, password)
-                if success:
-                    user = va_auth.get_user(username)
-                    if user and user.get('role') == 'admin':
+                success = False
+                user = None
+
+                # Try Database auth first (shared across all apps)
+                if DB_AUTH_AVAILABLE:
+                    try:
+                        db_auth = DatabaseAuth()
+                        success, session_id, message = db_auth.authenticate(username, password)
+                        if success:
+                            user = db_auth.get_user(username)
+                    except Exception as e:
+                        pass  # Fall through to other auth methods
+
+                # Try VAAuth (CSV-based User Management system)
+                if not success:
+                    success, session_id, message = va_auth.authenticate(username, password)
+                    if success:
+                        user = va_auth.get_user(username)
+
+                # Fallback to VA Manager auth
+                if not success:
+                    user = va_manager.authenticate(username, password)
+                    success = user is not None
+
+                # Check result
+                if success and user:
+                    if user.get('role') == 'admin':
                         st.session_state.va_authenticated = True
                         st.session_state.va_user = user
-                        st.success(f"✅ Welcome, {user.get('full_name', username)}!")
+                        st.success(f"✅ Welcome, {user.get('full_name', user.get('name', username))}!")
                         st.rerun()
                     else:
                         st.error("❌ Access denied. Admin privileges required.")
                 else:
-                    # Fallback to VA Manager auth
-                    user = va_manager.authenticate(username, password)
-                    if user and user.get('role') == 'admin':
-                        st.session_state.va_authenticated = True
-                        st.session_state.va_user = user
-                        st.success(f"✅ Welcome, {user.get('name', username)}!")
-                        st.rerun()
-                    elif user:
-                        st.error("❌ Access denied. Admin privileges required.")
-                    else:
-                        st.error("❌ Invalid credentials")
+                    st.error("❌ Invalid credentials")
     else:
         # Logout button
         col1, col2 = st.columns([6, 1])
@@ -6394,8 +6410,16 @@ elif page == "🔐 User Management":
     st.markdown('<h1 class="main-header">🔐 User Management</h1>', unsafe_allow_html=True)
     st.markdown("Manage VA login credentials and access")
 
-    # Initialize auth
+    # Initialize auth (CSV-based for display)
     auth = VAAuth()
+
+    # Initialize database auth if available (for sync)
+    db_auth = None
+    if DB_AUTH_AVAILABLE:
+        try:
+            db_auth = DatabaseAuth()
+        except Exception as e:
+            st.warning(f"Database auth not available: {e}")
 
     # Get all users
     users = auth.get_all_users(include_inactive=True)
@@ -6485,6 +6509,7 @@ elif page == "🔐 User Management":
 
         if st.button("➕ Create User", type="primary"):
             if new_username and new_password and new_fullname:
+                # Create in CSV (local)
                 user_id = auth.create_user(
                     username=new_username,
                     password=new_password,
@@ -6493,6 +6518,21 @@ elif page == "🔐 User Management":
                     role=new_role,
                     created_by="admin"
                 )
+
+                # Also sync to database (shared across apps)
+                if db_auth:
+                    try:
+                        db_success, db_msg = db_auth.create_user(
+                            username=new_username,
+                            password=new_password,
+                            full_name=new_fullname,
+                            email=new_email,
+                            role=new_role
+                        )
+                        if db_success:
+                            st.success("✅ User synced to shared database (Railway apps can now login)")
+                    except Exception as e:
+                        st.warning(f"Local user created but database sync failed: {e}")
 
                 if user_id:
                     st.success(f"User created! Username: {new_username}")
