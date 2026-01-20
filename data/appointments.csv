@@ -1,0 +1,1 @@
+appointment_id,created_at,updated_at,scheduled_date,scheduled_time,duration_minutes,appointment_type,status,address,seller_name,seller_phone,deal_id,assigned_to,created_by,notes,outcome,follow_up_needed,reminder_sent,reminder_time

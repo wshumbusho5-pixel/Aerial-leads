@@ -1,0 +1,1 @@
+deal_id,created_at,updated_at,address,city,state,zip_code,seller_name,seller_phone,seller_email,lead_source,lead_type,stage,stage_changed_at,asking_price,offer_amount,contract_price,arv,repair_estimate,assignment_fee,buyer_name,buyer_phone,buyer_company,offer_date,contract_date,closing_date,actual_profit,deal_type,notes,assigned_to
