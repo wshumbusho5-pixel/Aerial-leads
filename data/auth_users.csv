@@ -1,0 +1,4 @@
+user_id,username,password_hash,salt,full_name,email,role,created_at,last_login,is_active,created_by
+USER-20260118035629-EE0D,admin,9d9b3a24d40e06ff9a8486a6b6c98cf61dd8cfe3df17500907094a8112c4c57f,bdf2a70209cb259ac333eaa9aff44daa,System Admin,,admin,2026-01-18T03:56:29.952296,2026-01-19T14:30:05.364540,True,system
+USER-20260119002104-B16D,kisha,58f9317645e3aeccb7dbfefc8501f8cb33a7e4ad25bdc3e6edd379e2d38a232b,1aea96029e0aa9f8d6a695e76101b0cf,KISHA UWASE,wshumbusho5@gmail.com,va,2026-01-19T00:21:04.260727,,True,admin
+USER-20260119094139-1464,kezza,3109abbe8fe8dc4f08d4af6cfcb7506ef0ade5b1db8ad8490480a4df7b563fda,95fd2d5e2749b3f7d4686d0e69e69a67,keza naomi,wshumbusho5@gmail.com,va,2026-01-19T09:41:39.507561,,True,admin
