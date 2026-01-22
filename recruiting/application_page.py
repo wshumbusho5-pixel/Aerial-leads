@@ -393,6 +393,54 @@ st.markdown("""
         color: #10b981;
         font-weight: bold;
     }
+
+    /* Mobile Responsive - Fix shaky edges */
+    @media (max-width: 768px) {
+        .stApp {
+            overflow-x: hidden !important;
+        }
+
+        .main .block-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            max-width: 100% !important;
+        }
+
+        .hero-section {
+            margin: -1rem -1rem 1.5rem -1rem !important;
+            padding: 2rem 1rem !important;
+            border-radius: 0 0 16px 16px !important;
+        }
+
+        .hero-title {
+            font-size: 1.8rem !important;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem !important;
+        }
+
+        .benefits-grid {
+            grid-template-columns: 1fr !important;
+            gap: 0.75rem !important;
+        }
+
+        .form-container {
+            padding: 1.5rem 1rem !important;
+        }
+
+        .stTextInput > div > div,
+        .stSelectbox > div > div,
+        .stTextArea > div > div {
+            max-width: 100% !important;
+        }
+    }
+
+    /* Prevent horizontal scroll globally */
+    html, body {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
