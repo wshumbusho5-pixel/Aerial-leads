@@ -14,7 +14,7 @@ load_dotenv()
 
 # Country salary data
 COUNTRIES = {
-    "Rwanda": {"currency": "RWF", "salary": "150,000", "flag": "🇷🇼"},
+    "Rwanda": {"currency": "RWF", "salary": "210,000", "flag": "🇷🇼"},
     "Uganda": {"currency": "UGX", "salary": "500,000", "flag": "🇺🇬"},
     "Kenya": {"currency": "KES", "salary": "20,000", "flag": "🇰🇪"},
     "Tanzania": {"currency": "TZS", "salary": "375,000", "flag": "🇹🇿"},
