@@ -369,6 +369,18 @@ class VAApplications:
 
             conn.commit()
             conn.close()
+
+            # Send confirmation email
+            if EMAIL_AVAILABLE:
+                try:
+                    send_application_received_email(
+                        applicant_name=data.get('full_name'),
+                        applicant_email=data.get('email')
+                    )
+                    logger.info(f"Confirmation email sent to {data.get('email')}")
+                except Exception as email_error:
+                    logger.warning(f"Could not send confirmation email: {email_error}")
+
             return True, "Application submitted successfully! We'll review it within 48 hours."
 
         except Exception as e:
