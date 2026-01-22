@@ -505,17 +505,26 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Try to import application system
+APP_SYSTEM_AVAILABLE = False
 try:
-    from va_applications import VAApplications
+    # Try relative import first (when running as module)
+    from .va_applications import VAApplications
     APP_SYSTEM_AVAILABLE = True
 except ImportError:
     try:
-        import sys
-        sys.path.insert(0, os.path.dirname(__file__))
+        # Try direct import (when running as script)
         from va_applications import VAApplications
         APP_SYSTEM_AVAILABLE = True
-    except:
-        APP_SYSTEM_AVAILABLE = False
+    except ImportError:
+        try:
+            # Add current directory to path and try again
+            import sys
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            from va_applications import VAApplications
+            APP_SYSTEM_AVAILABLE = True
+        except Exception as e:
+            print(f"Could not import VAApplications: {e}")
+            APP_SYSTEM_AVAILABLE = False
 
 
 def main():

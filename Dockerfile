@@ -8,10 +8,15 @@ RUN pip install --no-cache-dir -r requirements-va-app.txt
 
 # Copy application code
 COPY recruiting/ ./recruiting/
-COPY .env* ./
+
+# Create __init__.py if needed
+RUN touch ./recruiting/__init__.py
+
+# Set Python path to include recruiting folder
+ENV PYTHONPATH=/app:/app/recruiting
 
 # Set environment variable for port
 ENV PORT=8080
 
-# Run the application using shell form to expand $PORT
+# Run the application
 CMD streamlit run recruiting/application_page.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
