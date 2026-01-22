@@ -10,8 +10,8 @@ RUN pip install --no-cache-dir -r requirements-va-app.txt
 COPY recruiting/ ./recruiting/
 COPY .env* ./
 
-# Expose port
-EXPOSE 8080
+# Set environment variable for port
+ENV PORT=8080
 
-# Run the application
-CMD ["streamlit", "run", "recruiting/application_page.py", "--server.port=8080", "--server.address=0.0.0.0", "--server.headless=true"]
+# Run the application using shell form to expand $PORT
+CMD streamlit run recruiting/application_page.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
