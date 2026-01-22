@@ -442,49 +442,64 @@ st.markdown("""
         max-width: 100vw !important;
     }
 
-    /* Expander Job Description - ensure text is visible in both modes */
-    .streamlit-expanderContent {
+    /* Expander Job Description - FORCE visible in ALL modes */
+    [data-testid="stExpander"] {
         background-color: #ffffff !important;
-        color: #1f2937 !important;
-        padding: 1.5rem !important;
-        border-radius: 0 0 12px 12px !important;
-    }
-
-    .streamlit-expanderContent h3 {
-        color: #1e3a5f !important;
-        font-weight: 600 !important;
-        margin-top: 1rem !important;
-    }
-
-    .streamlit-expanderContent p,
-    .streamlit-expanderContent li,
-    .streamlit-expanderContent strong {
-        color: #374151 !important;
-    }
-
-    .streamlit-expanderContent strong {
-        color: #1e3a5f !important;
-    }
-
-    .streamlit-expanderContent ul {
-        color: #374151 !important;
-    }
-
-    .streamlit-expanderContent hr {
-        border-color: #e5e7eb !important;
-        margin: 1.5rem 0 !important;
-    }
-
-    /* Expander header styling */
-    .streamlit-expanderHeader {
-        background-color: #f8fafc !important;
-        color: #1e3a5f !important;
-        font-weight: 600 !important;
+        border: 1px solid #e5e7eb !important;
         border-radius: 12px !important;
     }
 
-    .streamlit-expanderHeader:hover {
+    [data-testid="stExpander"] details {
+        background-color: #ffffff !important;
+    }
+
+    [data-testid="stExpander"] summary {
+        background-color: #f8fafc !important;
+        color: #1e3a5f !important;
+        font-weight: 600 !important;
+    }
+
+    [data-testid="stExpander"] summary:hover {
         background-color: #f1f5f9 !important;
+    }
+
+    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] {
+        background-color: #ffffff !important;
+    }
+
+    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] * {
+        color: #374151 !important;
+    }
+
+    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] h3 {
+        color: #1e3a5f !important;
+        font-weight: 600 !important;
+    }
+
+    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] strong {
+        color: #1e3a5f !important;
+    }
+
+    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] li {
+        color: #374151 !important;
+    }
+
+    [data-testid="stExpander"] [data-testid="stMarkdownContainer"] hr {
+        border-color: #e5e7eb !important;
+    }
+
+    /* Force light theme inside expander even in dark mode */
+    [data-theme="dark"] [data-testid="stExpander"],
+    .stApp[data-theme="dark"] [data-testid="stExpander"] {
+        background-color: #ffffff !important;
+    }
+
+    [data-theme="dark"] [data-testid="stExpander"] * {
+        color: #374151 !important;
+    }
+
+    [data-theme="dark"] [data-testid="stExpander"] h3 {
+        color: #1e3a5f !important;
     }
 </style>
 """, unsafe_allow_html=True)

@@ -805,3 +805,67 @@ class VAApplications:
     def get_pending_scripts(self) -> List[Dict]:
         """Get all applications waiting for video submission."""
         return self.get_all_applications(status='script_sent')
+
+    def reset_all_applications(self) -> Tuple[bool, str]:
+        """
+        Delete all applications from the database.
+        USE WITH CAUTION - this cannot be undone!
+
+        Returns:
+            Tuple of (success, message)
+        """
+        conn = self._get_connection()
+        if not conn:
+            return False, "Database connection unavailable"
+
+        try:
+            cursor = conn.cursor()
+
+            # Get count before deletion
+            cursor.execute("SELECT COUNT(*) as count FROM va_applications")
+            result = cursor.fetchone()
+            count = result['count'] if result else 0
+
+            # Delete all applications
+            cursor.execute("DELETE FROM va_applications")
+
+            conn.commit()
+            conn.close()
+
+            logger.info(f"Reset all applications - deleted {count} records")
+            return True, f"Successfully deleted {count} applications"
+
+        except Exception as e:
+            logger.error(f"Error resetting applications: {e}")
+            conn.close()
+            return False, f"Error resetting applications: {str(e)}"
+
+    def delete_application(self, app_id: int) -> Tuple[bool, str]:
+        """
+        Delete a single application by ID.
+
+        Returns:
+            Tuple of (success, message)
+        """
+        conn = self._get_connection()
+        if not conn:
+            return False, "Database connection unavailable"
+
+        try:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM va_applications WHERE id = %s", (app_id,))
+
+            if cursor.rowcount == 0:
+                conn.close()
+                return False, "Application not found"
+
+            conn.commit()
+            conn.close()
+
+            logger.info(f"Deleted application {app_id}")
+            return True, "Application deleted successfully"
+
+        except Exception as e:
+            logger.error(f"Error deleting application: {e}")
+            conn.close()
+            return False, f"Error: {str(e)}"
