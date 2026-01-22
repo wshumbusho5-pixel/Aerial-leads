@@ -46,7 +46,9 @@ try:
     from auth.va_auth import VAAuth, ROLES
     from auth.database import DatabaseAuth
     from buyers.buyer_matcher import BuyerMatcher
+    from recruiting.va_applications import VAApplications, APPLICATION_STATUS, STATUS_DISPLAY, COLD_CALL_SCRIPTS
     DB_AUTH_AVAILABLE = True
+    RECRUITING_AVAILABLE = True
 except ImportError as e:
     DEPLOY_MODE = True
     # Fallback paths for deployment
@@ -66,7 +68,12 @@ except ImportError as e:
     DNCChecker = ProbateMatcher = ReverseTargetingScraper = DirectMailManager = DummyClass
     NumberRotationManager = RVMManager = DealPipeline = AppointmentScheduler = SMSCampaigns = FollowUpSequences = VAAuth = DummyClass
     DatabaseAuth = DummyClass
+    VAApplications = DummyClass
     DB_AUTH_AVAILABLE = False
+    RECRUITING_AVAILABLE = False
+    APPLICATION_STATUS = ['applied', 'reviewing', 'script_sent', 'video_submitted', 'video_approved', 'interview', 'hired', 'rejected', 'withdrawn']
+    STATUS_DISPLAY = {'applied': 'Applied', 'reviewing': 'Under Review', 'script_sent': 'Script Sent', 'video_submitted': 'Video Submitted', 'video_approved': 'Video Approved', 'interview': 'Interview', 'hired': 'Hired', 'rejected': 'Rejected', 'withdrawn': 'Withdrawn'}
+    COLD_CALL_SCRIPTS = {'general': {'name': 'General Script', 'script': 'Script not available'}}
     ROLES = ["admin", "va", "manager"]
     MAIL_TEMPLATES = {}
     DEFAULT_RVM_SCRIPTS = {}
@@ -128,7 +135,7 @@ with st.sidebar:
 
     page = st.radio(
         "Navigation",
-        ["🏠 Home", "🚀 Generate Leads", "⚖️ Probate & Foreclosure", "📞 Skip Trace", "🛡️ DNC Scrub", "☎️ Call Tracker", "👥 VA Management", "📱 Dialer", "📥 Inbound Leads", "💰 Deal Pipeline", "📅 Appointments", "💬 SMS Campaigns", "🔄 Follow-ups", "🎯 Reverse Targeting", "📬 Direct Mail", "📲 RVM & Numbers", "🤝 Buyer Matching", "🔍 Search Owner", "📊 View Leads", "🐋 Whale Owners", "📈 Statistics", "📋 Data Quality", "⚙️ Data Management", "🔐 User Management"],
+        ["🏠 Home", "🚀 Generate Leads", "⚖️ Probate & Foreclosure", "📞 Skip Trace", "🛡️ DNC Scrub", "☎️ Call Tracker", "👥 VA Management", "📱 Dialer", "📥 Inbound Leads", "💰 Deal Pipeline", "📅 Appointments", "💬 SMS Campaigns", "🔄 Follow-ups", "🎯 Reverse Targeting", "📬 Direct Mail", "📲 RVM & Numbers", "🤝 Buyer Matching", "🔍 Search Owner", "📊 View Leads", "🐋 Whale Owners", "📈 Statistics", "📋 Data Quality", "⚙️ Data Management", "🔐 User Management", "📋 VA Recruiting"],
         label_visibility="collapsed"
     )
 
@@ -6598,3 +6605,428 @@ elif page == "🔐 User Management":
     # Security note
     st.markdown("---")
     st.caption("Default admin credentials: username 'admin', password 'admin123' - change immediately!")
+
+
+# ========================================
+# VA RECRUITING PAGE
+# ========================================
+elif page == "📋 VA Recruiting":
+    st.markdown('<h1 class="main-header">📋 VA Recruiting</h1>', unsafe_allow_html=True)
+    st.markdown("Manage VA job applications and hiring pipeline")
+
+    # Initialize
+    if RECRUITING_AVAILABLE:
+        apps = VAApplications()
+        stats = apps.get_stats()
+    else:
+        stats = {}
+        st.warning("Recruiting system not available")
+
+    # Stats row - Updated with video stages
+    col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+    with col1:
+        st.metric("Total", stats.get('total', 0))
+    with col2:
+        st.metric("New", stats.get('applied', 0))
+    with col3:
+        st.metric("Script Sent", stats.get('script_sent', 0))
+    with col4:
+        st.metric("Videos", stats.get('video_submitted', 0))
+    with col5:
+        st.metric("Approved", stats.get('video_approved', 0))
+    with col6:
+        st.metric("Hired", stats.get('hired', 0))
+    with col7:
+        st.metric("Rejected", stats.get('rejected', 0))
+
+    st.markdown("---")
+
+    # Application links
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("### 🔗 Application Form")
+        st.info("Share with potential VAs to apply:")
+        st.code("streamlit run recruiting/application_page.py --server.port 8502", language="bash")
+    with col2:
+        st.markdown("### 🎬 Video Interview Page")
+        st.info("Applicants submit their video here:")
+        st.code("streamlit run recruiting/recording_page.py --server.port 8503", language="bash")
+
+    st.markdown("---")
+
+    # Tabs - Updated with video review
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📥 All Applications", "📝 Assign Scripts", "🎬 Review Videos", "⏳ Pending", "📊 Pipeline"])
+
+    with tab1:
+        st.markdown("### All Applications")
+
+        # Filter by status
+        filter_status = st.selectbox(
+            "Filter by Status",
+            ["All"] + APPLICATION_STATUS,
+            format_func=lambda x: STATUS_DISPLAY.get(x, x) if x != "All" else "All Applications"
+        )
+
+        if RECRUITING_AVAILABLE:
+            applications = apps.get_all_applications(
+                status=filter_status if filter_status != "All" else None
+            )
+
+            if applications:
+                for app in applications:
+                    status_emoji = STATUS_DISPLAY.get(app['status'], app['status'])
+                    with st.expander(f"{status_emoji} | {app['full_name']} - {app['email']} | {app['created_at'].strftime('%Y-%m-%d') if app.get('created_at') else 'N/A'}"):
+                        col1, col2 = st.columns(2)
+
+                        with col1:
+                            st.markdown("**Personal Info**")
+                            st.markdown(f"- **Name:** {app['full_name']}")
+                            st.markdown(f"- **Email:** {app['email']}")
+                            st.markdown(f"- **Phone:** {app.get('phone', 'N/A')}")
+                            st.markdown(f"- **Country:** {app.get('country', 'N/A')}")
+                            st.markdown(f"- **Timezone:** {app.get('timezone', 'N/A')}")
+
+                            st.markdown("**Experience**")
+                            st.markdown(f"- **Years Experience:** {app.get('years_experience', 0)}")
+                            st.markdown(f"- **Current Job:** {app.get('current_job', 'N/A')}")
+                            st.markdown(f"- **English Level:** {app.get('english_proficiency', 'N/A')}")
+
+                        with col2:
+                            st.markdown("**Availability**")
+                            st.markdown(f"- **Hours/Week:** {app.get('hours_per_week', 'N/A')}")
+                            st.markdown(f"- **Start Date:** {app.get('available_start_date', 'N/A')}")
+                            st.markdown(f"- **US Hours:** {'Yes' if app.get('us_timezone_hours') else 'No'}")
+
+                            st.markdown("**Technical**")
+                            st.markdown(f"- **Internet:** {app.get('internet_speed', 'N/A')}")
+                            st.markdown(f"- **Has Computer:** {'Yes' if app.get('has_computer') else 'No'}")
+                            st.markdown(f"- **Has Headset:** {'Yes' if app.get('has_headset') else 'No'}")
+                            st.markdown(f"- **Quiet Space:** {'Yes' if app.get('has_quiet_workspace') else 'No'}")
+
+                        st.markdown("---")
+                        st.markdown("**Cold Calling Experience:**")
+                        st.markdown(app.get('cold_calling_experience', 'None provided'))
+
+                        st.markdown("**Real Estate Experience:**")
+                        st.markdown(app.get('real_estate_experience', 'None provided'))
+
+                        st.markdown("**Why Interested:**")
+                        st.markdown(app.get('why_interested', 'None provided'))
+
+                        # Resume download
+                        if app.get('resume_filename'):
+                            resume_data = apps.get_resume(app['id'])
+                            if resume_data:
+                                filename, file_bytes = resume_data
+                                st.download_button(
+                                    f"📄 Download Resume ({filename})",
+                                    file_bytes,
+                                    filename,
+                                    key=f"resume_{app['id']}"
+                                )
+
+                        # Video download if exists
+                        if app.get('video_filename'):
+                            video_data = apps.get_video(app['id'])
+                            if video_data:
+                                filename, file_bytes = video_data
+                                st.download_button(
+                                    f"🎬 Download Video ({filename})",
+                                    file_bytes,
+                                    filename,
+                                    key=f"video_dl_{app['id']}"
+                                )
+
+                        st.markdown("---")
+
+                        # Actions
+                        st.markdown("**Actions**")
+                        action_cols = st.columns(4)
+
+                        with action_cols[0]:
+                            new_status = st.selectbox(
+                                "Change Status",
+                                APPLICATION_STATUS,
+                                index=APPLICATION_STATUS.index(app['status']) if app['status'] in APPLICATION_STATUS else 0,
+                                key=f"status_{app['id']}"
+                            )
+
+                        with action_cols[1]:
+                            notes = st.text_input("Notes", key=f"notes_{app['id']}", placeholder="Optional notes...")
+
+                        with action_cols[2]:
+                            if st.button("Update Status", key=f"update_{app['id']}"):
+                                success, msg = apps.update_status(app['id'], new_status, notes)
+                                if success:
+                                    st.success(msg)
+                                    st.rerun()
+                                else:
+                                    st.error(msg)
+
+                        with action_cols[3]:
+                            if app['status'] == 'video_approved':
+                                if st.button("📞 Schedule Interview", key=f"schedule_{app['id']}", type="primary"):
+                                    apps.update_status(app['id'], 'interview')
+                                    st.success("Ready for personal interview!")
+                                    st.rerun()
+                            elif app['status'] == 'interview':
+                                if st.button("✅ Hire", key=f"hire_{app['id']}", type="primary"):
+                                    success, msg = apps.hire_applicant(app['id'])
+                                    if success:
+                                        st.success(msg)
+                                        st.balloons()
+                                        st.rerun()
+                                    else:
+                                        st.error(msg)
+
+                        # Admin notes
+                        if app.get('admin_notes'):
+                            st.markdown("**Admin Notes:**")
+                            st.text_area("Notes History", app['admin_notes'], disabled=True, key=f"admin_notes_{app['id']}")
+            else:
+                st.info("No applications yet")
+        else:
+            st.warning("Recruiting system not available")
+
+    with tab2:
+        st.markdown("### 📝 Assign Scripts")
+        st.markdown("Assign cold calling scripts for video interviews")
+
+        if RECRUITING_AVAILABLE:
+            # Get applicants ready for script assignment
+            pending = apps.get_all_applications(status='applied')
+            reviewing = apps.get_all_applications(status='reviewing')
+            ready_for_script = pending + reviewing
+
+            if ready_for_script:
+                st.success(f"{len(ready_for_script)} applicants ready for script assignment")
+
+                for app in ready_for_script:
+                    with st.container():
+                        st.markdown(f"""
+                        <div style="background: #e7f3ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #007bff; margin-bottom: 0.5rem;">
+                            <strong>{app['full_name']}</strong> | {app['email']}<br>
+                            <small>{app.get('country', 'N/A')} | {app.get('years_experience', 0)} yrs exp | {app.get('english_proficiency', 'N/A')}</small>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                        script_cols = st.columns([2, 1])
+                        with script_cols[0]:
+                            script_key = st.selectbox(
+                                "Select Script",
+                                list(COLD_CALL_SCRIPTS.keys()),
+                                format_func=lambda x: COLD_CALL_SCRIPTS[x]['name'],
+                                key=f"script_select_{app['id']}"
+                            )
+
+                        with script_cols[1]:
+                            if st.button("📝 Assign Script", key=f"assign_{app['id']}", type="primary"):
+                                # Get recording portal URL
+                                recording_url = os.environ.get('RECORDING_PORTAL_URL', 'https://lifeline-careers.up.railway.app/recording')
+                                success, msg = apps.assign_script(app['id'], script_key, recording_url=recording_url)
+                                if success:
+                                    st.success(msg)
+                                    st.rerun()
+                                else:
+                                    st.error(msg)
+
+                        # Preview script
+                        with st.expander("Preview Script"):
+                            st.markdown(COLD_CALL_SCRIPTS[script_key]['script'])
+
+                        st.markdown("---")
+            else:
+                st.info("No applicants ready for script assignment. Review new applications first.")
+
+            # Show who's waiting for video
+            waiting = apps.get_all_applications(status='script_sent')
+            if waiting:
+                st.markdown("---")
+                st.markdown("### ⏳ Waiting for Video Submission")
+                for app in waiting:
+                    assigned_at = app.get('script_assigned_at')
+                    st.markdown(f"- **{app['full_name']}** ({app['email']}) - Script sent {assigned_at.strftime('%Y-%m-%d') if assigned_at else 'N/A'}")
+        else:
+            st.warning("Recruiting system not available")
+
+    with tab3:
+        st.markdown("### 🎬 Review Videos")
+        st.markdown("Watch and approve/reject video interviews")
+
+        if RECRUITING_AVAILABLE:
+            pending_videos = apps.get_all_applications(status='video_submitted')
+
+            if pending_videos:
+                st.warning(f"{len(pending_videos)} videos pending review!")
+
+                for app in pending_videos:
+                    st.markdown(f"""
+                    <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 1rem;">
+                        <h4>{app['full_name']}</h4>
+                        <p>{app['email']} | {app.get('country', 'N/A')} | {app.get('years_experience', 0)} yrs exp</p>
+                        <small>Video submitted: {app.get('video_submitted_at').strftime('%Y-%m-%d %H:%M') if app.get('video_submitted_at') else 'N/A'}</small>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # Get and display video
+                    video_data = apps.get_video(app['id'])
+                    if video_data:
+                        filename, file_bytes = video_data
+                        st.video(file_bytes)
+
+                        # Download button
+                        st.download_button(
+                            f"📥 Download Video ({filename})",
+                            file_bytes,
+                            filename,
+                            key=f"video_download_{app['id']}"
+                        )
+
+                    # Show script they were given
+                    with st.expander("View Assigned Script"):
+                        st.markdown(app.get('assigned_script_text', 'Script not found'))
+
+                    # Review actions
+                    st.markdown("**Your Decision:**")
+                    review_cols = st.columns([2, 1, 1])
+
+                    with review_cols[0]:
+                        review_notes = st.text_input(
+                            "Notes (optional)",
+                            key=f"review_notes_{app['id']}",
+                            placeholder="Feedback or reason for decision..."
+                        )
+
+                    with review_cols[1]:
+                        if st.button("✅ Approve", key=f"approve_{app['id']}", type="primary"):
+                            success, msg = apps.approve_video(app['id'], review_notes)
+                            if success:
+                                st.success(msg)
+                                st.balloons()
+                                st.rerun()
+                            else:
+                                st.error(msg)
+
+                    with review_cols[2]:
+                        if st.button("❌ Reject", key=f"reject_video_{app['id']}"):
+                            success, msg = apps.reject_video(app['id'], review_notes)
+                            if success:
+                                st.warning("Application rejected")
+                                st.rerun()
+                            else:
+                                st.error(msg)
+
+                    st.markdown("---")
+            else:
+                st.success("No videos pending review")
+
+            # Show approved, ready for interview
+            approved = apps.get_all_applications(status='video_approved')
+            if approved:
+                st.markdown("---")
+                st.markdown("### ✅ Video Approved - Ready for Personal Interview")
+                for app in approved:
+                    st.markdown(f"- **{app['full_name']}** ({app['email']}) - Ready to schedule personal interview")
+        else:
+            st.warning("Recruiting system not available")
+
+    with tab4:
+        st.markdown("### ⏳ Pending Actions")
+        st.markdown("Applications that need your attention")
+
+        if RECRUITING_AVAILABLE:
+            # New applications
+            new_apps = apps.get_all_applications(status='applied')
+            if new_apps:
+                st.markdown("#### 📩 New Applications")
+                for app in new_apps:
+                    st.markdown(f"""
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; border-left: 4px solid #17a2b8; margin-bottom: 0.5rem;">
+                        <strong>{app['full_name']}</strong> | {app['email']}<br>
+                        <small>{app.get('country', 'N/A')} | {app.get('years_experience', 0)} yrs exp | {app.get('english_proficiency', 'N/A')}</small>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    quick_cols = st.columns([1, 1, 2])
+                    with quick_cols[0]:
+                        if st.button("📝 Send Script", key=f"quick_script_{app['id']}"):
+                            recording_url = os.environ.get('RECORDING_PORTAL_URL', 'https://lifeline-careers.up.railway.app/recording')
+                            success, msg = apps.assign_script(app['id'], 'general', recording_url=recording_url)
+                            if success:
+                                st.success("Script sent! Email notification sent.")
+                                st.rerun()
+                    with quick_cols[1]:
+                        if st.button("❌ Reject", key=f"quick_reject_{app['id']}"):
+                            apps.update_status(app['id'], 'rejected')
+                            st.rerun()
+
+            # Pending videos
+            pending_videos = apps.get_all_applications(status='video_submitted')
+            if pending_videos:
+                st.markdown("#### 🎬 Videos to Review")
+                for app in pending_videos:
+                    st.markdown(f"- **{app['full_name']}** - Video submitted, needs review")
+
+            # Ready for personal interview
+            approved = apps.get_all_applications(status='video_approved')
+            if approved:
+                st.markdown("#### 📞 Ready for Personal Interview")
+                for app in approved:
+                    st.markdown(f"- **{app['full_name']}** - Video approved, schedule interview")
+
+            if not new_apps and not pending_videos and not approved:
+                st.success("All caught up! No pending actions.")
+        else:
+            st.warning("Recruiting system not available")
+
+    with tab5:
+        st.markdown("### 📊 Hiring Pipeline")
+
+        if RECRUITING_AVAILABLE:
+            # Updated funnel with video stages
+            pipeline_data = [
+                ("Applied", stats.get('applied', 0)),
+                ("Script Sent", stats.get('script_sent', 0)),
+                ("Video Submitted", stats.get('video_submitted', 0)),
+                ("Video Approved", stats.get('video_approved', 0)),
+                ("Interview", stats.get('interview', 0)),
+                ("Hired", stats.get('hired', 0))
+            ]
+
+            if any(count > 0 for _, count in pipeline_data):
+                import plotly.graph_objects as go
+                fig = go.Figure(go.Funnel(
+                    y=[stage for stage, _ in pipeline_data],
+                    x=[count for _, count in pipeline_data],
+                    textinfo="value+percent initial",
+                    marker={"color": ["#17a2b8", "#6f42c1", "#ffc107", "#20c997", "#fd7e14", "#28a745"]}
+                ))
+                fig.update_layout(title="Hiring Funnel", height=500)
+                st.plotly_chart(fig, use_container_width=True)
+
+            # Conversion rates
+            st.markdown("### 📈 Conversion Rates")
+            total = stats.get('total', 0)
+            if total > 0:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    script_rate = ((stats.get('script_sent', 0) + stats.get('video_submitted', 0) + stats.get('video_approved', 0) + stats.get('interview', 0) + stats.get('hired', 0)) / total) * 100
+                    st.metric("Script Assignment Rate", f"{script_rate:.1f}%")
+                with col2:
+                    video_submitted = stats.get('video_submitted', 0) + stats.get('video_approved', 0) + stats.get('interview', 0) + stats.get('hired', 0)
+                    script_sent = stats.get('script_sent', 0) + video_submitted
+                    video_rate = (video_submitted / script_sent * 100) if script_sent > 0 else 0
+                    st.metric("Video Submission Rate", f"{video_rate:.1f}%")
+                with col3:
+                    hired = stats.get('hired', 0)
+                    hire_rate = (hired / total) * 100
+                    st.metric("Hire Rate", f"{hire_rate:.1f}%")
+
+            # Recent hires
+            hired = apps.get_all_applications(status='hired')
+            if hired:
+                st.markdown("### 🎉 Recent Hires")
+                for h in hired[:5]:
+                    st.markdown(f"- **{h['full_name']}** ({h['email']}) - Hired {h.get('updated_at').strftime('%Y-%m-%d') if h.get('updated_at') else 'N/A'}")
+        else:
+            st.warning("Recruiting system not available")

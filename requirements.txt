@@ -96,6 +96,9 @@ geopy==2.4.0
 # Twilio (Dialer System)
 twilio==8.10.0
 
+# Email (SendGrid)
+sendgrid==6.11.0
+
 # Job Queue (for background tasks - future)
 # celery==5.3.4
 # redis==5.0.1
