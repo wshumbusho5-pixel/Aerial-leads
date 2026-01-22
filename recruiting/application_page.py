@@ -441,6 +441,51 @@ st.markdown("""
         overflow-x: hidden !important;
         max-width: 100vw !important;
     }
+
+    /* Expander Job Description - ensure text is visible in both modes */
+    .streamlit-expanderContent {
+        background-color: #ffffff !important;
+        color: #1f2937 !important;
+        padding: 1.5rem !important;
+        border-radius: 0 0 12px 12px !important;
+    }
+
+    .streamlit-expanderContent h3 {
+        color: #1e3a5f !important;
+        font-weight: 600 !important;
+        margin-top: 1rem !important;
+    }
+
+    .streamlit-expanderContent p,
+    .streamlit-expanderContent li,
+    .streamlit-expanderContent strong {
+        color: #374151 !important;
+    }
+
+    .streamlit-expanderContent strong {
+        color: #1e3a5f !important;
+    }
+
+    .streamlit-expanderContent ul {
+        color: #374151 !important;
+    }
+
+    .streamlit-expanderContent hr {
+        border-color: #e5e7eb !important;
+        margin: 1.5rem 0 !important;
+    }
+
+    /* Expander header styling */
+    .streamlit-expanderHeader {
+        background-color: #f8fafc !important;
+        color: #1e3a5f !important;
+        font-weight: 600 !important;
+        border-radius: 12px !important;
+    }
+
+    .streamlit-expanderHeader:hover {
+        background-color: #f1f5f9 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
