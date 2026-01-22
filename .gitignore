@@ -26,8 +26,11 @@ logs/*.log
 .DS_Store
 Thumbs.db
 
-# Large data files (keep CSVs for now but exclude xlsx)
-# data/**/*.xlsx
+# Large data files - exclude all raw data
+data/sellers/raw/*.csv
+data/sellers/raw/*.xlsx
+data/buyers/raw/*.csv
+data/buyers/raw/*.xlsx
 
 # Cache
 *.cache
