@@ -12,13 +12,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Page config
-st.set_page_config(
-    page_title="Video Interview | Lifeline Home Buyers - Orteza Groups",
-    page_icon="🎬",
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
+# Page config - only set if running directly (not imported)
+if __name__ == "__main__":
+    st.set_page_config(
+        page_title="Video Interview | Lifeline Home Buyers - Orteza Groups",
+        page_icon="🎬",
+        layout="centered",
+        initial_sidebar_state="collapsed"
+    )
 
 # Professional CSS (matching application page)
 st.markdown("""
