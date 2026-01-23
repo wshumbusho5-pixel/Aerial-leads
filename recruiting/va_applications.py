@@ -15,6 +15,7 @@ import json
 logger = logging.getLogger(__name__)
 
 # Import email notifications
+EMAIL_AVAILABLE = False
 try:
     from .email_notifications import (
         send_script_assignment_email,
@@ -23,8 +24,15 @@ try:
     )
     EMAIL_AVAILABLE = True
 except ImportError:
-    EMAIL_AVAILABLE = False
-    logger.warning("Email notifications not available")
+    try:
+        from email_notifications import (
+            send_script_assignment_email,
+            send_video_approved_email,
+            send_application_received_email
+        )
+        EMAIL_AVAILABLE = True
+    except ImportError:
+        logger.warning("Email notifications not available")
 
 # Try database connection
 DB_AVAILABLE = False
