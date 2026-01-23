@@ -32,9 +32,9 @@ jinja2==3.1.2
 streamlit==1.29.0
 plotly==5.18.0
 
-# Alternative: FastAPI
-# fastapi==0.104.1
-# uvicorn==0.24.0
+# FastAPI (for public site)
+fastapi==0.104.1
+uvicorn==0.24.0
 
 # CLI
 click==8.1.7
