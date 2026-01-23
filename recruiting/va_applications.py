@@ -36,14 +36,29 @@ except ImportError:
 
 # Try database connection
 DB_AVAILABLE = False
+DB_PARAMS = None
 try:
     import psycopg2
     from psycopg2.extras import RealDictCursor
-    DATABASE_URL = os.environ.get('DATABASE_URL')
+    from urllib.parse import urlparse
+
+    DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
     if DATABASE_URL:
+        # Parse the URL into components to avoid DSN parsing issues
+        parsed = urlparse(DATABASE_URL)
+        DB_PARAMS = {
+            'host': parsed.hostname,
+            'port': parsed.port or 5432,
+            'database': parsed.path.lstrip('/'),
+            'user': parsed.username,
+            'password': parsed.password,
+        }
         DB_AVAILABLE = True
+        logger.info(f"Database configured: {parsed.hostname}:{parsed.port}")
 except ImportError:
     pass
+except Exception as e:
+    logger.error(f"Error parsing DATABASE_URL: {e}")
 
 
 # Application statuses
@@ -222,16 +237,20 @@ class VAApplications:
 
     def __init__(self):
         """Initialize application manager."""
-        self.db_url = os.environ.get('DATABASE_URL')
         self._init_db()
 
     def _get_connection(self):
         """Get database connection."""
-        if DB_AVAILABLE and self.db_url:
-            # Clean the URL - remove any whitespace/newlines
-            clean_url = self.db_url.strip()
-            # Use dsn keyword argument explicitly
-            return psycopg2.connect(dsn=clean_url, cursor_factory=RealDictCursor)
+        if DB_AVAILABLE and DB_PARAMS:
+            # Use parsed parameters instead of raw URL
+            return psycopg2.connect(
+                host=DB_PARAMS['host'],
+                port=DB_PARAMS['port'],
+                database=DB_PARAMS['database'],
+                user=DB_PARAMS['user'],
+                password=DB_PARAMS['password'],
+                cursor_factory=RealDictCursor
+            )
         return None
 
     def _init_db(self):
