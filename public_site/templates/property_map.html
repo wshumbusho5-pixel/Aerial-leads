@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+    #map {
+        height: 500px;
+        width: 100%;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+
+    .map-controls {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+    }
+
+    .filter-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .filter-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #666;
+    }
+
+    .filter-group select,
+    .filter-group input {
+        padding: 0.5rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+        border-color: #4CAF50;
+        outline: none;
+    }
+
+    .stats-bar {
+        display: flex;
+        gap: 2rem;
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: white;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-item h3 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #4CAF50;
+        margin: 0;
+    }
+
+    .stat-item p {
+        margin: 0;
+        font-size: 0.85rem;
+        opacity: 0.8;
+    }
+
+    .property-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .property-item {
+        background: white;
+        border-radius: 10px;
+        padding: 1.25rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
+    }
+
+    .property-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    .property-item h4 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+    }
+
+    .property-item .type-badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .type-badge.probate {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .type-badge.tax_delinquent {
+        background: #fff3e0;
+        color: #e65100;
+    }
+
+    .type-badge.code_violation {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .type-badge.sheriff_sale {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .property-item .meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+
+    .leaflet-popup-content {
+        min-width: 200px;
+    }
+
+    .popup-content h4 {
+        margin: 0 0 0.5rem 0;
+        color: #1a1a2e;
+    }
+
+    .popup-content .badge {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .popup-content .badge.probate {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .popup-content .badge.tax {
+        background: #fff3e0;
+        color: #e65100;
+    }
+
+    .popup-content a {
+        display: inline-block;
+        margin-top: 0.5rem;
+        color: #4CAF50;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+
+    .pagination a {
+        padding: 0.5rem 1rem;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #1a1a2e;
+        transition: all 0.3s;
+    }
+
+    .pagination a:hover,
+    .pagination a.active {
+        background: #4CAF50;
+        border-color: #4CAF50;
+        color: white;
+    }
+
+    .search-box {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .search-box input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 5px;
+        font-size: 1rem;
+    }
+
+    .search-box button {
+        padding: 0.75rem 1.5rem;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero" style="padding: 2rem;">
+    <h1 style="font-size: 2rem;">Columbus Distressed Property Database</h1>
+    <p>Free access to {{ total }} distressed properties in Franklin County, Ohio</p>
+</section>
+
+<div class="container">
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <h3>{{ total }}</h3>
+            <p>Total Properties</p>
+        </div>
+        <div class="stat-item">
+            <h3>{{ probate_count }}</h3>
+            <p>Probate</p>
+        </div>
+        <div class="stat-item">
+            <h3>{{ tax_count }}</h3>
+            <p>Tax Delinquent</p>
+        </div>
+        <div class="stat-item">
+            <h3>{{ violation_count }}</h3>
+            <p>Code Violations</p>
+        </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="map-controls">
+        <form method="GET" action="/database">
+            <div class="search-box" style="margin-bottom: 1rem;">
+                <input type="text" name="search" placeholder="Search by address or ZIP code..." value="{{ search_query }}">
+                <button type="submit">Search</button>
+            </div>
+
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>Property Type</label>
+                    <select name="type" onchange="this.form.submit()">
+                        <option value="">All Types</option>
+                        <option value="probate" {{ 'selected' if filter_type == 'probate' else '' }}>Probate</option>
+                        <option value="tax_delinquent" {{ 'selected' if filter_type == 'tax_delinquent' else '' }}>Tax Delinquent</option>
+                        <option value="code_violation" {{ 'selected' if filter_type == 'code_violation' else '' }}>Code Violation</option>
+                        <option value="sheriff_sale" {{ 'selected' if filter_type == 'sheriff_sale' else '' }}>Sheriff Sale</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>ZIP Code</label>
+                    <select name="zip" onchange="this.form.submit()">
+                        <option value="">All ZIP Codes</option>
+                        {% for zip in zip_codes %}
+                        <option value="{{ zip }}" {{ 'selected' if filter_zip == zip else '' }}>{{ zip }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Sort By</label>
+                    <select name="sort" onchange="this.form.submit()">
+                        <option value="recent" {{ 'selected' if sort_by == 'recent' else '' }}>Most Recent</option>
+                        <option value="score" {{ 'selected' if sort_by == 'score' else '' }}>Motivation Score</option>
+                        <option value="address" {{ 'selected' if sort_by == 'address' else '' }}>Address A-Z</option>
+                    </select>
+                </div>
+
+                {% if search_query or filter_type or filter_zip %}
+                <a href="/database" style="padding: 0.5rem 1rem; color: #666; text-decoration: none;">Clear Filters</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Interactive Map -->
+    <div id="map"></div>
+
+    <!-- Property List -->
+    <h2 style="margin-bottom: 1rem;">Properties ({{ showing }} of {{ total }})</h2>
+
+    <div class="property-list">
+        {% for property in properties %}
+        <div class="property-item" onclick="window.location='/property/{{ property.slug }}'">
+            <span class="type-badge {{ property.lead_type or 'other' }}">
+                {{ property.lead_type | replace('_', ' ') | title if property.lead_type else 'Property' }}
+            </span>
+            <h4>{{ property.address }}</h4>
+            <p style="font-size: 0.9rem; color: #666; margin: 0;">{{ property.city }}, {{ property.state }} {{ property.zip }}</p>
+            <div class="meta">
+                <span>Score: {{ property.motivation_score | int if property.motivation_score else 'N/A' }}/100</span>
+                <span>{{ property.lead_type | replace('_', ' ') | title if property.lead_type else '' }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if properties|length == 0 %}
+    <div style="text-align: center; padding: 3rem; background: white; border-radius: 10px;">
+        <h3>No properties found</h3>
+        <p>Try adjusting your search or filters</p>
+        <a href="/database" class="btn btn-primary" style="margin-top: 1rem;">View All Properties</a>
+    </div>
+    {% endif %}
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="/database?page={{ page - 1 }}&type={{ filter_type }}&zip={{ filter_zip }}&sort={{ sort_by }}&search={{ search_query }}">&laquo; Prev</a>
+        {% endif %}
+
+        {% for p in range(1, total_pages + 1) %}
+            {% if p <= 3 or p > total_pages - 3 or (p >= page - 1 and p <= page + 1) %}
+                <a href="/database?page={{ p }}&type={{ filter_type }}&zip={{ filter_zip }}&sort={{ sort_by }}&search={{ search_query }}"
+                   class="{{ 'active' if p == page else '' }}">{{ p }}</a>
+            {% elif p == 4 or p == total_pages - 3 %}
+                <span style="padding: 0.5rem;">...</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if page < total_pages %}
+        <a href="/database?page={{ page + 1 }}&type={{ filter_type }}&zip={{ filter_zip }}&sort={{ sort_by }}&search={{ search_query }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- CTA Section -->
+<section class="cta-section" style="margin-top: 3rem;">
+    <h2>Own One of These Properties?</h2>
+    <p style="margin-bottom: 2rem; opacity: 0.9;">Get a fair cash offer - no fees, no repairs, close on your timeline.</p>
+    <a href="/get-offer" class="btn">Get My Cash Offer</a>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Initialize map centered on Columbus, OH
+    var map = L.map('map').setView([39.9612, -82.9988], 11);
+
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Property data from backend
+    var properties = {{ map_properties | tojson | safe }};
+
+    // Color mapping for property types
+    var typeColors = {
+        'probate': '#7b1fa2',
+        'tax_delinquent': '#e65100',
+        'code_violation': '#1976d2',
+        'sheriff_sale': '#c62828',
+        'default': '#4CAF50'
+    };
+
+    // Add markers for each property
+    properties.forEach(function(prop) {
+        if (prop.lat && prop.lng) {
+            var color = typeColors[prop.lead_type] || typeColors['default'];
+
+            var marker = L.circleMarker([prop.lat, prop.lng], {
+                radius: 8,
+                fillColor: color,
+                color: '#fff',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+
+            var popupContent = `
+                <div class="popup-content">
+                    <span class="badge ${prop.lead_type || ''}">${(prop.lead_type || 'property').replace('_', ' ')}</span>
+                    <h4>${prop.address}</h4>
+                    <p style="margin: 0.25rem 0; font-size: 0.85rem;">${prop.city}, ${prop.state} ${prop.zip || ''}</p>
+                    <p style="margin: 0.25rem 0; font-size: 0.85rem;">Score: ${prop.motivation_score || 'N/A'}/100</p>
+                    <a href="/property/${prop.slug}">View Details &rarr;</a>
+                </div>
+            `;
+
+            marker.bindPopup(popupContent);
+        }
+    });
+
+    // Fit bounds if we have markers
+    if (properties.length > 0) {
+        var validProps = properties.filter(p => p.lat && p.lng);
+        if (validProps.length > 0) {
+            var bounds = L.latLngBounds(validProps.map(p => [p.lat, p.lng]));
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
+    }
+</script>
+{% endblock %}

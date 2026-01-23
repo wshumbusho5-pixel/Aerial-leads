@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    .calculator-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .step {
+        display: none;
+    }
+
+    .step.active {
+        display: block;
+        animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .progress-bar {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+    .progress-bar::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #e0e0e0;
+        transform: translateY(-50%);
+        z-index: 0;
+    }
+
+    .progress-step {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #999;
+        z-index: 1;
+        transition: all 0.3s;
+    }
+
+    .progress-step.active {
+        background: #4CAF50;
+        color: white;
+    }
+
+    .progress-step.completed {
+        background: #2E7D32;
+        color: white;
+    }
+
+    .option-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .option-btn {
+        padding: 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+
+    .option-btn:hover {
+        border-color: #4CAF50;
+        background: #f8fff8;
+    }
+
+    .option-btn.selected {
+        border-color: #4CAF50;
+        background: #e8f5e9;
+    }
+
+    .option-btn h4 {
+        margin: 0 0 0.25rem 0;
+    }
+
+    .option-btn p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .result-box {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .offer-amount {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #4CAF50;
+        margin: 1rem 0;
+    }
+
+    .offer-range {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero" style="padding: 2rem;">
+    <h1 style="font-size: 2rem;">What's Your Property Worth?</h1>
+    <p>Get a free, no-obligation cash offer estimate in 60 seconds</p>
+</section>
+
+<div class="container calculator-container" style="padding: 2rem;">
+
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-step active" id="prog-1">1</div>
+        <div class="progress-step" id="prog-2">2</div>
+        <div class="progress-step" id="prog-3">3</div>
+        <div class="progress-step" id="prog-4">4</div>
+    </div>
+
+    <div class="card" style="padding: 2rem;">
+
+        <!-- Step 1: Address -->
+        <div class="step active" id="step-1">
+            <h2 style="margin-bottom: 0.5rem;">Where's your property?</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">Enter the address of the property you want to sell</p>
+
+            <div class="form-group">
+                <label>Property Address</label>
+                <input type="text" id="property_address" placeholder="123 Main St, Columbus, OH 43215" required>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%;" onclick="nextStep(2)">
+                Continue →
+            </button>
+        </div>
+
+        <!-- Step 2: Property Condition -->
+        <div class="step" id="step-2">
+            <h2 style="margin-bottom: 0.5rem;">What's the condition?</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">Be honest - we buy in ANY condition</p>
+
+            <div class="option-grid">
+                <div class="option-btn" onclick="selectOption(this, 'condition', 'excellent')">
+                    <h4>Excellent</h4>
+                    <p>Move-in ready, updated</p>
+                </div>
+                <div class="option-btn" onclick="selectOption(this, 'condition', 'good')">
+                    <h4>Good</h4>
+                    <p>Minor cosmetic updates</p>
+                </div>
+                <div class="option-btn" onclick="selectOption(this, 'condition', 'fair')">
+                    <h4>Fair</h4>
+                    <p>Needs some repairs</p>
+                </div>
+                <div class="option-btn" onclick="selectOption(this, 'condition', 'poor')">
+                    <h4>Poor</h4>
+                    <p>Major work needed</p>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%;" onclick="nextStep(3)" id="btn-step-2" disabled>
+                Continue →
+            </button>
+        </div>
+
+        <!-- Step 3: Situation -->
+        <div class="step" id="step-3">
+            <h2 style="margin-bottom: 0.5rem;">What's your situation?</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">Helps us understand how we can best help you</p>
+
+            <div class="option-grid">
+                <div class="option-btn" onclick="selectOption(this, 'situation', 'inherited')">
+                    <h4>Inherited</h4>
+                    <p>Probate / estate</p>
+                </div>
+                <div class="option-btn" onclick="selectOption(this, 'situation', 'tax_issues')">
+                    <h4>Tax Issues</h4>
+                    <p>Behind on taxes</p>
+                </div>
+                <div class="option-btn" onclick="selectOption(this, 'situation', 'foreclosure')">
+                    <h4>Foreclosure</h4>
+                    <p>Facing foreclosure</p>
+                </div>
+                <div class="option-btn" onclick="selectOption(this, 'situation', 'relocating')">
+                    <h4>Relocating</h4>
+                    <p>Need to move fast</p>
+                </div>
+                <div class="option-btn" onclick="selectOption(this, 'situation', 'divorce')">
+                    <h4>Divorce</h4>
+                    <p>Splitting assets</p>
+                </div>
+                <div class="option-btn" onclick="selectOption(this, 'situation', 'other')">
+                    <h4>Other</h4>
+                    <p>Just want to sell</p>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%;" onclick="nextStep(4)" id="btn-step-3" disabled>
+                See My Estimate →
+            </button>
+        </div>
+
+        <!-- Step 4: Contact & Results -->
+        <div class="step" id="step-4">
+            <h2 style="margin-bottom: 0.5rem;">Your Estimated Cash Offer</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">Based on your property details</p>
+
+            <div class="result-box">
+                <p>Estimated Cash Offer Range</p>
+                <div class="offer-amount" id="offer-amount">$85,000 - $105,000</div>
+                <p class="offer-range">Final offer after property review</p>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <p style="font-weight: 600; margin-bottom: 1rem;">Get your exact offer - enter your details:</p>
+
+                <form action="/submit-lead" method="POST">
+                    <input type="hidden" name="source_page" value="offer-calculator">
+                    <input type="hidden" name="property_address" id="form_address">
+                    <input type="hidden" name="message" id="form_details">
+
+                    <div class="form-group">
+                        <input type="text" name="name" placeholder="Your Name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="tel" name="phone" placeholder="Phone Number" required>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="Email (optional)">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        Get My Exact Cash Offer
+                    </button>
+                </form>
+
+                <p style="text-align: center; margin-top: 1rem; font-size: 0.85rem; color: #666;">
+                    We'll call you within 24 hours with your personalized offer
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let formData = {
+        address: '',
+        condition: '',
+        situation: ''
+    };
+
+    function nextStep(step) {
+        // Validate current step
+        if (step === 2) {
+            const address = document.getElementById('property_address').value;
+            if (!address) {
+                alert('Please enter a property address');
+                return;
+            }
+            formData.address = address;
+        }
+
+        // Hide all steps
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+
+        // Show target step
+        document.getElementById('step-' + step).classList.add('active');
+
+        // Update progress bar
+        for (let i = 1; i <= 4; i++) {
+            const prog = document.getElementById('prog-' + i);
+            prog.classList.remove('active', 'completed');
+            if (i < step) {
+                prog.classList.add('completed');
+            } else if (i === step) {
+                prog.classList.add('active');
+            }
+        }
+
+        // If final step, calculate estimate and populate form
+        if (step === 4) {
+            calculateOffer();
+            document.getElementById('form_address').value = formData.address;
+            document.getElementById('form_details').value =
+                'Condition: ' + formData.condition + ', Situation: ' + formData.situation;
+        }
+    }
+
+    function selectOption(element, field, value) {
+        // Remove selected from siblings
+        element.parentElement.querySelectorAll('.option-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+
+        // Add selected to clicked
+        element.classList.add('selected');
+
+        // Store value
+        formData[field] = value;
+
+        // Enable continue button
+        if (field === 'condition') {
+            document.getElementById('btn-step-2').disabled = false;
+        } else if (field === 'situation') {
+            document.getElementById('btn-step-3').disabled = false;
+        }
+    }
+
+    function calculateOffer() {
+        // Base estimate (would come from actual property data in production)
+        let baseMin = 70000;
+        let baseMax = 120000;
+
+        // Adjust for condition
+        const conditionMultiplier = {
+            'excellent': 1.2,
+            'good': 1.0,
+            'fair': 0.85,
+            'poor': 0.7
+        };
+
+        const multiplier = conditionMultiplier[formData.condition] || 1.0;
+
+        let offerMin = Math.round(baseMin * multiplier / 1000) * 1000;
+        let offerMax = Math.round(baseMax * multiplier / 1000) * 1000;
+
+        // Format as currency
+        const formatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            maximumFractionDigits: 0
+        });
+
+        document.getElementById('offer-amount').textContent =
+            formatter.format(offerMin) + ' - ' + formatter.format(offerMax);
+    }
+</script>
+{% endblock %}

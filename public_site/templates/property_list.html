@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Header -->
+<section class="hero" style="padding: 3rem 2rem;">
+    <h1 style="font-size: 2.5rem;">Distressed Properties in Columbus</h1>
+    <p>Browse {{ total }} properties we're looking to purchase</p>
+</section>
+
+<div class="container">
+    <!-- Filters -->
+    <div style="margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="/properties" class="btn {% if not filter_type %}btn-primary{% else %}btn-secondary{% endif %}" style="{% if filter_type %}color: #1a1a2e; border-color: #1a1a2e;{% endif %}">
+            All Properties
+        </a>
+        <a href="/properties?type=probate" class="btn {% if filter_type == 'probate' %}btn-primary{% else %}btn-secondary{% endif %}" style="{% if filter_type != 'probate' %}color: #1a1a2e; border-color: #1a1a2e;{% endif %}">
+            Probate
+        </a>
+        <a href="/properties?type=tax_delinquent" class="btn {% if filter_type == 'tax_delinquent' %}btn-primary{% else %}btn-secondary{% endif %}" style="{% if filter_type != 'tax_delinquent' %}color: #1a1a2e; border-color: #1a1a2e;{% endif %}">
+            Tax Delinquent
+        </a>
+        <a href="/properties?type=code_violation" class="btn {% if filter_type == 'code_violation' %}btn-primary{% else %}btn-secondary{% endif %}" style="{% if filter_type != 'code_violation' %}color: #1a1a2e; border-color: #1a1a2e;{% endif %}">
+            Code Violations
+        </a>
+    </div>
+
+    <!-- Property Grid -->
+    {% if properties %}
+    <div class="property-grid">
+        {% for prop in properties %}
+        <a href="/property/{{ prop.slug }}" class="property-card" style="text-decoration: none; color: inherit;">
+            <div class="property-card-body">
+                {% if prop.lead_type %}
+                <span class="type-badge {% if prop.lead_type == 'probate' %}probate{% elif prop.lead_type == 'tax_delinquent' %}tax{% endif %}">
+                    {{ prop.lead_type | replace('_', ' ') | title }}
+                </span>
+                {% endif %}
+
+                <h3>{{ prop.address }}</h3>
+
+                <p style="color: #666; font-size: 0.9rem;">
+                    {{ prop.city if prop.city else 'Columbus' }}, OH {{ prop.zip if prop.zip else '' }}
+                </p>
+
+                {% if prop.taxes_owed and prop.taxes_owed > 0 %}
+                <p style="color: #e53935; font-size: 0.85rem; margin-top: 0.5rem;">
+                    <span style="background: #ffebee; padding: 0.15rem 0.5rem; border-radius: 4px;">Tax Balance Owed</span>
+                </p>
+                {% endif %}
+
+                {% if prop.motivation_score %}
+                <div style="margin-top: 0.5rem;">
+                    <div style="background: #e0e0e0; border-radius: 10px; height: 6px; width: 100%;">
+                        <div style="background: {% if prop.motivation_score > 70 %}#4CAF50{% elif prop.motivation_score > 40 %}#FFC107{% else %}#9e9e9e{% endif %}; border-radius: 10px; height: 6px; width: {{ prop.motivation_score }}%;"></div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <p style="color: #4CAF50; font-weight: 500; margin-top: 1rem; font-size: 0.9rem;">
+                    View Details &rarr;
+                </p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 3rem;">
+        {% if page > 1 %}
+        <a href="/properties?page={{ page - 1 }}{% if filter_type %}&type={{ filter_type }}{% endif %}" class="btn btn-secondary" style="color: #1a1a2e; border-color: #1a1a2e;">
+            &larr; Previous
+        </a>
+        {% endif %}
+
+        <span style="padding: 1rem; color: #666;">
+            Page {{ page }} of {{ total_pages }}
+        </span>
+
+        {% if page < total_pages %}
+        <a href="/properties?page={{ page + 1 }}{% if filter_type %}&type={{ filter_type }}{% endif %}" class="btn btn-secondary" style="color: #1a1a2e; border-color: #1a1a2e;">
+            Next &rarr;
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="card" style="text-align: center; padding: 4rem 2rem;">
+        <h3>No Properties Found</h3>
+        <p style="color: #666; margin: 1rem 0;">We're always adding new properties. Check back soon!</p>
+        <a href="/get-offer" class="btn btn-primary">Submit Your Property</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- CTA -->
+<section class="cta-section" style="margin-top: 3rem;">
+    <h2>Is Your Property Listed Here?</h2>
+    <p style="margin-bottom: 2rem; opacity: 0.9;">If you own one of these properties, we want to make you a cash offer.</p>
+    <a href="/get-offer" class="btn">Get Your Cash Offer</a>
+</section>
+{% endblock %}

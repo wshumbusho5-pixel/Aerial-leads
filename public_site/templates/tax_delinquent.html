@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero" style="background: linear-gradient(135deg, #b71c1c 0%, #c62828 100%); text-align: left;">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <p style="opacity: 0.9; margin-bottom: 0.5rem;">I know this pain personally.</p>
+        <h1 style="font-size: 2.5rem;">My Family Lost Our Home to Tax Delinquency</h1>
+        <p style="font-size: 1.1rem; margin: 1rem 0;">
+            I watched it happen. The letters. The fear. The day we lost everything.
+            That's why I do this - so no family goes through what mine did.
+        </p>
+        <a href="/get-offer" class="btn btn-primary" style="margin-top: 1rem; background: white; color: #b71c1c;">Let Me Help You</a>
+    </div>
+</section>
+
+<!-- Urgency Section -->
+<section class="section" style="background: white;">
+    <div class="container">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
+            <div>
+                <h2 style="margin-bottom: 1rem; color: #b71c1c;">Time May Be Running Out</h2>
+                <p style="margin-bottom: 1rem;">If you're behind on property taxes, you could be facing serious consequences:</p>
+                <ul style="margin-bottom: 1.5rem; padding-left: 1.5rem;">
+                    <li style="margin-bottom: 0.5rem; color: #c62828;"><strong>Tax Lien Sale</strong> - The county can sell a lien on your property</li>
+                    <li style="margin-bottom: 0.5rem; color: #c62828;"><strong>Tax Foreclosure</strong> - You could lose your property entirely</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Growing Debt</strong> - Penalties and interest keep adding up</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Credit Damage</strong> - Tax liens hurt your credit score</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Legal Fees</strong> - The longer you wait, the more it costs</li>
+                </ul>
+                <p><strong>There's a way out.</strong> We can buy your property for cash, pay off the back taxes, and put money in your pocket.</p>
+            </div>
+            <div class="card" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white;">
+                <h3 style="margin-bottom: 1rem;">Get Your Cash Offer</h3>
+                <form action="/submit-lead" method="POST">
+                    <input type="hidden" name="source_page" value="tax-delinquent">
+
+                    <div class="form-group">
+                        <input type="text" name="property_address" required placeholder="Property Address"
+                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" name="name" required placeholder="Your Name"
+                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" name="phone" required placeholder="Phone Number"
+                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
+                    </div>
+                    <div class="form-group">
+                        <textarea name="message" rows="2" placeholder="How much do you owe in back taxes? (optional)"
+                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%; background: #4CAF50; color: white;">
+                        Get Help Now
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">How We Can Help</h2>
+        <div class="benefits-grid">
+            <div class="benefit-item card">
+                <div class="benefit-icon">&#128176;</div>
+                <h3>We Pay The Back Taxes</h3>
+                <p>We handle the tax debt as part of the sale. You don't pay anything out of pocket.</p>
+            </div>
+            <div class="benefit-item card">
+                <div class="benefit-icon">&#128181;</div>
+                <h3>Cash In Your Pocket</h3>
+                <p>After taxes are paid, you walk away with cash from your equity.</p>
+            </div>
+            <div class="benefit-item card">
+                <div class="benefit-icon">&#9203;</div>
+                <h3>Stop The Clock</h3>
+                <p>We move fast to help you avoid tax sales and foreclosure deadlines.</p>
+            </div>
+            <div class="benefit-item card">
+                <div class="benefit-icon">&#128274;</div>
+                <h3>Clean Break</h3>
+                <p>Walk away free and clear with no more tax worries on this property.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tax Delinquent Properties List -->
+{% if properties %}
+<section class="section" style="background: white;">
+    <div class="container">
+        <h2 class="section-title">Tax Delinquent Properties We're Looking To Buy</h2>
+        <p style="text-align: center; color: #666; margin-bottom: 2rem;">
+            Is your property on this list? We can help you before the tax sale.
+        </p>
+
+        <div class="property-grid">
+            {% for prop in properties[:12] %}
+            <a href="/property/{{ prop.slug }}" class="property-card" style="text-decoration: none; color: inherit;">
+                <div class="property-card-body">
+                    <span class="type-badge tax">Tax Delinquent</span>
+                    <h3>{{ prop.address }}</h3>
+                    <p style="color: #666; font-size: 0.9rem;">
+                        {{ prop.city if prop.city else 'Columbus' }}, OH
+                    </p>
+                    {% if prop.taxes_owed and prop.taxes_owed > 0 %}
+                    <p style="color: #e53935; font-size: 0.9rem; margin-top: 0.5rem;">
+                        <span style="background: #ffebee; padding: 0.15rem 0.5rem; border-radius: 4px;">Outstanding Tax Balance</span>
+                    </p>
+                    {% endif %}
+                    <p style="color: #4CAF50; font-weight: 500; margin-top: 1rem; font-size: 0.9rem;">
+                        Get Help &rarr;
+                    </p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/properties?type=tax_delinquent" class="btn btn-primary">View All Tax Delinquent Properties</a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA -->
+<section class="cta-section" style="background: linear-gradient(135deg, #b71c1c 0%, #c62828 100%);">
+    <h2>Don't Wait Until It's Too Late</h2>
+    <p style="margin-bottom: 2rem; opacity: 0.9;">Get a free consultation and cash offer today. No obligation.</p>
+    <a href="/get-offer" class="btn" style="background: white; color: #b71c1c;">Get Help Now</a>
+</section>
+{% endblock %}
