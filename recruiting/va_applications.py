@@ -228,7 +228,10 @@ class VAApplications:
     def _get_connection(self):
         """Get database connection."""
         if DB_AVAILABLE and self.db_url:
-            return psycopg2.connect(self.db_url, cursor_factory=RealDictCursor)
+            # Clean the URL - remove any whitespace/newlines
+            clean_url = self.db_url.strip()
+            # Use dsn keyword argument explicitly
+            return psycopg2.connect(dsn=clean_url, cursor_factory=RealDictCursor)
         return None
 
     def _init_db(self):
