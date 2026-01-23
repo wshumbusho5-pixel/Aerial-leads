@@ -6641,6 +6641,37 @@ elif page == "📋 VA Recruiting":
 
     st.markdown("---")
 
+    # Admin Actions
+    with st.expander("⚙️ Admin Actions", expanded=False):
+        st.warning("**Danger Zone** - These actions cannot be undone")
+
+        reset_col1, reset_col2 = st.columns([3, 1])
+        with reset_col1:
+            st.markdown("**Reset All Applications** - Delete all applications from the database")
+        with reset_col2:
+            if st.button("🗑️ Reset All", key="reset_all_btn", type="secondary"):
+                st.session_state["confirm_reset_all"] = True
+
+        if st.session_state.get("confirm_reset_all"):
+            st.error("⚠️ This will permanently delete ALL applications. Are you sure?")
+            confirm_reset_cols = st.columns(2)
+            with confirm_reset_cols[0]:
+                if st.button("Yes, Delete All Applications", key="confirm_reset_yes", type="primary"):
+                    if RECRUITING_AVAILABLE:
+                        success, msg = apps.reset_all_applications()
+                        if success:
+                            st.success(msg)
+                            del st.session_state["confirm_reset_all"]
+                            st.rerun()
+                        else:
+                            st.error(msg)
+            with confirm_reset_cols[1]:
+                if st.button("Cancel", key="confirm_reset_no"):
+                    del st.session_state["confirm_reset_all"]
+                    st.rerun()
+
+    st.markdown("---")
+
     # Application links
     col1, col2 = st.columns(2)
     with col1:
@@ -6778,6 +6809,30 @@ elif page == "📋 VA Recruiting":
                                         st.rerun()
                                     else:
                                         st.error(msg)
+
+                        # Delete button
+                        st.markdown("---")
+                        delete_col1, delete_col2 = st.columns([3, 1])
+                        with delete_col2:
+                            if st.button("🗑️ Delete", key=f"delete_{app['id']}", type="secondary"):
+                                st.session_state[f"confirm_delete_{app['id']}"] = True
+
+                        if st.session_state.get(f"confirm_delete_{app['id']}"):
+                            st.warning(f"Are you sure you want to delete {app['full_name']}'s application?")
+                            confirm_cols = st.columns(2)
+                            with confirm_cols[0]:
+                                if st.button("Yes, Delete", key=f"confirm_yes_{app['id']}", type="primary"):
+                                    success, msg = apps.delete_application(app['id'])
+                                    if success:
+                                        st.success(msg)
+                                        del st.session_state[f"confirm_delete_{app['id']}"]
+                                        st.rerun()
+                                    else:
+                                        st.error(msg)
+                            with confirm_cols[1]:
+                                if st.button("Cancel", key=f"confirm_no_{app['id']}"):
+                                    del st.session_state[f"confirm_delete_{app['id']}"]
+                                    st.rerun()
 
                         # Admin notes
                         if app.get('admin_notes'):
