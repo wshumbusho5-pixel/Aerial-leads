@@ -35,6 +35,7 @@ plotly==5.18.0
 # FastAPI (for public site)
 fastapi==0.104.1
 uvicorn==0.24.0
+python-multipart==0.0.6
 
 # CLI
 click==8.1.7
