@@ -5,8 +5,14 @@ Professional application form for Virtual Assistant positions at Lifeline Home B
 Run with: streamlit run application_page.py --server.port 8502
 """
 
-import streamlit as st
+# CRITICAL: Set up Python path FIRST before any other imports
+import sys
 import os
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+if _current_dir not in sys.path:
+    sys.path.insert(0, _current_dir)
+
+import streamlit as st
 from datetime import datetime, date
 from dotenv import load_dotenv
 
