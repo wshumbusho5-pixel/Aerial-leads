@@ -6,6 +6,15 @@ Shares data with admin dashboard for seamless communication
 """
 
 import streamlit as st
+
+# Page config - MUST be first Streamlit command
+st.set_page_config(
+    page_title="Lifeline - VA Portal",
+    page_icon="📞",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 import pandas as pd
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -55,14 +64,6 @@ VA_RVM_LIMITS_FILE = DATA_DIR / "va_rvm_limits.json"
 # RVM Settings
 RVM_DAILY_LIMIT_PER_VA = 50  # Max RVM drops per VA per day
 RVM_CALLBACK_DELAY_MINUTES = 30  # Wait time after RVM before calling
-
-# Page config
-st.set_page_config(
-    page_title="Lifeline - VA Portal",
-    page_icon="📞",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 # Custom CSS - Clean, professional look
 st.markdown("""
