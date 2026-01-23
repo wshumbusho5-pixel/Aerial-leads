@@ -6885,7 +6885,7 @@ elif page == "📋 VA Recruiting":
                             if st.button("📝 Assign Script", key=f"assign_{app['id']}", type="primary"):
                                 # Get recording portal URL
                                 base_portal_url = os.environ.get('RECORDING_PORTAL_URL', 'https://va-appplication-production.up.railway.app')
-                            recording_url = f"{base_portal_url}?page=recording&email={app['email']}"
+                                recording_url = f"{base_portal_url}?page=recording&email={app['email']}"
                                 success, msg = apps.assign_script(app['id'], script_key, recording_url=recording_url)
                                 if success:
                                     st.success(msg)
