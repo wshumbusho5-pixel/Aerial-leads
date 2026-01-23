@@ -42,15 +42,23 @@ except ImportError:
 
 # Database connection for storing inbound leads
 DB_AVAILABLE = False
-db_connection = None
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
+# Check if psycopg2 is available
 try:
     import psycopg2
     from psycopg2.extras import RealDictCursor
-    DATABASE_URL = os.environ.get('DATABASE_URL')
-    if DATABASE_URL:
-        DB_AVAILABLE = True
-        # Initialize inbound_leads table
+    PSYCOPG2_AVAILABLE = True
+except ImportError:
+    PSYCOPG2_AVAILABLE = False
+    logger.warning("psycopg2 not available")
+
+def init_database():
+    """Initialize database table (called on first request, not at startup)."""
+    global DB_AVAILABLE
+    if not PSYCOPG2_AVAILABLE or not DATABASE_URL:
+        return False
+    try:
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
         cursor.execute("""
@@ -72,9 +80,12 @@ try:
         """)
         conn.commit()
         conn.close()
-        logger.info("Database connected - inbound leads will be saved to PostgreSQL")
-except Exception as e:
-    logger.warning(f"Database not available, using CSV fallback: {e}")
+        DB_AVAILABLE = True
+        logger.info("Database initialized successfully")
+        return True
+    except Exception as e:
+        logger.warning(f"Database init failed: {e}")
+        return False
 
 app = FastAPI(title="Lifeline Home Buyers")
 
@@ -153,12 +164,16 @@ def get_property_by_slug(slug: str) -> dict:
 
 def save_inbound_lead(data: dict):
     """Save captured lead to database (preferred) or CSV (fallback)."""
+    global DB_AVAILABLE
     data['captured_at'] = datetime.now().isoformat()
 
+    # Initialize database on first use
+    if not DB_AVAILABLE and PSYCOPG2_AVAILABLE and DATABASE_URL:
+        init_database()
+
     # Try to save to PostgreSQL database first
-    if DB_AVAILABLE:
+    if DB_AVAILABLE and PSYCOPG2_AVAILABLE:
         try:
-            DATABASE_URL = os.environ.get('DATABASE_URL')
             conn = psycopg2.connect(DATABASE_URL)
             cursor = conn.cursor()
             cursor.execute("""
