@@ -494,18 +494,49 @@ st.markdown("""
         border-color: #e5e7eb !important;
     }
 
-    /* Force light theme inside expander even in dark mode */
-    [data-theme="dark"] [data-testid="stExpander"],
-    .stApp[data-theme="dark"] [data-testid="stExpander"] {
+    /* Force light theme inside expander - works in all modes */
+    [data-testid="stExpander"] {
         background-color: #ffffff !important;
     }
 
-    [data-theme="dark"] [data-testid="stExpander"] * {
+    [data-testid="stExpander"] div,
+    [data-testid="stExpander"] p,
+    [data-testid="stExpander"] span,
+    [data-testid="stExpander"] li,
+    [data-testid="stExpander"] ul,
+    [data-testid="stExpander"] strong,
+    [data-testid="stExpander"] em {
+        color: #374151 !important;
+        background-color: transparent !important;
+    }
+
+    [data-testid="stExpander"] h1,
+    [data-testid="stExpander"] h2,
+    [data-testid="stExpander"] h3,
+    [data-testid="stExpander"] h4 {
+        color: #1e3a5f !important;
+    }
+
+    /* Expander header button text */
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] button,
+    [data-testid="stExpander"] [data-testid="stExpanderToggleIcon"] {
         color: #374151 !important;
     }
 
-    [data-theme="dark"] [data-testid="stExpander"] h3 {
-        color: #1e3a5f !important;
+    /* Media query for system dark mode */
+    @media (prefers-color-scheme: dark) {
+        [data-testid="stExpander"] {
+            background-color: #ffffff !important;
+            border: 1px solid #e5e7eb !important;
+        }
+
+        [data-testid="stExpander"] div,
+        [data-testid="stExpander"] p,
+        [data-testid="stExpander"] span,
+        [data-testid="stExpander"] li {
+            color: #374151 !important;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
