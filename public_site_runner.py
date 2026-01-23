@@ -27,18 +27,22 @@ logger = logging.getLogger(__name__)
 # Database setup - lazy connection
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 DB_AVAILABLE = False
+DB_ERROR = None
 
 def get_db_connection():
     """Get database connection (lazy initialization)."""
-    global DB_AVAILABLE
+    global DB_AVAILABLE, DB_ERROR
     if not DATABASE_URL:
+        DB_ERROR = "DATABASE_URL not set"
         return None
     try:
         import psycopg2
         conn = psycopg2.connect(DATABASE_URL)
         DB_AVAILABLE = True
+        DB_ERROR = None
         return conn
     except Exception as e:
+        DB_ERROR = str(e)
         logger.error(f"Database connection failed: {e}")
         return None
 
@@ -124,12 +128,18 @@ async def startup():
 
 @app.get("/health")
 async def health():
+    # Try connecting now to get fresh status
+    test_conn = get_db_connection()
+    if test_conn:
+        test_conn.close()
+
     return {
         "status": "ok",
         "templates": str(TEMPLATES_DIR),
         "exists": TEMPLATES_DIR.exists(),
         "db_available": DB_AVAILABLE,
-        "db_url_set": bool(DATABASE_URL)
+        "db_url_set": bool(DATABASE_URL),
+        "db_error": DB_ERROR
     }
 
 @app.get("/", response_class=HTMLResponse)
