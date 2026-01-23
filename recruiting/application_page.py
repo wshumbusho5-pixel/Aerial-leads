@@ -1003,10 +1003,16 @@ def recording_page():
 
 if __name__ == "__main__":
     # Check for query parameters to determine which page to show
-    query_params = st.query_params
-
-    page = query_params.get("page", "apply")
-    email_param = query_params.get("email", "")
+    # Use experimental API for older Streamlit versions
+    try:
+        query_params = st.query_params
+        page = query_params.get("page", "apply")
+        email_param = query_params.get("email", "")
+    except AttributeError:
+        # Fallback for older Streamlit versions
+        query_params = st.experimental_get_query_params()
+        page = query_params.get("page", ["apply"])[0]
+        email_param = query_params.get("email", [""])[0]
 
     if page == "recording":
         # Pre-fill email if provided in URL
