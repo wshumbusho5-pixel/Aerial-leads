@@ -43,6 +43,9 @@ try:
     from urllib.parse import urlparse
 
     DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
+    print(f"[DB DEBUG] DATABASE_URL exists: {bool(DATABASE_URL)}")
+    print(f"[DB DEBUG] DATABASE_URL length: {len(DATABASE_URL) if DATABASE_URL else 0}")
+
     if DATABASE_URL:
         # Parse the URL into components to avoid DSN parsing issues
         parsed = urlparse(DATABASE_URL)
@@ -53,11 +56,29 @@ try:
             'user': parsed.username,
             'password': parsed.password,
         }
+
+        # Debug: Check for None or empty values
+        print(f"[DB DEBUG] Parsed - host: {parsed.hostname}, port: {parsed.port}, db: {parsed.path}")
+        for key, value in DB_PARAMS.items():
+            if key != 'password':
+                print(f"[DB DEBUG] {key}: '{value}' (type: {type(value).__name__})")
+            else:
+                print(f"[DB DEBUG] {key}: {'***' if value else 'EMPTY!'}")
+
+        # Validate no None values (except password could theoretically be empty)
+        if not DB_PARAMS['host']:
+            print("[DB DEBUG] ERROR: host is None or empty!")
+        if not DB_PARAMS['database']:
+            print("[DB DEBUG] ERROR: database is None or empty!")
+        if not DB_PARAMS['user']:
+            print("[DB DEBUG] ERROR: user is None or empty!")
+
         DB_AVAILABLE = True
         logger.info(f"Database configured: {parsed.hostname}:{parsed.port}")
 except ImportError:
-    pass
+    print("[DB DEBUG] psycopg2 not installed")
 except Exception as e:
+    print(f"[DB DEBUG] Error parsing DATABASE_URL: {e}")
     logger.error(f"Error parsing DATABASE_URL: {e}")
 
 
@@ -242,15 +263,24 @@ class VAApplications:
     def _get_connection(self):
         """Get database connection."""
         if DB_AVAILABLE and DB_PARAMS:
-            # Use parsed parameters instead of raw URL
-            return psycopg2.connect(
-                host=DB_PARAMS['host'],
-                port=DB_PARAMS['port'],
-                database=DB_PARAMS['database'],
-                user=DB_PARAMS['user'],
-                password=DB_PARAMS['password'],
-                cursor_factory=RealDictCursor
-            )
+            try:
+                print(f"[DB DEBUG] Connecting to: {DB_PARAMS['host']}:{DB_PARAMS['port']}/{DB_PARAMS['database']}")
+                # Use parsed parameters instead of raw URL
+                conn = psycopg2.connect(
+                    host=DB_PARAMS['host'],
+                    port=DB_PARAMS['port'],
+                    database=DB_PARAMS['database'],
+                    user=DB_PARAMS['user'],
+                    password=DB_PARAMS['password'],
+                    cursor_factory=RealDictCursor
+                )
+                print("[DB DEBUG] Connection successful!")
+                return conn
+            except Exception as e:
+                print(f"[DB DEBUG] Connection FAILED: {e}")
+                raise
+        else:
+            print(f"[DB DEBUG] Cannot connect - DB_AVAILABLE: {DB_AVAILABLE}, DB_PARAMS: {DB_PARAMS is not None}")
         return None
 
     def _init_db(self):
