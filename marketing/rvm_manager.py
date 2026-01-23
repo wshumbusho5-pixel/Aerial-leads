@@ -7,7 +7,7 @@ Solve the spam risk problem:
 3. Track number health and rotation
 
 Integration Points:
-- Slybroadcast / Drop Cowboy for RVM delivery
+- Slybroadcast for RVM delivery (INTEGRATED)
 - Twilio / OpenPhone for number rotation
 """
 
@@ -16,10 +16,17 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import json
 import random
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 from config.settings import DATA_DIR
 from config.logging_config import get_logger
+
+# Slybroadcast integration
+try:
+    from marketing.slybroadcast_client import SlybroadcastClient, get_slybroadcast_client
+    SLYBROADCAST_AVAILABLE = True
+except ImportError:
+    SLYBROADCAST_AVAILABLE = False
 
 
 class NumberRotationManager:
@@ -592,6 +599,164 @@ class RVMManager:
             'callback_rate': (callbacks / total * 100) if total > 0 else 0,
             'recent_drops': campaign_drops.tail(10).to_dict('records')
         }
+
+    # ========================================
+    # SLYBROADCAST INTEGRATION
+    # ========================================
+
+    def get_slybroadcast_client(self) -> Optional['SlybroadcastClient']:
+        """Get Slybroadcast client if available."""
+        if not SLYBROADCAST_AVAILABLE:
+            self.logger.warning("Slybroadcast client not available")
+            return None
+        return get_slybroadcast_client()
+
+    def check_slybroadcast_connection(self) -> Tuple[bool, str]:
+        """Test Slybroadcast API connection."""
+        client = self.get_slybroadcast_client()
+        if not client:
+            return False, "Slybroadcast not configured"
+        return client.test_connection()
+
+    def get_slybroadcast_credits(self) -> Tuple[bool, Dict]:
+        """Get remaining Slybroadcast credits."""
+        client = self.get_slybroadcast_client()
+        if not client:
+            return False, {"error": "Slybroadcast not configured"}
+        return client.get_credits()
+
+    def get_slybroadcast_audio_files(self) -> Tuple[bool, List[Dict]]:
+        """Get list of audio files from Slybroadcast account."""
+        client = self.get_slybroadcast_client()
+        if not client:
+            return False, []
+        return client.get_audio_files()
+
+    def send_rvm_campaign(
+        self,
+        campaign_id: str,
+        audio_file: str = None,
+        audio_url: str = None,
+        caller_id: str = None,
+        phone_numbers: List[str] = None,
+        max_numbers: int = 500,
+        schedule_time: str = "now"
+    ) -> Tuple[bool, Dict]:
+        """
+        Send RVM campaign through Slybroadcast.
+
+        Args:
+            campaign_id: Internal campaign ID
+            audio_file: Name of audio file in Slybroadcast account
+            audio_url: URL to external audio file
+            caller_id: Caller ID to display
+            phone_numbers: List of phone numbers (or auto-generate from leads)
+            max_numbers: Max numbers if auto-generating
+            schedule_time: "now" or "YYYY-MM-DD HH:MM:SS"
+
+        Returns:
+            Tuple of (success, result_dict)
+        """
+        client = self.get_slybroadcast_client()
+        if not client:
+            return False, {"error": "Slybroadcast not configured"}
+
+        if not client.configured:
+            return False, {"error": "Slybroadcast credentials not set"}
+
+        # Get campaign info
+        campaigns = self.get_campaigns()
+        campaign = next((c for c in campaigns if c['id'] == campaign_id), None)
+        if not campaign:
+            return False, {"error": f"Campaign not found: {campaign_id}"}
+
+        # Get phone numbers
+        if not phone_numbers:
+            drop_list = self.generate_drop_list(campaign_id, limit=max_numbers)
+            if drop_list.empty:
+                return False, {"error": "No phone numbers available for this campaign"}
+            phone_numbers = drop_list['target_number'].tolist()
+
+        # Get audio from script if not provided
+        if not audio_file and not audio_url:
+            scripts = self.get_scripts()
+            script = scripts.get(campaign.get('script_id', ''))
+            if script and script.get('audio_url'):
+                audio_url = script['audio_url']
+            else:
+                return False, {"error": "No audio file or URL provided"}
+
+        # Send through Slybroadcast
+        success, result = client.send_campaign(
+            phone_numbers=phone_numbers,
+            audio_file=audio_file,
+            audio_url=audio_url,
+            caller_id=caller_id,
+            campaign_title=campaign.get('name', campaign_id),
+            schedule_time=schedule_time
+        )
+
+        if success:
+            # Log the drops
+            self.log_drops(campaign_id, phone_numbers, campaign.get('script_id', ''))
+
+            # Store Slybroadcast session ID
+            self._save_slybroadcast_session(
+                campaign_id,
+                result.get('session_id'),
+                len(phone_numbers)
+            )
+
+            self.logger.info(f"RVM campaign sent: {len(phone_numbers)} drops, session_id={result.get('session_id')}")
+
+        return success, result
+
+    def _save_slybroadcast_session(self, campaign_id: str, session_id: str, count: int):
+        """Save Slybroadcast session ID for tracking."""
+        with open(self.campaigns_file, 'r') as f:
+            data = json.load(f)
+
+        for campaign in data['campaigns']:
+            if campaign['id'] == campaign_id:
+                if 'slybroadcast_sessions' not in campaign:
+                    campaign['slybroadcast_sessions'] = []
+                campaign['slybroadcast_sessions'].append({
+                    'session_id': session_id,
+                    'count': count,
+                    'sent_at': datetime.now().isoformat()
+                })
+                break
+
+        with open(self.campaigns_file, 'w') as f:
+            json.dump(data, f, indent=2)
+
+    def get_slybroadcast_campaign_status(self, session_id: str) -> Tuple[bool, Dict]:
+        """Get status of a Slybroadcast campaign."""
+        client = self.get_slybroadcast_client()
+        if not client:
+            return False, {"error": "Slybroadcast not configured"}
+        return client.get_campaign_status(session_id)
+
+    def pause_slybroadcast_campaign(self, session_id: str) -> Tuple[bool, str]:
+        """Pause a Slybroadcast campaign."""
+        client = self.get_slybroadcast_client()
+        if not client:
+            return False, "Slybroadcast not configured"
+        return client.pause_campaign(session_id)
+
+    def resume_slybroadcast_campaign(self, session_id: str) -> Tuple[bool, str]:
+        """Resume a paused Slybroadcast campaign."""
+        client = self.get_slybroadcast_client()
+        if not client:
+            return False, "Slybroadcast not configured"
+        return client.resume_campaign(session_id)
+
+    def stop_slybroadcast_campaign(self, session_id: str) -> Tuple[bool, str]:
+        """Stop a Slybroadcast campaign (irreversible)."""
+        client = self.get_slybroadcast_client()
+        if not client:
+            return False, "Slybroadcast not configured"
+        return client.stop_campaign(session_id)
 
 
 # Default voicemail scripts
