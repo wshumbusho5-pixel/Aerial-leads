@@ -6,7 +6,7 @@ and position you as the go-to cash buyer in your market.
 """
 
 from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
@@ -18,10 +18,15 @@ import os
 import sys
 import logging
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Setup paths - works both locally and deployed
 BASE_DIR = Path(__file__).parent
+logger.info(f"BASE_DIR: {BASE_DIR}")
+logger.info(f"Templates dir: {BASE_DIR / 'templates'}")
+logger.info(f"Templates exist: {(BASE_DIR / 'templates').exists()}")
 
 # Try to import from parent config (local development)
 # Fall back to local paths (deployed)
@@ -73,8 +78,32 @@ except Exception as e:
 
 app = FastAPI(title="Lifeline Home Buyers")
 
+# Health check endpoint (no templates needed)
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for debugging."""
+    templates_dir = BASE_DIR / "templates"
+    return JSONResponse({
+        "status": "ok",
+        "base_dir": str(BASE_DIR),
+        "templates_dir": str(templates_dir),
+        "templates_exist": templates_dir.exists(),
+        "template_files": [f.name for f in templates_dir.glob("*.html")] if templates_dir.exists() else [],
+        "db_available": DB_AVAILABLE,
+        "cwd": os.getcwd()
+    })
+
 # Setup templates and static files
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+templates_dir = BASE_DIR / "templates"
+if not templates_dir.exists():
+    logger.error(f"Templates directory not found: {templates_dir}")
+    # Try alternate location
+    alt_templates = Path(os.getcwd()) / "public_site" / "templates"
+    if alt_templates.exists():
+        templates_dir = alt_templates
+        logger.info(f"Using alternate templates dir: {templates_dir}")
+
+templates = Jinja2Templates(directory=str(templates_dir))
 
 # Mount static files only if directory exists
 static_dir = BASE_DIR / "static"
