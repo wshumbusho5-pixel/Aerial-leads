@@ -2508,8 +2508,15 @@ elif page == "📥 Inbound Leads":
         with col1:
             st.metric("Total Inbound", len(inbound_df))
         with col2:
-            today = datetime.now().strftime('%Y-%m-%d')
-            today_count = len(inbound_df[inbound_df['captured_at'].str.startswith(today)]) if 'captured_at' in inbound_df.columns else 0
+            today = datetime.now().date()
+            today_count = 0
+            if 'captured_at' in inbound_df.columns:
+                try:
+                    # Convert to datetime if needed, then compare dates
+                    captured_dates = pd.to_datetime(inbound_df['captured_at']).dt.date
+                    today_count = len(inbound_df[captured_dates == today])
+                except:
+                    today_count = 0
             st.metric("Today", today_count)
         with col3:
             # Unique source pages
@@ -6877,7 +6884,8 @@ elif page == "📋 VA Recruiting":
                         with script_cols[1]:
                             if st.button("📝 Assign Script", key=f"assign_{app['id']}", type="primary"):
                                 # Get recording portal URL
-                                recording_url = os.environ.get('RECORDING_PORTAL_URL', 'https://lifeline-careers.up.railway.app/recording')
+                                base_portal_url = os.environ.get('RECORDING_PORTAL_URL', 'https://va-appplication-production.up.railway.app')
+                            recording_url = f"{base_portal_url}?page=recording&email={app['email']}"
                                 success, msg = apps.assign_script(app['id'], script_key, recording_url=recording_url)
                                 if success:
                                     st.success(msg)
@@ -7005,7 +7013,8 @@ elif page == "📋 VA Recruiting":
                     quick_cols = st.columns([1, 1, 2])
                     with quick_cols[0]:
                         if st.button("📝 Send Script", key=f"quick_script_{app['id']}"):
-                            recording_url = os.environ.get('RECORDING_PORTAL_URL', 'https://lifeline-careers.up.railway.app/recording')
+                            base_portal_url = os.environ.get('RECORDING_PORTAL_URL', 'https://va-appplication-production.up.railway.app')
+                            recording_url = f"{base_portal_url}?page=recording&email={app['email']}"
                             success, msg = apps.assign_script(app['id'], 'general', recording_url=recording_url)
                             if success:
                                 st.success("Script sent! Email notification sent.")

@@ -991,5 +991,27 @@ def main():
     """, unsafe_allow_html=True)
 
 
+def recording_page():
+    """Recording/Interview status page - accessed via email link."""
+    # Import the recording page functionality
+    try:
+        from recording_page import main as recording_main
+        recording_main()
+    except ImportError:
+        st.error("Recording page not available. Please contact support.")
+
+
 if __name__ == "__main__":
-    main()
+    # Check for query parameters to determine which page to show
+    query_params = st.query_params
+
+    page = query_params.get("page", "apply")
+    email_param = query_params.get("email", "")
+
+    if page == "recording":
+        # Pre-fill email if provided in URL
+        if email_param:
+            st.session_state['prefill_email'] = email_param
+        recording_page()
+    else:
+        main()

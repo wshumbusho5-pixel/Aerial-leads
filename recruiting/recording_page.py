@@ -379,7 +379,18 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    email = st.text_input("Email Address", placeholder="your@email.com", label_visibility="collapsed")
+    # Check for pre-filled email from URL parameter
+    prefill_email = st.session_state.get('prefill_email', '')
+    email = st.text_input("Email Address", value=prefill_email, placeholder="your@email.com", label_visibility="collapsed")
+
+    # Auto-check status if email was pre-filled
+    if prefill_email and not st.session_state.get('email_verified'):
+        apps = VAApplications()
+        application = apps.get_application_by_email(prefill_email)
+        if application:
+            st.session_state.application = application
+            st.session_state.email_verified = True
+            st.rerun()
 
     if st.button("Check Status", type="primary", use_container_width=True):
         if not email or "@" not in email:
