@@ -33,6 +33,12 @@ except ImportError:
     pass
 
 try:
+    from auth.lead_assignments import get_leads_for_va, log_call, update_lead_status
+    LEAD_ASSIGNMENTS_AVAILABLE = True
+except ImportError:
+    LEAD_ASSIGNMENTS_AVAILABLE = False
+
+try:
     from auth.va_auth import VAAuth, check_login, require_login
     CSV_AUTH_AVAILABLE = True
 except ImportError:
@@ -124,8 +130,18 @@ if 'session_id' not in st.session_state:
 if 'user_role' not in st.session_state:
     st.session_state.user_role = None
 
-def load_leads():
-    """Load leads from master file"""
+def load_leads(va_username: str = None):
+    """Load leads assigned to this VA from database, fallback to CSV"""
+    # Try database first (for leads assigned via dashboard)
+    if LEAD_ASSIGNMENTS_AVAILABLE and va_username:
+        try:
+            db_leads = get_leads_for_va(va_username)
+            if not db_leads.empty:
+                return db_leads
+        except Exception as e:
+            pass  # Fall through to CSV
+
+    # Fallback to CSV file
     if LEADS_FILE.exists():
         try:
             return pd.read_csv(LEADS_FILE)
@@ -364,6 +380,7 @@ def show_login():
                     if success and user:
                         st.session_state.va_logged_in = True
                         st.session_state.va_name = user.get('full_name', username)
+                        st.session_state.va_username = username  # Store username for database lookups
                         st.session_state.session_id = session_id
                         st.session_state.user_role = user.get('role', 'va')
                         st.success(message)
@@ -424,8 +441,9 @@ def show_dashboard():
             st.session_state.user_role = None
             st.rerun()
 
-    # Load data
-    leads_df = load_leads()
+    # Load data - use username for database lookup
+    va_username = st.session_state.get('va_username', va_name)
+    leads_df = load_leads(va_username)
     calls_df = load_calls()
     inbound_df = load_inbound_leads()
     stats = get_va_stats(va_name, calls_df)

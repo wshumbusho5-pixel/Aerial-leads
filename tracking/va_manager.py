@@ -226,6 +226,15 @@ class VAManager:
             users_df.to_csv(self.users_file, index=False)
             self.logger.info(f"Deactivated user: {user_id}")
 
+    def remove_user(self, user_id: str):
+        """Remove a user completely (hard delete)."""
+        users_df = pd.read_csv(self.users_file)
+        idx = users_df[users_df['user_id'] == user_id].index
+        if len(idx) > 0:
+            users_df = users_df.drop(idx)
+            users_df.to_csv(self.users_file, index=False)
+            self.logger.info(f"Removed user: {user_id}")
+
     def update_quota(self, user_id: str, new_quota: int):
         """Update a VA's daily quota."""
         users_df = pd.read_csv(self.users_file)

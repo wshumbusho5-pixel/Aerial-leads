@@ -248,3 +248,140 @@ def send_application_received_email(
     """
 
     return send_email(applicant_email, subject, html_content)
+
+
+def send_hired_email(
+    applicant_name: str,
+    applicant_email: str
+) -> Tuple[bool, str]:
+    """
+    Send email notification when applicant is hired.
+    """
+    subject = "🎉 Welcome to the Team! - Lifeline Home Buyers"
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+            .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+            .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 12px; }}
+            .celebration {{ background: #d1fae5; padding: 25px; border-radius: 12px; text-align: center; margin: 20px 0; border: 2px solid #10b981; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎉 Congratulations!</h1>
+            </div>
+            <div class="content">
+                <h2>Hello {applicant_name}!</h2>
+                <div class="celebration">
+                    <h2 style="color: #065f46; margin: 0;">You're Hired!</h2>
+                    <p style="color: #047857;">Welcome to the Lifeline Home Buyers team!</p>
+                </div>
+                <p>We're thrilled to welcome you as a Virtual Assistant. Our team will reach out within 24-48 hours with onboarding details.</p>
+                <p>Best regards,<br><strong>The Lifeline Home Buyers Team</strong></p>
+            </div>
+            <div class="footer">
+                <p>Orteza Groups | Lifeline Home Buyers</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return send_email(applicant_email, subject, html_content)
+
+
+def send_rejected_email(
+    applicant_name: str,
+    applicant_email: str
+) -> Tuple[bool, str]:
+    """
+    Send email notification when applicant is rejected.
+    """
+    subject = "Application Update - Lifeline Home Buyers"
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+            .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+            .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 12px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Application Update</h1>
+            </div>
+            <div class="content">
+                <h2>Hello {applicant_name},</h2>
+                <p>Thank you for applying for the Virtual Assistant position at Lifeline Home Buyers.</p>
+                <p>After careful consideration, we have decided to move forward with other candidates. This does not reflect on your abilities - we received many strong applications.</p>
+                <p>We encourage you to apply again in the future as new positions open up.</p>
+                <p>Best wishes,<br><strong>The Lifeline Home Buyers Team</strong></p>
+            </div>
+            <div class="footer">
+                <p>Orteza Groups | Lifeline Home Buyers</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return send_email(applicant_email, subject, html_content)
+
+
+def send_interview_scheduled_email(
+    applicant_name: str,
+    applicant_email: str,
+    interview_link: str
+) -> Tuple[bool, str]:
+    """
+    Send email with interview scheduling link.
+    """
+    subject = "📅 Schedule Your Interview - Lifeline Home Buyers"
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+            .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+            .button {{ display: inline-block; background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }}
+            .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 12px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎉 Video Approved!</h1>
+                <p>Time to Schedule Your Interview</p>
+            </div>
+            <div class="content">
+                <h2>Hello {applicant_name}!</h2>
+                <p>Great news! Your video interview has been approved. The next step is a live interview with our team.</p>
+                <p style="text-align: center;">
+                    <a href="{interview_link}" class="button">📅 Schedule Your Interview</a>
+                </p>
+                <p>Please select a time that works best for you. The interview will be approximately 15-20 minutes.</p>
+                <p>Best regards,<br><strong>The Lifeline Home Buyers Team</strong></p>
+            </div>
+            <div class="footer">
+                <p>Orteza Groups | Lifeline Home Buyers</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return send_email(applicant_email, subject, html_content)

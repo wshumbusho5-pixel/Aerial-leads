@@ -20,7 +20,10 @@ try:
     from .email_notifications import (
         send_script_assignment_email,
         send_video_approved_email,
-        send_application_received_email
+        send_application_received_email,
+        send_hired_email,
+        send_rejected_email,
+        send_interview_scheduled_email
     )
     EMAIL_AVAILABLE = True
 except ImportError:
@@ -28,7 +31,10 @@ except ImportError:
         from email_notifications import (
             send_script_assignment_email,
             send_video_approved_email,
-            send_application_received_email
+            send_application_received_email,
+            send_hired_email,
+            send_rejected_email,
+            send_interview_scheduled_email
         )
         EMAIL_AVAILABLE = True
     except ImportError:
@@ -550,7 +556,7 @@ class VAApplications:
             return False, str(e)
 
     def hire_applicant(self, app_id: int) -> Tuple[bool, str]:
-        """Mark applicant as hired and create VA account."""
+        """Mark applicant as hired and send congratulations email."""
         app = self.get_application(app_id)
         if not app:
             return False, "Application not found"
@@ -560,7 +566,25 @@ class VAApplications:
         if not success:
             return False, msg
 
-        return True, f"Applicant {app['full_name']} marked as hired. Create their VA account in User Management."
+        # Send hired email
+        email_sent = False
+        if EMAIL_AVAILABLE:
+            try:
+                email_sent, email_msg = send_hired_email(
+                    applicant_name=app['full_name'],
+                    applicant_email=app['email']
+                )
+                if email_sent:
+                    logger.info(f"Hired email sent to {app['email']}")
+                else:
+                    logger.warning(f"Failed to send hired email: {email_msg}")
+            except Exception as e:
+                logger.error(f"Error sending hired email: {e}")
+
+        result_msg = f"Applicant {app['full_name']} marked as hired!"
+        if email_sent:
+            result_msg += " Congratulations email sent."
+        return True, result_msg
 
     def get_stats(self) -> Dict:
         """Get application statistics."""
@@ -775,8 +799,8 @@ class VAApplications:
             conn.close()
             return None
 
-    def approve_video(self, app_id: int, notes: str = None) -> Tuple[bool, str]:
-        """Approve video interview and move to personal interview stage."""
+    def approve_video(self, app_id: int, notes: str = None, interview_link: str = None) -> Tuple[bool, str]:
+        """Approve video interview and send interview scheduling email."""
         conn = self._get_connection()
         if not conn:
             return False, "Database unavailable"
@@ -804,9 +828,23 @@ class VAApplications:
             conn.commit()
             conn.close()
 
-            # Send approval email
+            # Send interview scheduling email with calendar link
             email_sent = False
-            if EMAIL_AVAILABLE and applicant:
+            if EMAIL_AVAILABLE and applicant and interview_link:
+                try:
+                    email_sent, email_msg = send_interview_scheduled_email(
+                        applicant_name=applicant['full_name'],
+                        applicant_email=applicant['email'],
+                        interview_link=interview_link
+                    )
+                    if email_sent:
+                        logger.info(f"Interview scheduling email sent to {applicant['email']}")
+                    else:
+                        logger.warning(f"Failed to send interview email: {email_msg}")
+                except Exception as e:
+                    logger.error(f"Error sending interview email: {e}")
+            elif EMAIL_AVAILABLE and applicant:
+                # Fallback to simple approval email if no interview link provided
                 try:
                     email_sent, email_msg = send_video_approved_email(
                         applicant_name=applicant['full_name'],
@@ -818,7 +856,9 @@ class VAApplications:
                     logger.error(f"Error sending approval email: {e}")
 
             msg = "Video approved! Applicant is ready for personal interview."
-            if email_sent:
+            if email_sent and interview_link:
+                msg += " Interview scheduling email sent."
+            elif email_sent:
                 msg += " Congratulations email sent."
 
             return True, msg
@@ -829,13 +869,18 @@ class VAApplications:
             return False, str(e)
 
     def reject_video(self, app_id: int, reason: str = None) -> Tuple[bool, str]:
-        """Reject video interview."""
+        """Reject video interview and send rejection email."""
         conn = self._get_connection()
         if not conn:
             return False, "Database unavailable"
 
         try:
             cursor = conn.cursor()
+
+            # Get applicant info for email
+            cursor.execute("SELECT full_name, email FROM va_applications WHERE id = %s", (app_id,))
+            applicant = cursor.fetchone()
+
             note_text = f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M')}] Video REJECTED"
             if reason:
                 note_text += f": {reason}"
@@ -851,12 +896,66 @@ class VAApplications:
 
             conn.commit()
             conn.close()
-            return True, "Application rejected."
+
+            # Send rejection email
+            email_sent = False
+            if EMAIL_AVAILABLE and applicant:
+                try:
+                    email_sent, email_msg = send_rejected_email(
+                        applicant_name=applicant['full_name'],
+                        applicant_email=applicant['email']
+                    )
+                    if email_sent:
+                        logger.info(f"Rejection email sent to {applicant['email']}")
+                    else:
+                        logger.warning(f"Failed to send rejection email: {email_msg}")
+                except Exception as e:
+                    logger.error(f"Error sending rejection email: {e}")
+
+            result_msg = "Application rejected."
+            if email_sent:
+                result_msg += " Notification email sent."
+            return True, result_msg
 
         except Exception as e:
             logger.error(f"Error rejecting video: {e}")
             conn.close()
             return False, str(e)
+
+    def reject_applicant(self, app_id: int, reason: str = None) -> Tuple[bool, str]:
+        """Reject an applicant at any stage and send rejection email."""
+        app = self.get_application(app_id)
+        if not app:
+            return False, "Application not found"
+
+        # Update status to rejected
+        note_text = f"Application rejected"
+        if reason:
+            note_text += f": {reason}"
+
+        success, msg = self.update_status(app_id, 'rejected', note_text)
+        if not success:
+            return False, msg
+
+        # Send rejection email
+        email_sent = False
+        if EMAIL_AVAILABLE:
+            try:
+                email_sent, email_msg = send_rejected_email(
+                    applicant_name=app['full_name'],
+                    applicant_email=app['email']
+                )
+                if email_sent:
+                    logger.info(f"Rejection email sent to {app['email']}")
+                else:
+                    logger.warning(f"Failed to send rejection email: {email_msg}")
+            except Exception as e:
+                logger.error(f"Error sending rejection email: {e}")
+
+        result_msg = f"Applicant {app['full_name']} rejected."
+        if email_sent:
+            result_msg += " Notification email sent."
+        return True, result_msg
 
     def get_pending_videos(self) -> List[Dict]:
         """Get all applications with videos pending review."""

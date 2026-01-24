@@ -45,6 +45,7 @@ try:
     from marketing.follow_up_sequences import FollowUpSequences, ACTION_TYPES, ACTION_TYPE_DISPLAY, DEFAULT_SEQUENCES
     from auth.va_auth import VAAuth, ROLES
     from auth.database import DatabaseAuth
+    from auth.lead_assignments import assign_leads_to_db, get_all_assignments, get_assignment_stats
     from buyers.buyer_matcher import BuyerMatcher
     from recruiting.va_applications import VAApplications, APPLICATION_STATUS, STATUS_DISPLAY, COLD_CALL_SCRIPTS
     DB_AUTH_AVAILABLE = True
@@ -2290,13 +2291,27 @@ elif page == "👥 VA Management":
                             # Filter and assign
                             filtered = leads_df[leads_df['motivation_score'] >= min_score].head(num_leads)
                             if len(filtered) > 0:
+                                # Save to local CSV (existing behavior)
                                 count = va_manager.assign_leads(
                                     filtered,
                                     selected_va_id,
-                                    assigned_by=st.session_state.va_user['user_id'],
+                                    assigned_by=st.session_state.va_user.get('user_id', st.session_state.va_user.get('username', 'admin')),
                                     priority=priority
                                 )
-                                st.success(f"✅ Assigned {count} leads to {selected_va_name}")
+
+                                # Also save to PostgreSQL for VA Portal access
+                                db_count, db_msg = assign_leads_to_db(
+                                    filtered,
+                                    assigned_to=selected_va_id,
+                                    assigned_by=st.session_state.va_user.get('username', 'admin'),
+                                    priority=priority
+                                )
+
+                                if db_count > 0:
+                                    st.success(f"✅ Assigned {db_count} leads to {selected_va_name} (synced to VA Portal)")
+                                else:
+                                    st.success(f"✅ Assigned {count} leads locally")
+                                    st.warning(f"⚠️ Database sync: {db_msg}")
                             else:
                                 st.warning("No leads match criteria")
 
@@ -6451,6 +6466,11 @@ elif page == "🔐 User Management":
     if DB_AUTH_AVAILABLE:
         try:
             db_auth = DatabaseAuth()
+            # Debug: show database type
+            if db_auth.db_type == 'postgresql':
+                st.success(f"✅ Connected to PostgreSQL (Railway)")
+            else:
+                st.warning(f"⚠️ Using SQLite (local) - users won't sync to Railway!")
         except Exception as e:
             st.warning(f"Database auth not available: {e}")
 
@@ -6808,14 +6828,24 @@ elif page == "📋 VA Recruiting":
                                     st.success("Ready for personal interview!")
                                     st.rerun()
                             elif app['status'] == 'interview':
-                                if st.button("✅ Hire", key=f"hire_{app['id']}", type="primary"):
-                                    success, msg = apps.hire_applicant(app['id'])
-                                    if success:
-                                        st.success(msg)
-                                        st.balloons()
-                                        st.rerun()
-                                    else:
-                                        st.error(msg)
+                                hire_cols = st.columns(2)
+                                with hire_cols[0]:
+                                    if st.button("✅ Hire", key=f"hire_{app['id']}", type="primary"):
+                                        success, msg = apps.hire_applicant(app['id'])
+                                        if success:
+                                            st.success(msg)
+                                            st.balloons()
+                                            st.rerun()
+                                        else:
+                                            st.error(msg)
+                                with hire_cols[1]:
+                                    if st.button("❌ Reject", key=f"reject_interview_{app['id']}"):
+                                        success, msg = apps.reject_applicant(app['id'], "Did not pass interview")
+                                        if success:
+                                            st.warning(msg)
+                                            st.rerun()
+                                        else:
+                                            st.error(msg)
 
                         # Delete button
                         st.markdown("---")
@@ -6951,6 +6981,16 @@ elif page == "📋 VA Recruiting":
 
                     # Review actions
                     st.markdown("**Your Decision:**")
+
+                    # Interview scheduling link (Calendly or similar)
+                    default_interview_link = os.environ.get('INTERVIEW_CALENDAR_LINK', 'https://calendly.com/your-link')
+                    interview_link = st.text_input(
+                        "Interview Scheduling Link (Calendly, etc.)",
+                        value=default_interview_link,
+                        key=f"interview_link_{app['id']}",
+                        placeholder="https://calendly.com/your-link"
+                    )
+
                     review_cols = st.columns([2, 1, 1])
 
                     with review_cols[0]:
@@ -6962,7 +7002,7 @@ elif page == "📋 VA Recruiting":
 
                     with review_cols[1]:
                         if st.button("✅ Approve", key=f"approve_{app['id']}", type="primary"):
-                            success, msg = apps.approve_video(app['id'], review_notes)
+                            success, msg = apps.approve_video(app['id'], review_notes, interview_link)
                             if success:
                                 st.success(msg)
                                 st.balloons()
@@ -6974,7 +7014,7 @@ elif page == "📋 VA Recruiting":
                         if st.button("❌ Reject", key=f"reject_video_{app['id']}"):
                             success, msg = apps.reject_video(app['id'], review_notes)
                             if success:
-                                st.warning("Application rejected")
+                                st.warning("Application rejected. Notification email sent.")
                                 st.rerun()
                             else:
                                 st.error(msg)
