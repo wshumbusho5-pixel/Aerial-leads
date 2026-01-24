@@ -2555,6 +2555,53 @@ elif page == "📥 Inbound Leads":
             if 'captured_at' in inbound_df.columns:
                 inbound_df = inbound_df.sort_values('captured_at', ascending=False)
 
+            # Get list of VAs for bulk assignment
+            va_list_all = []
+            if DB_AUTH_AVAILABLE:
+                try:
+                    temp_auth = DatabaseAuth()
+                    conn = temp_auth._get_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT username, full_name FROM users WHERE role = 'va' AND status = 'active'")
+                    va_list_all = [(row['username'], row['full_name']) for row in cursor.fetchall()]
+                    conn.close()
+                except:
+                    pass
+
+            # Bulk assignment section
+            if va_list_all and not inbound_df.empty:
+                st.markdown("#### Bulk Assign to VA")
+                bulk_cols = st.columns([2, 1, 1])
+                with bulk_cols[0]:
+                    bulk_va = st.selectbox(
+                        "Select VA",
+                        options=[v[0] for v in va_list_all],
+                        format_func=lambda x: next((v[1] for v in va_list_all if v[0] == x), x),
+                        key="bulk_assign_va"
+                    )
+                with bulk_cols[1]:
+                    num_to_assign = st.number_input("Number of leads", min_value=1, max_value=len(inbound_df), value=min(10, len(inbound_df)))
+                with bulk_cols[2]:
+                    if st.button("📋 Bulk Assign", type="primary"):
+                        # Get the most recent leads
+                        leads_to_assign = inbound_df.head(num_to_assign)
+                        # Convert to format for assignment
+                        assign_df = pd.DataFrame({
+                            'address': leads_to_assign.get('property_address', leads_to_assign.get('address', '')),
+                            'owner_name': leads_to_assign.get('name', ''),
+                            'phone': leads_to_assign.get('phone', ''),
+                            'email': leads_to_assign.get('email', ''),
+                            'motivation_score': 80,
+                            'lead_type': 'inbound',
+                            'notes': leads_to_assign.apply(lambda x: f"Inbound: {x.get('message', '')}", axis=1)
+                        })
+                        count, msg = assign_leads_to_db(assign_df, bulk_va, 'admin', 'high')
+                        if count > 0:
+                            st.success(f"✅ Assigned {count} leads to {bulk_va}")
+                        else:
+                            st.warning(msg)
+                st.markdown("---")
+
             # Display columns
             display_cols = ['captured_at', 'name', 'phone', 'property_address', 'source_page', 'message']
             display_cols = [c for c in display_cols if c in inbound_df.columns]
@@ -2570,14 +2617,27 @@ elif page == "📥 Inbound Leads":
         with tab2:
             st.markdown("### Today's Leads")
 
+            # Get list of VAs for assignment dropdown
+            va_list = []
+            if DB_AUTH_AVAILABLE:
+                try:
+                    temp_auth = DatabaseAuth()
+                    conn = temp_auth._get_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT username, full_name FROM users WHERE role = 'va' AND status = 'active'")
+                    va_list = [(row['username'], row['full_name']) for row in cursor.fetchall()]
+                    conn.close()
+                except:
+                    pass
+
             if 'captured_at' in inbound_df.columns:
                 today = datetime.now().strftime('%Y-%m-%d')
                 today_leads = inbound_df[inbound_df['captured_at'].astype(str).str.startswith(today)]
 
                 if not today_leads.empty:
-                    for _, lead in today_leads.iterrows():
+                    for idx, lead in today_leads.iterrows():
                         with st.container():
-                            col1, col2 = st.columns([3, 1])
+                            col1, col2, col3 = st.columns([3, 1, 1])
                             with col1:
                                 st.markdown(f"**{lead.get('name', 'Unknown')}** - {lead.get('phone', 'No phone')}")
                                 st.markdown(f"📍 {lead.get('property_address', 'No address')}")
@@ -2585,9 +2645,9 @@ elif page == "📥 Inbound Leads":
                                     st.caption(f"💬 {lead.get('message')}")
                                 st.caption(f"Source: {lead.get('source_page', 'Unknown')} | {lead.get('captured_at', '')}")
                             with col2:
-                                if st.button("📞 Call", key=f"call_{lead.name}"):
+                                if st.button("📞 Call", key=f"call_{idx}"):
                                     st.info(f"Call {lead.get('phone', 'No phone')}")
-                                if st.button("➡️ Add to Tracker", key=f"track_{lead.name}"):
+                                if st.button("➡️ Add to Tracker", key=f"track_{idx}"):
                                     tracker = CallTracker()
                                     tracker.log_call(
                                         address=lead.get('property_address', ''),
@@ -2597,6 +2657,34 @@ elif page == "📥 Inbound Leads":
                                         notes=f"Inbound lead from website: {lead.get('message', '')}"
                                     )
                                     st.success("Added to Call Tracker!")
+                            with col3:
+                                # Assign to VA
+                                if va_list:
+                                    selected_va = st.selectbox(
+                                        "Assign to",
+                                        options=[v[0] for v in va_list],
+                                        format_func=lambda x: next((v[1] for v in va_list if v[0] == x), x),
+                                        key=f"assign_va_{idx}",
+                                        label_visibility="collapsed"
+                                    )
+                                    if st.button("👤 Assign", key=f"assign_btn_{idx}"):
+                                        # Create a DataFrame with this lead
+                                        lead_df = pd.DataFrame([{
+                                            'address': lead.get('property_address', ''),
+                                            'owner_name': lead.get('name', ''),
+                                            'phone': lead.get('phone', ''),
+                                            'email': lead.get('email', ''),
+                                            'motivation_score': 80,  # Inbound leads are hot
+                                            'lead_type': 'inbound',
+                                            'notes': f"Inbound from {lead.get('source_page', 'website')}: {lead.get('message', '')}"
+                                        }])
+                                        count, msg = assign_leads_to_db(lead_df, selected_va, 'admin', 'high')
+                                        if count > 0:
+                                            st.success(f"✅ Assigned to {selected_va}")
+                                        else:
+                                            st.error(msg)
+                                else:
+                                    st.caption("No VAs available")
                             st.markdown("---")
                 else:
                     st.info("No leads captured today yet. Check back later!")
