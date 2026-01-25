@@ -39,6 +39,13 @@ except ImportError:
     LEAD_ASSIGNMENTS_AVAILABLE = False
 
 try:
+    from auth.twilio_calling import initiate_two_leg_call, TWILIO_AVAILABLE
+except ImportError:
+    TWILIO_AVAILABLE = False
+    def initiate_two_leg_call(*args, **kwargs):
+        return False, "Twilio not available", None
+
+try:
     from auth.va_auth import VAAuth, check_login, require_login
     CSV_AUTH_AVAILABLE = True
 except ImportError:
@@ -381,6 +388,7 @@ def show_login():
                         st.session_state.va_logged_in = True
                         st.session_state.va_name = user.get('full_name', username)
                         st.session_state.va_username = username  # Store username for database lookups
+                        st.session_state.va_phone = user.get('va_phone', '') or ''  # Store VA's phone for calling
                         st.session_state.session_id = session_id
                         st.session_state.user_role = user.get('role', 'va')
                         st.success(message)
@@ -515,16 +523,46 @@ def show_leads_page(leads_df, va_name):
     st.markdown("## 📋 My Leads")
     st.markdown("Properties assigned to you for outreach.")
 
-    # Debug info (can remove later)
-    va_username = st.session_state.get('va_username', 'not set')
-    with st.expander("🔧 Debug Info", expanded=False):
-        st.write(f"VA Name: {va_name}")
-        st.write(f"VA Username: {va_username}")
-        st.write(f"Lead Assignments Module Available: {LEAD_ASSIGNMENTS_AVAILABLE}")
-        st.write(f"Database Auth Available: {DB_AUTH_AVAILABLE}")
-        st.write(f"Leads loaded: {len(leads_df)}")
-        if not leads_df.empty:
-            st.write(f"Columns: {list(leads_df.columns)}")
+    # Get VA's phone number for calling
+    va_username = st.session_state.get('va_username', '')
+    va_phone = st.session_state.get('va_phone', '')
+
+    # Phone setup section
+    with st.expander("📱 My Phone Settings", expanded=not bool(va_phone)):
+        st.markdown("**Enter your phone number to make calls**")
+        st.caption("When you click 'Call', we'll call your phone first, then connect you to the lead.")
+
+        new_phone = st.text_input(
+            "Your Phone Number",
+            value=va_phone,
+            placeholder="(614) 555-1234",
+            key="va_phone_input"
+        )
+
+        if st.button("💾 Save Phone Number"):
+            if new_phone:
+                st.session_state.va_phone = new_phone
+                # Save to database
+                if DB_AUTH_AVAILABLE and va_username:
+                    try:
+                        db_auth = DatabaseAuth()
+                        conn = db_auth._get_connection()
+                        cursor = conn.cursor()
+                        cursor.execute("UPDATE users SET va_phone = %s WHERE username = %s", (new_phone, va_username))
+                        conn.commit()
+                        conn.close()
+                        st.success(f"Phone saved: {new_phone}")
+                    except Exception as e:
+                        st.error(f"Could not save to database: {e}")
+                else:
+                    st.success(f"Phone set for this session: {new_phone}")
+            else:
+                st.warning("Please enter a phone number")
+
+        if TWILIO_AVAILABLE:
+            st.success("✅ Twilio calling is available")
+        else:
+            st.warning("⚠️ Twilio calling not configured")
 
     if leads_df.empty:
         st.warning("No leads available. Check back later for new assignments.")
@@ -575,11 +613,32 @@ def show_leads_page(leads_df, va_name):
                 st.markdown("❄️ Cold")
 
         with col3:
-            # Make phone clickable for mobile/desktop calling
+            # Make actual call through Twilio
             if phone:
-                st.link_button("📞 Call", f"tel:{phone}", use_container_width=True)
+                va_phone = st.session_state.get('va_phone', '')
+                if va_phone and TWILIO_AVAILABLE:
+                    if st.button("📞 Call", key=f"call_{idx}", use_container_width=True):
+                        with st.spinner("Calling your phone..."):
+                            success, message, call_sid = initiate_two_leg_call(
+                                va_phone=va_phone,
+                                lead_phone=phone,
+                                lead_name=owner,
+                                lead_address=address
+                            )
+                            if success:
+                                st.success(f"📞 {message}")
+                                st.info("Answer your phone to connect to the lead!")
+                            else:
+                                st.error(f"❌ {message}")
+                elif not va_phone:
+                    if st.button("📞 Call", key=f"call_{idx}", use_container_width=True, disabled=True):
+                        pass
+                    st.caption("Set your phone first ↑")
+                else:
+                    # Fallback to tel: link if Twilio not available
+                    st.link_button("📞 Call", f"tel:{phone}", use_container_width=True)
             else:
-                st.button("📞 Call", key=f"call_{idx}", disabled=True)
+                st.button("📞 No Phone", key=f"call_{idx}", disabled=True)
 
         st.markdown("---")
 
