@@ -515,6 +515,17 @@ def show_leads_page(leads_df, va_name):
     st.markdown("## 📋 My Leads")
     st.markdown("Properties assigned to you for outreach.")
 
+    # Debug info (can remove later)
+    va_username = st.session_state.get('va_username', 'not set')
+    with st.expander("🔧 Debug Info", expanded=False):
+        st.write(f"VA Name: {va_name}")
+        st.write(f"VA Username: {va_username}")
+        st.write(f"Lead Assignments Module Available: {LEAD_ASSIGNMENTS_AVAILABLE}")
+        st.write(f"Database Auth Available: {DB_AUTH_AVAILABLE}")
+        st.write(f"Leads loaded: {len(leads_df)}")
+        if not leads_df.empty:
+            st.write(f"Columns: {list(leads_df.columns)}")
+
     if leads_df.empty:
         st.warning("No leads available. Check back later for new assignments.")
         return
