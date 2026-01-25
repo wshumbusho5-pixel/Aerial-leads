@@ -553,23 +553,33 @@ def show_leads_page(leads_df, va_name):
             address = lead.get('address', lead.get('property_address', 'Unknown Address'))
             city = lead.get('city', '')
             owner = lead.get('owner_name', lead.get('owner', 'Unknown Owner'))
+            phone = lead.get('phone', lead.get('phone_1', ''))
+            phone_2 = lead.get('phone_2', '')
+
             st.markdown(f"**{address}**")
-            st.caption(f"{city} | Owner: {owner}")
+            st.caption(f"Owner: {owner}")
+
+            # Display phone numbers prominently
+            if phone:
+                st.markdown(f"📞 **{phone}**" + (f" | {phone_2}" if phone_2 else ""))
+            else:
+                st.caption("No phone number")
 
         with col2:
             score = lead.get('motivation_score', lead.get('score', 0))
-            if score >= 70:
+            if score and score >= 70:
                 st.markdown("🔥 **Hot**")
-            elif score >= 50:
+            elif score and score >= 50:
                 st.markdown("🌡️ Warm")
             else:
                 st.markdown("❄️ Cold")
 
         with col3:
-            if st.button("📞 Call", key=f"call_{idx}"):
-                st.session_state.selected_lead = lead.to_dict()
-                st.session_state.page = "Call Tracker"
-                st.rerun()
+            # Make phone clickable for mobile/desktop calling
+            if phone:
+                st.link_button("📞 Call", f"tel:{phone}", use_container_width=True)
+            else:
+                st.button("📞 Call", key=f"call_{idx}", disabled=True)
 
         st.markdown("---")
 
