@@ -15,7 +15,7 @@ import json
 logger = logging.getLogger(__name__)
 
 # Import email notifications
-EMAIL_AVAILABLE = False
+EMAIL_FUNCTIONS_AVAILABLE = False
 try:
     from .email_notifications import (
         send_script_assignment_email,
@@ -23,9 +23,10 @@ try:
         send_application_received_email,
         send_hired_email,
         send_rejected_email,
-        send_interview_scheduled_email
+        send_interview_scheduled_email,
+        is_sendgrid_available
     )
-    EMAIL_AVAILABLE = True
+    EMAIL_FUNCTIONS_AVAILABLE = True
 except ImportError:
     try:
         from email_notifications import (
@@ -34,11 +35,20 @@ except ImportError:
             send_application_received_email,
             send_hired_email,
             send_rejected_email,
-            send_interview_scheduled_email
+            send_interview_scheduled_email,
+            is_sendgrid_available
         )
-        EMAIL_AVAILABLE = True
+        EMAIL_FUNCTIONS_AVAILABLE = True
     except ImportError:
         logger.warning("Email notifications not available")
+        def is_sendgrid_available():
+            return False
+
+# For backward compatibility - check at runtime
+def is_email_available():
+    return EMAIL_FUNCTIONS_AVAILABLE and is_sendgrid_available()
+
+EMAIL_AVAILABLE = is_email_available()  # Initial check, but functions will re-check
 
 # Try database connection
 DB_AVAILABLE = False
@@ -437,7 +447,7 @@ class VAApplications:
             conn.close()
 
             # Send confirmation email
-            if EMAIL_AVAILABLE:
+            if is_email_available():
                 try:
                     send_application_received_email(
                         applicant_name=data.get('full_name'),
@@ -568,7 +578,7 @@ class VAApplications:
 
         # Send hired email
         email_sent = False
-        if EMAIL_AVAILABLE:
+        if is_email_available():
             try:
                 email_sent, email_msg = send_hired_email(
                     applicant_name=app['full_name'],
@@ -721,7 +731,7 @@ class VAApplications:
             msg = "Script assigned successfully."
             if email_sent:
                 msg += " Email notification sent to applicant."
-            elif EMAIL_AVAILABLE:
+            elif is_email_available():
                 msg += " (Email notification failed - applicant should check recording portal)"
             else:
                 msg += " (Email notifications not configured)"
@@ -843,7 +853,7 @@ class VAApplications:
                         logger.warning(f"Failed to send interview email: {email_msg}")
                 except Exception as e:
                     logger.error(f"Error sending interview email: {e}")
-            elif EMAIL_AVAILABLE and applicant:
+            elif is_email_available() and applicant:
                 # Fallback to simple approval email if no interview link provided
                 try:
                     email_sent, email_msg = send_video_approved_email(
@@ -939,7 +949,7 @@ class VAApplications:
 
         # Send rejection email
         email_sent = False
-        if EMAIL_AVAILABLE:
+        if is_email_available():
             try:
                 email_sent, email_msg = send_rejected_email(
                     applicant_name=app['full_name'],

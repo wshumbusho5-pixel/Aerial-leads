@@ -7149,7 +7149,9 @@ elif page == "📋 VA Recruiting":
                                 st.rerun()
                     with quick_cols[1]:
                         if st.button("❌ Reject", key=f"quick_reject_{app['id']}"):
-                            apps.update_status(app['id'], 'rejected')
+                            success, msg = apps.reject_applicant(app['id'], "Application rejected")
+                            if success:
+                                st.warning(msg)
                             st.rerun()
 
             # Pending videos

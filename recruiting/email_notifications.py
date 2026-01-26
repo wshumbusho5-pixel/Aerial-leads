@@ -9,19 +9,27 @@ from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
-# SendGrid setup
-SENDGRID_AVAILABLE = False
+# SendGrid setup - check at runtime for flexibility
+SENDGRID_INSTALLED = False
 try:
     from sendgrid import SendGridAPIClient
     from sendgrid.helpers.mail import Mail, Email, To, Content
-    SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
-    if SENDGRID_API_KEY:
-        SENDGRID_AVAILABLE = True
+    SENDGRID_INSTALLED = True
 except ImportError:
     logger.warning("SendGrid not installed. Run: pip install sendgrid")
 
-FROM_EMAIL = os.environ.get('SENDGRID_FROM_EMAIL', 'admin@areliga.com')
-FROM_NAME = os.environ.get('SENDGRID_FROM_NAME', 'Orteza groups')
+def is_sendgrid_available():
+    """Check if SendGrid is available at runtime."""
+    return SENDGRID_INSTALLED and bool(os.environ.get('SENDGRID_API_KEY'))
+
+# For backward compatibility
+SENDGRID_AVAILABLE = is_sendgrid_available()
+
+def get_from_email():
+    return os.environ.get('SENDGRID_FROM_EMAIL', 'admin@areliga.com')
+
+def get_from_name():
+    return os.environ.get('SENDGRID_FROM_NAME', 'Orteza groups')
 
 
 def send_email(to_email: str, subject: str, html_content: str) -> Tuple[bool, str]:
@@ -31,13 +39,17 @@ def send_email(to_email: str, subject: str, html_content: str) -> Tuple[bool, st
     Returns:
         Tuple of (success, message)
     """
-    if not SENDGRID_AVAILABLE:
+    # Check at runtime if SendGrid is available
+    if not is_sendgrid_available():
         logger.warning("SendGrid not available, email not sent")
         return False, "Email service not configured"
 
     try:
+        from_email = get_from_email()
+        from_name = get_from_name()
+
         message = Mail(
-            from_email=(FROM_EMAIL, FROM_NAME),
+            from_email=(from_email, from_name),
             to_emails=to_email,
             subject=subject,
             html_content=html_content
