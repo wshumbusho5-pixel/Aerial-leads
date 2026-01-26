@@ -6902,7 +6902,14 @@ elif page == "📋 VA Recruiting":
 
                         with action_cols[2]:
                             if st.button("Update Status", key=f"update_{app['id']}"):
-                                success, msg = apps.update_status(app['id'], new_status, notes)
+                                # Use appropriate function based on status to send emails
+                                if new_status == 'rejected':
+                                    success, msg = apps.reject_applicant(app['id'], notes or "Application rejected")
+                                elif new_status == 'hired':
+                                    success, msg = apps.hire_applicant(app['id'])
+                                else:
+                                    success, msg = apps.update_status(app['id'], new_status, notes)
+
                                 if success:
                                     st.success(msg)
                                     st.rerun()
@@ -7152,6 +7159,8 @@ elif page == "📋 VA Recruiting":
                             success, msg = apps.reject_applicant(app['id'], "Application rejected")
                             if success:
                                 st.warning(msg)
+                            else:
+                                st.error(msg)
                             st.rerun()
 
             # Pending videos

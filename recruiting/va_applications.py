@@ -713,7 +713,7 @@ class VAApplications:
 
             # Send email notification
             email_sent = False
-            if EMAIL_AVAILABLE and recording_url:
+            if is_email_available() and recording_url:
                 try:
                     email_sent, email_msg = send_script_assignment_email(
                         applicant_name=applicant['full_name'],
@@ -840,7 +840,7 @@ class VAApplications:
 
             # Send interview scheduling email with calendar link
             email_sent = False
-            if EMAIL_AVAILABLE and applicant and interview_link:
+            if is_email_available() and applicant and interview_link:
                 try:
                     email_sent, email_msg = send_interview_scheduled_email(
                         applicant_name=applicant['full_name'],
@@ -909,7 +909,7 @@ class VAApplications:
 
             # Send rejection email
             email_sent = False
-            if EMAIL_AVAILABLE and applicant:
+            if is_email_available() and applicant:
                 try:
                     email_sent, email_msg = send_rejected_email(
                         applicant_name=applicant['full_name'],
