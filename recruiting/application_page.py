@@ -72,6 +72,16 @@ st.markdown("""
         box-shadow: 0 4px 20px rgba(30, 58, 95, 0.15);
     }
 
+    .hero-logo {
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .hero-logo svg {
+        width: 80px;
+        height: auto;
+    }
+
     .company-badge {
         display: inline-block;
         background: rgba(255,255,255,0.1);
@@ -83,6 +93,17 @@ st.markdown("""
         text-transform: uppercase;
         margin-bottom: 1rem;
         border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .footer-logo {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+
+    .footer-logo svg {
+        width: 28px;
+        height: auto;
     }
 
     .hero-title {
@@ -568,6 +589,12 @@ def main():
     # Hero Section
     st.markdown("""
     <div class="hero-section">
+        <div class="hero-logo">
+            <svg viewBox="40 40 160 80" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 50 80 L 80 50 L 110 80 L 110 110 L 50 110 Z" fill="none" stroke="white" stroke-width="2.5" stroke-linejoin="miter"/>
+                <path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="butt"/>
+            </svg>
+        </div>
         <div class="company-badge">Orteza Groups of Companies</div>
         <h1 class="hero-title">Join Lifeline Home Buyers</h1>
         <p class="hero-subtitle">Build your career as a Virtual Assistant in Real Estate</p>
@@ -595,6 +622,7 @@ def main():
 
         st.markdown("""
         <div class="footer">
+            <span class="footer-logo"><svg viewBox="40 40 160 80" xmlns="http://www.w3.org/2000/svg"><path d="M 50 80 L 80 50 L 110 80 L 110 110 L 50 110 Z" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linejoin="miter"/><path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linecap="butt"/></svg></span>
             <span class="footer-brand">Lifeline Home Buyers</span> • A company of Orteza Groups<br>
             Columbus, Ohio, USA
         </div>
@@ -984,6 +1012,7 @@ def main():
     # Footer
     st.markdown("""
     <div class="footer">
+        <span class="footer-logo"><svg viewBox="40 40 160 80" xmlns="http://www.w3.org/2000/svg"><path d="M 50 80 L 80 50 L 110 80 L 110 110 L 50 110 Z" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linejoin="miter"/><path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linecap="butt"/></svg></span>
         <span class="footer-brand">Lifeline Home Buyers</span> • A company of Orteza Groups<br>
         Columbus, Ohio, USA<br><br>
         <small>© 2024 Orteza Groups. All rights reserved.</small>

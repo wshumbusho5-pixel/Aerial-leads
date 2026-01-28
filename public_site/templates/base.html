@@ -12,7 +12,7 @@
     <meta property="og:type" content="website">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="icon" type="image/svg+xml" href="/static/lifeline_logo.svg">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -54,6 +54,14 @@
             font-size: 1.5rem;
             font-weight: 800;
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-logo svg {
+            width: 36px;
+            height: auto;
         }
 
         .nav-logo span {
@@ -394,7 +402,7 @@
     <!-- Navigation -->
     <nav class="nav">
         <div class="nav-container">
-            <a href="/" class="nav-logo">Lifeline<span>Home</span>Buyers</a>
+            <a href="/" class="nav-logo"><svg viewBox="40 40 160 80" xmlns="http://www.w3.org/2000/svg"><path d="M 50 80 L 80 50 L 110 80 L 110 110 L 50 110 Z" fill="none" stroke="white" stroke-width="2.5" stroke-linejoin="miter"/><path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="butt"/></svg>Lifeline<span>Home</span>Buyers</a>
             <ul class="nav-links">
                 <li><a href="/">Home</a></li>
                 <li><a href="/database">Property Map</a></li>
@@ -422,6 +430,7 @@
             <a href="/get-offer">Get Offer</a>
             <a href="/about">About Us</a>
         </div>
+        <div style="margin-bottom: 1rem;"><svg viewBox="40 40 160 80" xmlns="http://www.w3.org/2000/svg" style="width: 40px; height: auto;"><path d="M 50 80 L 80 50 L 110 80 L 110 110 L 50 110 Z" fill="none" stroke="white" stroke-width="2.5" stroke-linejoin="miter"/><path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="butt"/></svg></div>
         <p class="footer-copy">&copy; 2022-{{ now().year if now is defined else '2025' }} Lifeline Home Buyers. All rights reserved.</p>
     </footer>
 

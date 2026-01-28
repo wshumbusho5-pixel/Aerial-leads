@@ -91,6 +91,14 @@ st.markdown("""
         color: #666;
         margin-bottom: 2rem;
     }
+    .va-logo-header {
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    .va-logo-header svg {
+        width: 60px;
+        height: auto;
+    }
     .stat-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 1.5rem;
@@ -345,7 +353,8 @@ def mark_callback_complete(phone):
 
 # Login Screen
 def show_login():
-    st.markdown("<h1 class='main-header'>📞 Lifeline VA Portal</h1>", unsafe_allow_html=True)
+    st.markdown("""<div class="va-logo-header"><svg viewBox="40 40 160 80" xmlns="http://www.w3.org/2000/svg"><path d="M 50 80 L 80 50 L 110 80 L 110 110 L 50 110 Z" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linejoin="miter"/><path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linecap="butt"/></svg></div>""", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>Lifeline VA Portal</h1>", unsafe_allow_html=True)
     st.markdown("<p class='sub-header'>Virtual Assistant Dashboard</p>", unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns([1, 2, 1])

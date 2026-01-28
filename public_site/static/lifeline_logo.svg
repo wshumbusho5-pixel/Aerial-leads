@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200">
+  
+  <!-- Ultra minimal mark: Abstract house + pulse in one clean gesture -->
+  <g id="mark">
+    <!-- Single continuous line forming house and heartbeat -->
+    <path d="M 50 80 L 80 50 L 110 80 L 110 110 L 50 110 Z" 
+          fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linejoin="miter"/>
+    
+    <!-- Pulse extending from house -->
+    <path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" 
+          fill="none" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="butt"/>
+  </g>
+  
+  <!-- Wordmark: Maximum clarity -->
+  <g id="text">
+    <text x="220" y="85" 
+          font-family="'SF Pro Display', 'Segoe UI', system-ui, sans-serif" 
+          font-size="38" 
+          font-weight="600" 
+          fill="#1a1a1a" 
+          letter-spacing="0">
+      Lifeline Homebuyers
+    </text>
+  </g>
+  
+</svg>
