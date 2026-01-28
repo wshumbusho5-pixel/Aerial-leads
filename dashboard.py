@@ -6800,8 +6800,8 @@ elif page == "📋 VA Recruiting":
 
     st.markdown("---")
 
-    # Tabs - Updated with video review
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["📥 All Applications", "📝 Assign Scripts", "🎬 Review Videos", "⏳ Pending", "📊 Pipeline"])
+    # Tabs - Updated with video review and waitlist
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📥 All Applications", "📝 Assign Scripts", "🎬 Review Videos", "⏳ Pending", "📊 Pipeline", "📧 Waitlist"])
 
     with tab1:
         st.markdown("### All Applications")
@@ -7233,3 +7233,106 @@ elif page == "📋 VA Recruiting":
                     st.markdown(f"- **{h['full_name']}** ({h['email']}) - Hired {h.get('updated_at').strftime('%Y-%m-%d') if h.get('updated_at') else 'N/A'}")
         else:
             st.warning("Recruiting system not available")
+
+    with tab6:
+        st.markdown("### 📧 Waitlist Management")
+        st.markdown("People who signed up to be notified when applications reopen.")
+
+        # Application status toggle
+        st.markdown("---")
+        st.markdown("#### ⚙️ Application Status")
+
+        # Check current status by importing
+        try:
+            from recruiting.application_page import APPLICATIONS_OPEN
+            current_status = APPLICATIONS_OPEN
+        except:
+            current_status = False
+
+        if current_status:
+            st.success("✅ **Applications are OPEN** - People can submit applications")
+        else:
+            st.warning("⏸️ **Applications are PAUSED** - People can only join waitlist")
+
+        st.info("To change status: Edit `recruiting/application_page.py` line 41 and set `APPLICATIONS_OPEN = True` or `False`, then push to Railway.")
+
+        st.markdown("---")
+
+        # Load waitlist from database
+        try:
+            import psycopg2
+            from urllib.parse import urlparse
+
+            database_url = os.environ.get('DATABASE_URL', '')
+            if database_url:
+                parsed = urlparse(database_url)
+                conn = psycopg2.connect(
+                    host=parsed.hostname,
+                    port=parsed.port,
+                    database=parsed.path[1:],
+                    user=parsed.username,
+                    password=parsed.password
+                )
+                cursor = conn.cursor()
+
+                # Check if table exists
+                cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables
+                        WHERE table_name = 'va_waitlist'
+                    )
+                """)
+                table_exists = cursor.fetchone()[0]
+
+                if table_exists:
+                    cursor.execute("SELECT COUNT(*) FROM va_waitlist")
+                    waitlist_count = cursor.fetchone()[0]
+
+                    st.metric("📧 Waitlist Signups", waitlist_count)
+
+                    if waitlist_count > 0:
+                        cursor.execute("""
+                            SELECT id, email, name, country, created_at, notified
+                            FROM va_waitlist
+                            ORDER BY created_at DESC
+                        """)
+                        waitlist = cursor.fetchall()
+
+                        # Display as table
+                        import pandas as pd
+                        waitlist_df = pd.DataFrame(waitlist, columns=['ID', 'Email', 'Name', 'Country', 'Signed Up', 'Notified'])
+                        waitlist_df['Signed Up'] = pd.to_datetime(waitlist_df['Signed Up']).dt.strftime('%Y-%m-%d %H:%M')
+                        waitlist_df['Notified'] = waitlist_df['Notified'].apply(lambda x: '✅' if x else '❌')
+
+                        st.dataframe(waitlist_df, use_container_width=True, hide_index=True)
+
+                        # Export option
+                        st.markdown("---")
+                        csv = waitlist_df.to_csv(index=False)
+                        st.download_button(
+                            label="📥 Download Waitlist CSV",
+                            data=csv,
+                            file_name="va_waitlist.csv",
+                            mime="text/csv"
+                        )
+
+                        # Mark as notified option
+                        st.markdown("---")
+                        st.markdown("#### 📨 Notify Waitlist")
+                        st.info("When you reopen applications, you can mark everyone as notified after sending them an email.")
+
+                        if st.button("✅ Mark All as Notified"):
+                            cursor.execute("UPDATE va_waitlist SET notified = TRUE")
+                            conn.commit()
+                            st.success("All waitlist entries marked as notified!")
+                            st.rerun()
+                    else:
+                        st.info("No one has joined the waitlist yet.")
+                else:
+                    st.info("Waitlist table not created yet. It will be created when someone signs up.")
+
+                conn.close()
+            else:
+                st.warning("Database not configured")
+        except Exception as e:
+            st.error(f"Error loading waitlist: {e}")
