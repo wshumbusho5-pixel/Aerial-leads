@@ -6,13 +6,81 @@
     <title>{{ page_title }}</title>
     <meta name="description" content="{{ meta_description }}">
 
-    <!-- Open Graph / Social -->
+    <!-- SEO Meta Tags -->
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Lifeline Home Buyers">
+    <meta name="geo.region" content="US-OH">
+    <meta name="geo.placename" content="Columbus">
+    <meta name="geo.position" content="39.9612;-82.9988">
+    <meta name="ICBM" content="39.9612, -82.9988">
+    <link rel="canonical" href="{{ request.url }}">
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:title" content="{{ page_title }}">
     <meta property="og:description" content="{{ meta_description }}">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:site_name" content="Lifeline Home Buyers">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:image" content="/static/lifeline_logo.svg">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ page_title }}">
+    <meta name="twitter:description" content="{{ meta_description }}">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/static/lifeline_logo.svg">
+    <link rel="apple-touch-icon" href="/static/lifeline_logo.svg">
+
+    <!-- Schema.org LocalBusiness JSON-LD -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "RealEstateAgent",
+        "name": "Lifeline Home Buyers",
+        "description": "We buy houses in Columbus, Ohio for cash. Any condition, any situation - tax delinquent, probate, foreclosure. Fair cash offers in 24 hours.",
+        "url": "https://lifelinehomebuyers.com",
+        "logo": "/static/lifeline_logo.svg",
+        "image": "/static/lifeline_logo.svg",
+        "telephone": "+1-614-000-0000",
+        "email": "info@lifelinehomebuyers.com",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Columbus",
+            "addressRegion": "OH",
+            "addressCountry": "US"
+        },
+        "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": "39.9612",
+            "longitude": "-82.9988"
+        },
+        "areaServed": [
+            {
+                "@type": "City",
+                "name": "Columbus",
+                "containedInPlace": {
+                    "@type": "State",
+                    "name": "Ohio"
+                }
+            },
+            {
+                "@type": "AdministrativeArea",
+                "name": "Franklin County"
+            }
+        ],
+        "serviceType": ["Cash Home Buyer", "We Buy Houses", "Sell House Fast"],
+        "priceRange": "$$",
+        "openingHoursSpecification": {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            "opens": "08:00",
+            "closes": "20:00"
+        },
+        "sameAs": []
+    }
+    </script>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">

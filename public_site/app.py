@@ -530,20 +530,25 @@ async def property_database(
 # ============================================
 
 @app.get("/sitemap.xml")
-async def sitemap():
+async def sitemap(request: Request):
     """Generate dynamic sitemap for SEO."""
     df = load_all_leads()
 
-    base_url = "https://lifelinehomebuyers.com"  # Update with actual domain when live
+    # Use actual host from request, fallback to custom domain
+    host = request.headers.get('host', 'lifelinehomebuyers.com')
+    scheme = 'https'
+    base_url = f"{scheme}://{host}"
 
     urls = [
-        {"loc": f"{base_url}/", "priority": "1.0"},
-        {"loc": f"{base_url}/database", "priority": "0.9"},
-        {"loc": f"{base_url}/get-offer", "priority": "0.9"},
-        {"loc": f"{base_url}/calculator", "priority": "0.8"},
-        {"loc": f"{base_url}/probate", "priority": "0.8"},
-        {"loc": f"{base_url}/tax-delinquent", "priority": "0.8"},
-        {"loc": f"{base_url}/about", "priority": "0.5"},
+        {"loc": f"{base_url}/", "priority": "1.0", "changefreq": "daily"},
+        {"loc": f"{base_url}/get-offer", "priority": "0.9", "changefreq": "weekly"},
+        {"loc": f"{base_url}/database", "priority": "0.9", "changefreq": "daily"},
+        {"loc": f"{base_url}/calculator", "priority": "0.8", "changefreq": "monthly"},
+        {"loc": f"{base_url}/probate", "priority": "0.8", "changefreq": "weekly"},
+        {"loc": f"{base_url}/tax-delinquent", "priority": "0.8", "changefreq": "weekly"},
+        {"loc": f"{base_url}/sell-my-house-fast-columbus-ohio", "priority": "0.9", "changefreq": "weekly"},
+        {"loc": f"{base_url}/we-buy-houses-columbus", "priority": "0.9", "changefreq": "weekly"},
+        {"loc": f"{base_url}/about", "priority": "0.6", "changefreq": "monthly"},
     ]
 
     # Add all property pages
@@ -551,7 +556,8 @@ async def sitemap():
         if 'slug' in row:
             urls.append({
                 "loc": f"{base_url}/property/{row['slug']}",
-                "priority": "0.7"
+                "priority": "0.7",
+                "changefreq": "weekly"
             })
 
     xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -560,6 +566,7 @@ async def sitemap():
     for url in urls:
         xml_content += f'  <url>\n'
         xml_content += f'    <loc>{url["loc"]}</loc>\n'
+        xml_content += f'    <changefreq>{url["changefreq"]}</changefreq>\n'
         xml_content += f'    <priority>{url["priority"]}</priority>\n'
         xml_content += f'  </url>\n'
 
@@ -569,14 +576,40 @@ async def sitemap():
 
 
 @app.get("/robots.txt")
-async def robots():
+async def robots(request: Request):
     """Robots.txt for search engines."""
-    content = """User-agent: *
+    host = request.headers.get('host', 'lifelinehomebuyers.com')
+    content = f"""User-agent: *
 Allow: /
+Disallow: /api/
 
-Sitemap: https://lifelinehomebuyers.com/sitemap.xml
+Sitemap: https://{host}/sitemap.xml
 """
     return HTMLResponse(content=content, media_type="text/plain")
+
+
+# ============================================
+# SEO LANDING PAGES (High-Value Keywords)
+# ============================================
+
+@app.get("/sell-my-house-fast-columbus-ohio", response_class=HTMLResponse)
+async def sell_house_fast_columbus(request: Request):
+    """Primary SEO landing page - highest search volume keyword."""
+    return templates.TemplateResponse("sell_house_fast.html", {
+        "request": request,
+        "page_title": "Sell My House Fast Columbus Ohio | Cash Offer in 24 Hours | Lifeline Home Buyers",
+        "meta_description": "Need to sell your house fast in Columbus, Ohio? Get a fair cash offer in 24 hours. No repairs, no fees, no hassle. We buy houses in ANY condition. Call today!"
+    })
+
+
+@app.get("/we-buy-houses-columbus", response_class=HTMLResponse)
+async def we_buy_houses_columbus(request: Request):
+    """Secondary SEO landing page - competitive keyword."""
+    return templates.TemplateResponse("we_buy_houses.html", {
+        "request": request,
+        "page_title": "We Buy Houses Columbus OH | Cash Home Buyers | Lifeline Home Buyers",
+        "meta_description": "We buy houses in Columbus, Ohio - any condition, any situation. Facing foreclosure? Inherited a property? Behind on taxes? Get a cash offer today. No obligation."
+    })
 
 
 # ============================================
