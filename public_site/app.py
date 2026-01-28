@@ -641,6 +641,183 @@ async def api_inbound_leads():
 
 
 # ============================================
+# BROWSER DIALER API (Twilio WebRTC)
+# ============================================
+
+# Import browser calling module
+try:
+    sys.path.insert(0, str(BASE_DIR.parent))
+    from auth.browser_calling import (
+        generate_access_token,
+        generate_capability_token,
+        create_outbound_twiml,
+        get_dialer_html,
+        clean_phone_for_browser,
+        get_twiml_app_info,
+        TWILIO_CLIENT_AVAILABLE
+    )
+    BROWSER_CALLING_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Browser calling not available: {e}")
+    BROWSER_CALLING_AVAILABLE = False
+    TWILIO_CLIENT_AVAILABLE = False
+
+
+@app.get("/api/dialer/status")
+async def dialer_status():
+    """Check if browser dialer is available."""
+    if not BROWSER_CALLING_AVAILABLE:
+        return {"available": False, "error": "Browser calling module not loaded"}
+
+    info = get_twiml_app_info() if BROWSER_CALLING_AVAILABLE else {}
+    return {
+        "available": TWILIO_CLIENT_AVAILABLE,
+        "twiml_configured": info.get('configured', False),
+        "phone_number": info.get('phone_number', ''),
+        "api_key_configured": info.get('api_key_configured', False)
+    }
+
+
+@app.get("/api/dialer/token")
+async def get_dialer_token(identity: str = "va-user"):
+    """Generate a Twilio capability token for browser calling."""
+    if not BROWSER_CALLING_AVAILABLE or not TWILIO_CLIENT_AVAILABLE:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "Browser calling not configured", "available": False}
+        )
+
+    success, token_or_error, _ = generate_access_token(identity)
+
+    if success:
+        return {"token": token_or_error, "identity": identity}
+    else:
+        return JSONResponse(
+            status_code=500,
+            content={"error": token_or_error}
+        )
+
+
+@app.post("/api/dialer/twiml")
+async def handle_twiml(request: Request):
+    """
+    TwiML App webhook - handles outbound calls from browser.
+    This endpoint is called by Twilio when a browser call is initiated.
+    """
+    if not BROWSER_CALLING_AVAILABLE:
+        return HTMLResponse(
+            content="<Response><Say>Dialer not configured</Say></Response>",
+            media_type="application/xml"
+        )
+
+    # Parse form data from Twilio
+    form = await request.form()
+    to_number = form.get('To', '')
+    lead_name = form.get('LeadName', '')
+    lead_address = form.get('LeadAddress', '')
+
+    # Clean the phone number
+    clean_number = clean_phone_for_browser(to_number)
+
+    if not clean_number:
+        return HTMLResponse(
+            content="<Response><Say>Invalid phone number</Say></Response>",
+            media_type="application/xml"
+        )
+
+    # Get caller ID from environment
+    caller_id = os.environ.get('TWILIO_PHONE_NUMBER', '')
+
+    # Generate TwiML for outbound call
+    twiml = create_outbound_twiml(
+        to_number=clean_number,
+        caller_id=caller_id,
+        lead_name=lead_name,
+        lead_address=lead_address
+    )
+
+    logger.info(f"Browser call: {clean_number} (Lead: {lead_name})")
+
+    return HTMLResponse(content=twiml, media_type="application/xml")
+
+
+@app.post("/api/call-status")
+async def call_status_webhook(request: Request):
+    """Webhook called when a call ends - for logging/analytics."""
+    form = await request.form()
+    call_sid = form.get('CallSid', '')
+    call_status = form.get('CallStatus', '')
+    call_duration = form.get('CallDuration', '0')
+
+    logger.info(f"Call completed: {call_sid} - Status: {call_status} - Duration: {call_duration}s")
+
+    # Could save call stats to database here
+
+    return HTMLResponse(content="<Response></Response>", media_type="application/xml")
+
+
+@app.get("/dialer", response_class=HTMLResponse)
+async def browser_dialer_page(
+    request: Request,
+    identity: str = "va-user",
+    phone: str = "",
+    name: str = "",
+    address: str = ""
+):
+    """
+    Standalone browser dialer page.
+    VAs can open this in a new tab/window to make calls.
+
+    Query params:
+    - identity: VA username for token generation
+    - phone: Pre-filled phone number to call
+    - name: Lead name (for reference)
+    - address: Property address (for reference)
+    """
+    if not BROWSER_CALLING_AVAILABLE or not TWILIO_CLIENT_AVAILABLE:
+        return HTMLResponse(
+            content="""
+            <html><body style='font-family: sans-serif; padding: 50px; text-align: center;'>
+                <h1>Browser Dialer Not Available</h1>
+                <p>The browser dialer requires Twilio configuration.</p>
+                <p>Please contact your administrator to set up:</p>
+                <ul style='text-align: left; max-width: 400px; margin: 20px auto;'>
+                    <li>TWILIO_ACCOUNT_SID</li>
+                    <li>TWILIO_AUTH_TOKEN</li>
+                    <li>TWILIO_PHONE_NUMBER</li>
+                    <li>TWILIO_TWIML_APP_SID</li>
+                </ul>
+            </body></html>
+            """,
+            status_code=503
+        )
+
+    # Generate token
+    success, token, _ = generate_access_token(identity)
+
+    if not success:
+        return HTMLResponse(
+            content=f"""
+            <html><body style='font-family: sans-serif; padding: 50px; text-align: center;'>
+                <h1>Token Generation Failed</h1>
+                <p>{token}</p>
+            </body></html>
+            """,
+            status_code=500
+        )
+
+    # Return dialer HTML with token embedded
+    html = get_dialer_html(
+        token=token,
+        lead_name=name,
+        lead_address=address,
+        lead_phone=phone
+    )
+
+    return HTMLResponse(content=html)
+
+
+# ============================================
 # RUN SERVER
 # ============================================
 

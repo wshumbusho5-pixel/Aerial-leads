@@ -45,6 +45,14 @@ except ImportError:
     def initiate_two_leg_call(*args, **kwargs):
         return False, "Twilio not available", None
 
+# Browser-based calling (WebRTC) - no phone needed, just browser + headset
+BROWSER_DIALER_AVAILABLE = False
+try:
+    from auth.browser_calling import TWILIO_CLIENT_AVAILABLE, generate_access_token, get_dialer_html
+    BROWSER_DIALER_AVAILABLE = TWILIO_CLIENT_AVAILABLE
+except ImportError:
+    BROWSER_DIALER_AVAILABLE = False
+
 try:
     from auth.va_auth import VAAuth, check_login, require_login
     CSV_AUTH_AVAILABLE = True
@@ -536,42 +544,100 @@ def show_leads_page(leads_df, va_name):
     va_username = st.session_state.get('va_username', '')
     va_phone = st.session_state.get('va_phone', '')
 
-    # Phone setup section
-    with st.expander("📱 My Phone Settings", expanded=not bool(va_phone)):
-        st.markdown("**Enter your phone number to make calls**")
-        st.caption("When you click 'Call', we'll call your phone first, then connect you to the lead.")
+    # Phone setup section - Browser Dialer is now the primary option
+    with st.expander("📱 Call Settings", expanded=True):
+        # Initialize calling mode in session state
+        if 'calling_mode' not in st.session_state:
+            st.session_state.calling_mode = 'browser' if BROWSER_DIALER_AVAILABLE else 'phone'
 
-        new_phone = st.text_input(
-            "Your Phone Number",
-            value=va_phone,
-            placeholder="(614) 555-1234",
-            key="va_phone_input"
-        )
+        st.markdown("### Choose Your Calling Method")
 
-        if st.button("💾 Save Phone Number"):
-            if new_phone:
-                st.session_state.va_phone = new_phone
-                # Save to database
-                if DB_AUTH_AVAILABLE and va_username:
-                    try:
-                        db_auth = DatabaseAuth()
-                        conn = db_auth._get_connection()
-                        cursor = conn.cursor()
-                        cursor.execute("UPDATE users SET va_phone = %s WHERE username = %s", (new_phone, va_username))
-                        conn.commit()
-                        conn.close()
-                        st.success(f"Phone saved: {new_phone}")
-                    except Exception as e:
-                        st.error(f"Could not save to database: {e}")
-                else:
-                    st.success(f"Phone set for this session: {new_phone}")
+        # Browser Dialer option (recommended)
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if BROWSER_DIALER_AVAILABLE:
+                if st.button("🖥️ Browser Dialer (Recommended)", use_container_width=True,
+                           type="primary" if st.session_state.calling_mode == 'browser' else "secondary"):
+                    st.session_state.calling_mode = 'browser'
+                    st.rerun()
+                st.caption("Make calls from your browser with headset. Much cheaper!")
             else:
-                st.warning("Please enter a phone number")
+                st.button("🖥️ Browser Dialer", use_container_width=True, disabled=True)
+                st.caption("Not configured - contact admin")
 
-        if TWILIO_AVAILABLE:
-            st.success("✅ Twilio calling is available")
+        with col2:
+            if TWILIO_AVAILABLE:
+                if st.button("📱 Phone Dialer", use_container_width=True,
+                           type="primary" if st.session_state.calling_mode == 'phone' else "secondary"):
+                    st.session_state.calling_mode = 'phone'
+                    st.rerun()
+                st.caption("Calls your personal phone first")
+            else:
+                st.button("📱 Phone Dialer", use_container_width=True, disabled=True)
+                st.caption("Not configured")
+
+        st.markdown("---")
+
+        # Show settings based on selected mode
+        if st.session_state.calling_mode == 'browser':
+            st.success("🖥️ **Browser Dialer Selected**")
+            st.markdown("""
+            **Requirements:**
+            - Headset with microphone (or laptop mic + speakers)
+            - Allow microphone access when prompted
+
+            **How it works:**
+            - Click 'Call' on any lead
+            - A dialer window opens in your browser
+            - Speak through your headset
+            - No phone needed!
+            """)
+
+            # Test browser dialer button
+            if st.button("🧪 Test Browser Dialer", use_container_width=True):
+                # Open a test dialer
+                test_url = f"/dialer?identity={va_username or 'test-va'}&phone=&name=Test&address=Test"
+                st.markdown(f"""
+                <script>
+                    window.open('{test_url}', 'dialer', 'width=450,height=600');
+                </script>
+                """, unsafe_allow_html=True)
+                st.info("A dialer window should open. Allow microphone access when prompted.")
+
         else:
-            st.warning("⚠️ Twilio calling not configured")
+            st.info("📱 **Phone Dialer Selected**")
+            st.caption("When you click 'Call', we'll call your phone first, then connect you to the lead.")
+
+            new_phone = st.text_input(
+                "Your Phone Number",
+                value=va_phone,
+                placeholder="+1 614 555 1234",
+                key="va_phone_input"
+            )
+
+            if st.button("💾 Save Phone Number"):
+                if new_phone:
+                    st.session_state.va_phone = new_phone
+                    # Save to database
+                    if DB_AUTH_AVAILABLE and va_username:
+                        try:
+                            db_auth = DatabaseAuth()
+                            conn = db_auth._get_connection()
+                            cursor = conn.cursor()
+                            cursor.execute("UPDATE users SET va_phone = %s WHERE username = %s", (new_phone, va_username))
+                            conn.commit()
+                            conn.close()
+                            st.success(f"Phone saved: {new_phone}")
+                        except Exception as e:
+                            st.error(f"Could not save to database: {e}")
+                    else:
+                        st.success(f"Phone set for this session: {new_phone}")
+                else:
+                    st.warning("Please enter a phone number")
+
+            if not va_phone:
+                st.warning("⚠️ Enter your phone number above to enable calling")
 
     if leads_df.empty:
         st.warning("No leads available. Check back later for new assignments.")
@@ -622,11 +688,36 @@ def show_leads_page(leads_df, va_name):
                 st.markdown("❄️ Cold")
 
         with col3:
-            # Make actual call through Twilio
+            # Make calls based on selected mode
             if phone:
+                calling_mode = st.session_state.get('calling_mode', 'phone')
                 va_phone = st.session_state.get('va_phone', '')
-                if va_phone and TWILIO_AVAILABLE:
-                    if st.button("📞 Call", key=f"call_{idx}", use_container_width=True):
+                va_identity = st.session_state.get('va_username', 'va-user')
+
+                if calling_mode == 'browser' and BROWSER_DIALER_AVAILABLE:
+                    # Browser dialer mode - open dialer in new window
+                    if st.button("🖥️ Call", key=f"call_{idx}", use_container_width=True):
+                        # Encode parameters for URL
+                        import urllib.parse
+                        params = urllib.parse.urlencode({
+                            'identity': va_identity,
+                            'phone': phone,
+                            'name': owner or '',
+                            'address': address or ''
+                        })
+                        dialer_url = f"/dialer?{params}"
+
+                        # Open browser dialer in new window
+                        st.markdown(f"""
+                        <script>
+                            window.open('{dialer_url}', 'dialer', 'width=450,height=650,scrollbars=no,resizable=yes');
+                        </script>
+                        """, unsafe_allow_html=True)
+                        st.success("📞 Dialer opened! Check for new window.")
+
+                elif calling_mode == 'phone' and va_phone and TWILIO_AVAILABLE:
+                    # Phone dialer mode - two-leg call
+                    if st.button("📱 Call", key=f"call_{idx}", use_container_width=True):
                         with st.spinner("Calling your phone..."):
                             success, message, call_sid = initiate_two_leg_call(
                                 va_phone=va_phone,
@@ -639,12 +730,13 @@ def show_leads_page(leads_df, va_name):
                                 st.info("Answer your phone to connect to the lead!")
                             else:
                                 st.error(f"❌ {message}")
-                elif not va_phone:
-                    if st.button("📞 Call", key=f"call_{idx}", use_container_width=True, disabled=True):
-                        pass
-                    st.caption("Set your phone first ↑")
+
+                elif calling_mode == 'phone' and not va_phone:
+                    st.button("📱 Call", key=f"call_{idx}", use_container_width=True, disabled=True)
+                    st.caption("Set phone ↑")
+
                 else:
-                    # Fallback to tel: link if Twilio not available
+                    # Fallback to tel: link
                     st.link_button("📞 Call", f"tel:{phone}", use_container_width=True)
             else:
                 st.button("📞 No Phone", key=f"call_{idx}", disabled=True)
