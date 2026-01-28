@@ -2568,6 +2568,27 @@ elif page == "📥 Inbound Leads":
                 except:
                     pass
 
+            # Fallback: Also check VAManager and VAAuth for VAs (from CSV files)
+            if not va_list_all:
+                try:
+                    vm = VAManager()
+                    vas_df = vm.get_all_vas()
+                    if not vas_df.empty:
+                        va_list_all = [(row['username'], row['name']) for _, row in vas_df.iterrows() if row.get('is_active', True)]
+                except:
+                    pass
+
+            # Also check VAAuth (User Management)
+            if not va_list_all:
+                try:
+                    va_auth_local = VAAuth()
+                    users = va_auth_local.get_all_users()
+                    if not users.empty:
+                        va_users = users[users['role'] == 'va']
+                        va_list_all = [(row['username'], row['full_name']) for _, row in va_users.iterrows()]
+                except:
+                    pass
+
             # Bulk assignment section
             if va_list_all and not inbound_df.empty:
                 st.markdown("#### Bulk Assign to VA")
@@ -2627,6 +2648,27 @@ elif page == "📥 Inbound Leads":
                     cursor.execute("SELECT username, full_name FROM users WHERE role = 'va' AND status = 'active'")
                     va_list = [(row['username'], row['full_name']) for row in cursor.fetchall()]
                     conn.close()
+                except:
+                    pass
+
+            # Fallback: Also check VAManager and VAAuth for VAs (from CSV files)
+            if not va_list:
+                try:
+                    vm = VAManager()
+                    vas_df = vm.get_all_vas()
+                    if not vas_df.empty:
+                        va_list = [(row['username'], row['name']) for _, row in vas_df.iterrows() if row.get('is_active', True)]
+                except:
+                    pass
+
+            # Also check VAAuth (User Management)
+            if not va_list:
+                try:
+                    va_auth_local = VAAuth()
+                    users = va_auth_local.get_all_users()
+                    if not users.empty:
+                        va_users = users[users['role'] == 'va']
+                        va_list = [(row['username'], row['full_name']) for _, row in va_users.iterrows()]
                 except:
                     pass
 

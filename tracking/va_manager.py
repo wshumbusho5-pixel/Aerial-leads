@@ -108,6 +108,56 @@ class VAManager:
         except Exception as e:
             self.logger.error(f"Error syncing auth users: {e}")
 
+    def _sync_to_auth_users(self, username: str, password_hash: str, name: str, email: str, role: str):
+        """Sync a new user from VA Management to User Management (auth_users.csv)."""
+        import hashlib as hl
+        import uuid
+
+        try:
+            # Check if auth_users.csv exists
+            if not self.auth_users_file.exists():
+                # Create it with proper columns
+                auth_df = pd.DataFrame(columns=[
+                    'user_id', 'username', 'password_hash', 'salt',
+                    'full_name', 'email', 'role',
+                    'created_at', 'last_login', 'is_active',
+                    'created_by'
+                ])
+            else:
+                auth_df = pd.read_csv(self.auth_users_file)
+
+            # Check if user already exists
+            if username.lower() in auth_df['username'].str.lower().values:
+                return  # Already exists
+
+            # Generate salt and re-hash password with salt for VAAuth compatibility
+            salt = secrets.token_hex(16)
+            # Note: VAManager uses simple sha256, VAAuth uses salted sha256
+            # We need to store in VAAuth format, so we generate new hash with salt
+            # This means the password will work with VAAuth's authenticate method
+
+            user_id = f"USER-{datetime.now().strftime('%Y%m%d%H%M%S')}-{str(uuid.uuid4())[:4].upper()}"
+
+            new_auth_user = {
+                'user_id': user_id,
+                'username': username.lower(),
+                'password_hash': password_hash,  # Use same hash (simple sha256)
+                'salt': '',  # Empty salt since we're using simple hash
+                'full_name': name,
+                'email': email,
+                'role': role,
+                'created_at': datetime.now().isoformat(),
+                'last_login': '',
+                'is_active': True,
+                'created_by': 'va_management'
+            }
+
+            auth_df = pd.concat([auth_df, pd.DataFrame([new_auth_user])], ignore_index=True)
+            auth_df.to_csv(self.auth_users_file, index=False)
+            self.logger.info(f"Synced user to User Management: {username}")
+        except Exception as e:
+            self.logger.error(f"Error syncing to auth_users: {e}")
+
     def _hash_password(self, password: str) -> str:
         """Hash password for storage."""
         return hashlib.sha256(password.encode()).hexdigest()
@@ -162,6 +212,9 @@ class VAManager:
         users_df = pd.concat([users_df, pd.DataFrame([new_user])], ignore_index=True)
         users_df.to_csv(self.users_file, index=False)
 
+        # Also sync to User Management (auth_users.csv) so both systems see the user
+        self._sync_to_auth_users(username.lower(), self._hash_password(password), name, email, role)
+
         self.logger.info(f"Added user: {username} ({role})")
 
         return {
@@ -208,6 +261,8 @@ class VAManager:
 
     def get_all_vas(self) -> pd.DataFrame:
         """Get all VA users."""
+        # Always sync from User Management first to get latest users
+        self._sync_from_auth_users()
         users_df = pd.read_csv(self.users_file)
         return users_df[users_df['role'] == 'va']
 
@@ -216,6 +271,44 @@ class VAManager:
         users_df = pd.read_csv(self.users_file)
         # Don't expose password hash
         return users_df.drop(columns=['password_hash'])
+
+    def update_user(self, user_id: str, **kwargs):
+        """
+        Update user fields.
+
+        Args:
+            user_id: The user ID to update
+            **kwargs: Fields to update (name, email, is_active, daily_quota, role)
+        """
+        users_df = pd.read_csv(self.users_file)
+        idx = users_df[users_df['user_id'] == user_id].index
+
+        if len(idx) == 0:
+            return False
+
+        allowed_fields = ['name', 'email', 'is_active', 'daily_quota', 'role']
+        username = users_df.at[idx[0], 'username']
+
+        for key, value in kwargs.items():
+            if key in allowed_fields:
+                users_df.at[idx[0], key] = value
+
+        users_df.to_csv(self.users_file, index=False)
+
+        # Sync is_active status to User Management
+        if 'is_active' in kwargs:
+            try:
+                if self.auth_users_file.exists():
+                    auth_df = pd.read_csv(self.auth_users_file)
+                    auth_idx = auth_df[auth_df['username'] == username].index
+                    if len(auth_idx) > 0:
+                        auth_df.at[auth_idx[0], 'is_active'] = kwargs['is_active']
+                        auth_df.to_csv(self.auth_users_file, index=False)
+            except Exception as e:
+                self.logger.error(f"Error syncing is_active to auth_users: {e}")
+
+        self.logger.info(f"Updated user {user_id}: {kwargs}")
+        return True
 
     def deactivate_user(self, user_id: str):
         """Deactivate a user (soft delete)."""

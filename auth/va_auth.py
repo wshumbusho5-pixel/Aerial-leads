@@ -94,6 +94,45 @@ class VAAuth:
 
         return password_hash, salt
 
+    def _sync_to_va_management(self, username: str, password_hash: str, name: str, email: str, role: str):
+        """Sync a new user from User Management to VA Management (users.csv)."""
+        from config.settings import PROCESSED_DATA_DIR
+
+        va_users_file = PROCESSED_DATA_DIR / 'users.csv'
+
+        try:
+            # Check if users.csv exists
+            if not va_users_file.exists():
+                # VA Management will create it when needed
+                return
+
+            va_df = pd.read_csv(va_users_file)
+
+            # Check if user already exists
+            if username.lower() in va_df['username'].str.lower().values:
+                return  # Already exists
+
+            user_id = f"VA-{username.upper()[:8]}-{datetime.now().strftime('%H%M')}"
+
+            new_va_user = {
+                'user_id': user_id,
+                'username': username.lower(),
+                'password_hash': password_hash,
+                'name': name,
+                'email': email,
+                'role': role,
+                'daily_quota': 50,
+                'is_active': True,
+                'created_at': datetime.now().isoformat(),
+                'last_login': ''
+            }
+
+            va_df = pd.concat([va_df, pd.DataFrame([new_va_user])], ignore_index=True)
+            va_df.to_csv(va_users_file, index=False)
+            logger.info(f"Synced user to VA Management: {username}")
+        except Exception as e:
+            logger.error(f"Error syncing to VA Management: {e}")
+
     def create_user(
         self,
         username: str,
@@ -145,6 +184,9 @@ class VAAuth:
 
         df = pd.concat([df, pd.DataFrame([user])], ignore_index=True)
         df.to_csv(USERS_FILE, index=False)
+
+        # Also sync to VA Management (users.csv) so both systems see the user
+        self._sync_to_va_management(username.lower(), password_hash, full_name, email, role)
 
         logger.info(f"Created user: {username} ({role})")
         return user_id
