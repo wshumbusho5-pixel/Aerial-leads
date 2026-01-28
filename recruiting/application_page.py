@@ -766,27 +766,14 @@ def main():
                     We've filled our current Virtual Assistant positions and are not accepting
                     new applications at this time. However, we're always growing!
                 </p>
-
-                <div class="waitlist-features">
-                    <div class="waitlist-feature">
-                        <div class="waitlist-feature-icon">💼</div>
-                        <div class="waitlist-feature-text">Remote Work</div>
-                    </div>
-                    <div class="waitlist-feature">
-                        <div class="waitlist-feature-icon">💰</div>
-                        <div class="waitlist-feature-text">Competitive Pay</div>
-                    </div>
-                    <div class="waitlist-feature">
-                        <div class="waitlist-feature-icon">📈</div>
-                        <div class="waitlist-feature-text">Growth Opportunities</div>
-                    </div>
+                <div style="display: flex; justify-content: center; gap: 2rem; margin: 2rem 0; flex-wrap: wrap;">
+                    <div style="text-align: center; padding: 1rem;"><div style="font-size: 2rem;">💼</div><div style="font-size: 0.9rem; color: #475569; font-weight: 500;">Remote Work</div></div>
+                    <div style="text-align: center; padding: 1rem;"><div style="font-size: 2rem;">💰</div><div style="font-size: 0.9rem; color: #475569; font-weight: 500;">Competitive Pay</div></div>
+                    <div style="text-align: center; padding: 1rem;"><div style="font-size: 2rem;">📈</div><div style="font-size: 0.9rem; color: #475569; font-weight: 500;">Growth Opportunities</div></div>
                 </div>
-
-                <div class="waitlist-form">
-                    <div class="waitlist-form-title">🔔 Get Notified When We're Hiring</div>
-                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
-                        Join our waitlist and be the first to know when positions open up.
-                    </p>
+                <div style="background: #f8fafc; border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem;">
+                    <div style="font-size: 1rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">🔔 Get Notified When We're Hiring</div>
+                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 0;">Join our waitlist and be the first to know when positions open up.</p>
                 </div>
             </div>
             """, unsafe_allow_html=True)
