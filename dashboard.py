@@ -5294,11 +5294,23 @@ elif page == "📊 View Leads":
         if 'critical_violations' in filtered_df.columns:
             display_cols.append('critical_violations')
 
-        # Add contact info columns
+        # Add contact info columns (all phone numbers from skip tracing)
         if 'phone' in filtered_df.columns:
             display_cols.append('phone')
+        if 'phone_2' in filtered_df.columns:
+            display_cols.append('phone_2')
+        if 'phone_3' in filtered_df.columns:
+            display_cols.append('phone_3')
+        if 'phone_4' in filtered_df.columns:
+            display_cols.append('phone_4')
+        if 'phone_5' in filtered_df.columns:
+            display_cols.append('phone_5')
+        if 'phone_6' in filtered_df.columns:
+            display_cols.append('phone_6')
         if 'email' in filtered_df.columns:
             display_cols.append('email')
+        if 'email_2' in filtered_df.columns:
+            display_cols.append('email_2')
 
         # Add equity columns
         if 'estimated_equity' in filtered_df.columns:
