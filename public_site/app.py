@@ -535,7 +535,7 @@ async def sitemap(request: Request):
     df = load_all_leads()
 
     # Use actual host from request, fallback to custom domain
-    host = request.headers.get('host', 'lifelinehomebuyers.com')
+    host = request.headers.get('host', 'lifelinehome-buyers.com')
     scheme = 'https'
     base_url = f"{scheme}://{host}"
 
@@ -578,7 +578,7 @@ async def sitemap(request: Request):
 @app.get("/robots.txt")
 async def robots(request: Request):
     """Robots.txt for search engines."""
-    host = request.headers.get('host', 'lifelinehomebuyers.com')
+    host = request.headers.get('host', 'lifelinehome-buyers.com')
     content = f"""User-agent: *
 Allow: /
 Disallow: /api/
