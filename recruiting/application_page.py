@@ -36,6 +36,11 @@ COUNTRIES = {
     "Nigeria": {"currency": "NGN", "salary": "230,000", "flag": "🇳🇬"},
 }
 
+# ============================================
+# APPLICATION STATUS - Set to False to pause hiring
+# ============================================
+APPLICATIONS_OPEN = False  # Set to True to reopen applications
+
 # Page config
 st.set_page_config(
     page_title="Careers | Lifeline Home Buyers - Orteza Groups",
@@ -104,6 +109,100 @@ st.markdown("""
     .footer-logo svg {
         width: 28px;
         height: auto;
+    }
+
+    /* Waitlist / Applications Paused Styles */
+    .waitlist-container {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        max-width: 600px;
+        margin: 2rem auto;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e2e8f0;
+    }
+
+    .waitlist-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .waitlist-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.75rem;
+    }
+
+    .waitlist-subtitle {
+        font-size: 1.1rem;
+        color: #64748b;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .waitlist-features {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+    }
+
+    .waitlist-feature {
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .waitlist-feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .waitlist-feature-text {
+        font-size: 0.9rem;
+        color: #475569;
+        font-weight: 500;
+    }
+
+    .waitlist-form {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .waitlist-form-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+
+    .waitlist-success {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #10b981;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-top: 1.5rem;
+    }
+
+    .waitlist-success-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .waitlist-success-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #065f46;
+        margin-bottom: 0.5rem;
+    }
+
+    .waitlist-success-text {
+        color: #047857;
+        font-size: 0.95rem;
     }
 
     .hero-title {
@@ -585,9 +684,47 @@ except ImportError:
             APP_SYSTEM_AVAILABLE = False
 
 
+def save_waitlist_email(email: str, name: str = "", country: str = "") -> tuple:
+    """Save email to waitlist in database."""
+    try:
+        from va_applications import VAApplications
+        apps = VAApplications()
+        conn = apps._get_connection()
+        if conn:
+            cursor = conn.cursor()
+            # Create waitlist table if not exists
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS va_waitlist (
+                    id SERIAL PRIMARY KEY,
+                    email VARCHAR(255) UNIQUE NOT NULL,
+                    name VARCHAR(255),
+                    country VARCHAR(100),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    notified BOOLEAN DEFAULT FALSE
+                )
+            """)
+            # Insert email (ignore if duplicate)
+            cursor.execute("""
+                INSERT INTO va_waitlist (email, name, country)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (email) DO NOTHING
+            """, (email.lower().strip(), name, country))
+            conn.commit()
+            conn.close()
+            return True, "Successfully joined waitlist"
+    except Exception as e:
+        print(f"Waitlist save error: {e}")
+    return False, "Could not save to waitlist"
+
+
 def main():
-    # Hero Section
-    st.markdown("""
+    # Hero Section - Dynamic based on application status
+    if APPLICATIONS_OPEN:
+        hero_tag = "🌍 Remote Position • Now Hiring"
+    else:
+        hero_tag = "🌍 Remote Position • Applications Paused"
+
+    st.markdown(f"""
     <div class="hero-section">
         <div class="hero-logo">
             <svg viewBox="40 40 160 80" xmlns="http://www.w3.org/2000/svg">
@@ -598,9 +735,100 @@ def main():
         <div class="company-badge">Orteza Groups of Companies</div>
         <h1 class="hero-title">Join Lifeline Home Buyers</h1>
         <p class="hero-subtitle">Build your career as a Virtual Assistant in Real Estate</p>
-        <span class="hero-tag">🌍 Remote Position • Now Hiring</span>
+        <span class="hero-tag">{hero_tag}</span>
     </div>
     """, unsafe_allow_html=True)
+
+    # ============================================
+    # APPLICATIONS CLOSED - Show Waitlist
+    # ============================================
+    if not APPLICATIONS_OPEN:
+        # Check if already joined waitlist
+        if st.session_state.get('waitlist_joined'):
+            st.markdown("""
+            <div class="waitlist-container">
+                <div class="waitlist-success">
+                    <div class="waitlist-success-icon">✅</div>
+                    <div class="waitlist-success-title">You're on the list!</div>
+                    <div class="waitlist-success-text">
+                        We'll notify you by email as soon as positions open up.<br>
+                        Thank you for your interest in Lifeline Home Buyers.
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div class="waitlist-container">
+                <div class="waitlist-icon">⏸️</div>
+                <h2 class="waitlist-title">Applications Currently Paused</h2>
+                <p class="waitlist-subtitle">
+                    We've filled our current Virtual Assistant positions and are not accepting
+                    new applications at this time. However, we're always growing!
+                </p>
+
+                <div class="waitlist-features">
+                    <div class="waitlist-feature">
+                        <div class="waitlist-feature-icon">💼</div>
+                        <div class="waitlist-feature-text">Remote Work</div>
+                    </div>
+                    <div class="waitlist-feature">
+                        <div class="waitlist-feature-icon">💰</div>
+                        <div class="waitlist-feature-text">Competitive Pay</div>
+                    </div>
+                    <div class="waitlist-feature">
+                        <div class="waitlist-feature-icon">📈</div>
+                        <div class="waitlist-feature-text">Growth Opportunities</div>
+                    </div>
+                </div>
+
+                <div class="waitlist-form">
+                    <div class="waitlist-form-title">🔔 Get Notified When We're Hiring</div>
+                    <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
+                        Join our waitlist and be the first to know when positions open up.
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Waitlist form
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                with st.form("waitlist_form"):
+                    waitlist_name = st.text_input("Your Name", placeholder="Enter your full name")
+                    waitlist_email = st.text_input("Email Address *", placeholder="your.email@example.com")
+                    waitlist_country = st.selectbox(
+                        "Your Country",
+                        options=[""] + list(COUNTRIES.keys()),
+                        format_func=lambda x: f"{COUNTRIES[x]['flag']} {x}" if x else "Select your country"
+                    )
+
+                    submitted = st.form_submit_button("Join Waitlist", use_container_width=True, type="primary")
+
+                    if submitted:
+                        if not waitlist_email or "@" not in waitlist_email:
+                            st.error("Please enter a valid email address")
+                        else:
+                            success, msg = save_waitlist_email(waitlist_email, waitlist_name, waitlist_country)
+                            if success:
+                                st.session_state.waitlist_joined = True
+                                st.rerun()
+                            else:
+                                st.error("Something went wrong. Please try again.")
+
+        # Footer
+        st.markdown("""
+        <div class="footer">
+            <span class="footer-logo"><svg viewBox="40 40 160 80" xmlns="http://www.w3.org/2000/svg"><path d="M 50 80 L 80 50 L 110 80 L 110 110 L 50 110 Z" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linejoin="miter"/><path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linecap="butt"/></svg></span>
+            <span class="footer-brand">Lifeline Home Buyers</span> • A company of Orteza Groups<br>
+            Columbus, Ohio, USA
+        </div>
+        """, unsafe_allow_html=True)
+        return  # Don't show the rest of the application form
+
+    # ============================================
+    # APPLICATIONS OPEN - Show Full Form
+    # ============================================
 
     # Check for success state
     if st.session_state.get('application_submitted'):
