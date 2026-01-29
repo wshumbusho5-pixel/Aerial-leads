@@ -1412,25 +1412,99 @@ def show_dialer_page(leads_df, va_name):
 
 def show_callback_queue_page(va_name):
     st.markdown("## 🔔 Callback Queue")
-    st.markdown("Leads you've warmed with RVM - ready for follow-up calls!")
+    st.markdown("Scheduled follow-ups and RVM callbacks.")
 
-    # Get all callbacks and ready callbacks
+    # Get RVM callbacks
     all_callbacks = load_callback_queue(va_name)
     ready_callbacks = get_ready_callbacks(va_name)
 
+    # Get scheduled callbacks from call logs
+    calls_df = load_calls()
+    scheduled_callbacks = pd.DataFrame()
+    today = datetime.now().strftime('%Y-%m-%d')
+
+    if not calls_df.empty and 'callback_date' in calls_df.columns and 'va_name' in calls_df.columns:
+        # Filter to this VA's callbacks that are due today or earlier
+        va_calls = calls_df[calls_df['va_name'] == va_name]
+        if not va_calls.empty:
+            scheduled_callbacks = va_calls[
+                (va_calls['callback_date'].notna()) &
+                (va_calls['callback_date'] != '') &
+                (va_calls['callback_date'] <= today)
+            ].copy()
+
     # Stats
+    total_ready = len(ready_callbacks) + len(scheduled_callbacks)
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Total in Queue", len(all_callbacks))
+        st.metric("Scheduled Callbacks", len(scheduled_callbacks))
     with col2:
-        st.metric("Ready to Call", len(ready_callbacks), delta="🔥" if len(ready_callbacks) > 0 else None)
+        st.metric("RVM Ready", len(ready_callbacks), delta="🔥" if len(ready_callbacks) > 0 else None)
     with col3:
-        rvm_usage = get_va_rvm_usage(va_name)
-        st.metric("RVM Drops Today", f"{rvm_usage}/{RVM_DAILY_LIMIT_PER_VA}")
+        st.metric("Total to Call", total_ready, delta="⚡" if total_ready > 0 else None)
 
     st.markdown("---")
 
-    # Ready callbacks section
+    # Scheduled callbacks from Call Tracker (callback dates)
+    if not scheduled_callbacks.empty:
+        st.success(f"📅 **{len(scheduled_callbacks)} scheduled callbacks due!**")
+
+        for idx, cb in scheduled_callbacks.iterrows():
+            with st.container():
+                col1, col2, col3 = st.columns([3, 1, 1])
+
+                with col1:
+                    address = cb.get('address', 'Unknown Address')
+                    phone = cb.get('phone', 'No phone')
+                    owner = cb.get('owner_name', '')
+                    last_result = cb.get('result', '')
+                    notes = cb.get('notes', '')
+
+                    st.markdown(f"### 🏠 {address}")
+                    if owner:
+                        st.markdown(f"**Owner:** {owner}")
+                    st.markdown(f"**Phone:** `{phone}`")
+                    if last_result:
+                        st.caption(f"Last result: {last_result}")
+                    if notes:
+                        st.caption(f"Notes: {notes[:100]}...")
+
+                with col2:
+                    cb_date = cb.get('callback_date', '')
+                    if cb_date == today:
+                        st.markdown("📅 **TODAY**")
+                    else:
+                        st.markdown(f"📅 {cb_date}")
+
+                with col3:
+                    # Open browser dialer
+                    va_identity = st.session_state.get('va_username', 'va-user')
+                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://aerialleads-public-production.up.railway.app')
+                    import urllib.parse
+                    params = urllib.parse.urlencode({
+                        'identity': va_identity,
+                        'phone': phone,
+                        'name': owner or '',
+                        'address': address or ''
+                    })
+                    dialer_url = f"{public_site_url}/dialer?{params}"
+                    st.link_button("📞 Call", dialer_url, use_container_width=True)
+
+                    if st.button("📝 Log", key=f"log_cb_{idx}", use_container_width=True):
+                        st.session_state.last_called_lead = {
+                            'address': address,
+                            'phone': phone,
+                            'owner_name': owner,
+                            'called_at': datetime.now().isoformat()
+                        }
+                        st.session_state.va_page = "📞 Call Tracker"
+                        st.rerun()
+
+                st.markdown("---")
+
+        st.markdown("")
+
+    # RVM Ready callbacks section
     if not ready_callbacks.empty:
         st.success(f"🔥 **{len(ready_callbacks)} leads ready for callback!** They've heard your voicemail.")
 
@@ -1491,15 +1565,19 @@ def show_callback_queue_page(va_name):
                         except:
                             st.caption("⏰ Pending")
 
-    if all_callbacks.empty:
-        st.info("No leads in callback queue. Use the Dialer to drop RVM and warm leads!")
+    if all_callbacks.empty and scheduled_callbacks.empty:
+        st.info("No callbacks scheduled. Set callback dates in Call Tracker or use RVM in Dialer!")
         st.markdown("""
-        **How it works:**
-        1. Go to **Dialer**
-        2. Click **"🎤 Drop RVM & Queue"** on a lead
-        3. Lead gets voicemail dropped
-        4. After 30 minutes, they appear here **READY** for callback
-        5. Higher answer rate because they just heard your message!
+        **Two ways to add callbacks:**
+
+        **1. From Call Tracker:**
+        - Log a call and set a callback date
+        - Lead appears here on that date
+
+        **2. From Dialer (RVM):**
+        - Click **"🎤 Drop RVM & Queue"** on a lead
+        - Lead gets voicemail dropped
+        - After 30 minutes, they appear here ready for callback
         """)
 
 def show_inbound_page(inbound_df, va_name):
