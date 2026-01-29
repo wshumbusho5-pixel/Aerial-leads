@@ -270,7 +270,34 @@ def get_today_stats(va_name, calls_df):
     }
 
 def load_inbound_leads():
-    """Load inbound leads from form submissions"""
+    """Load inbound leads from database (primary) or CSV (fallback)"""
+    # Try database first (shared with public site)
+    if DB_AUTH_AVAILABLE:
+        try:
+            db_auth = DatabaseAuth()
+            conn = db_auth._get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM inbound_leads
+                ORDER BY captured_at DESC
+                LIMIT 100
+            """)
+            rows = cursor.fetchall()
+            conn.close()
+            if rows:
+                # Convert to DataFrame
+                columns = ['id', 'captured_at', 'source_page', 'name', 'phone', 'email',
+                          'property_address', 'message', 'lead_type', 'ip_address',
+                          'status', 'assigned_to', 'notes']
+                df = pd.DataFrame(rows, columns=columns[:len(rows[0])] if rows else columns)
+                # Rename for consistency
+                if 'property_address' in df.columns:
+                    df['address'] = df['property_address']
+                return df
+        except Exception as e:
+            pass  # Fall through to CSV
+
+    # Fallback to CSV
     if INBOUND_FILE.exists():
         try:
             return pd.read_csv(INBOUND_FILE)
@@ -1586,38 +1613,85 @@ def show_inbound_page(inbound_df, va_name):
 
     if inbound_df.empty:
         st.info("No inbound leads yet. These will appear when homeowners submit forms on the website.")
+        st.markdown("""
+        **Inbound leads come from:**
+        - Get Offer form on the website
+        - Property pages
+        - Landing pages (sell-my-house-fast, etc.)
+        """)
         return
 
     # Priority badge
-    st.warning("⚡ **These are HOT leads!** They came to us. Call them first!")
+    st.warning("⚡ **These are HOT leads!** They came to us. Call them FIRST!")
 
-    for idx, lead in inbound_df.iterrows():
+    # Stats
+    total = len(inbound_df)
+    new_count = len(inbound_df[inbound_df.get('status', 'new') == 'new']) if 'status' in inbound_df.columns else total
+    st.markdown(f"**{new_count} new** out of {total} total inbound leads")
+
+    st.markdown("---")
+
+    for idx, lead in inbound_df.head(50).iterrows():
         with st.container():
             col1, col2, col3 = st.columns([3, 1, 1])
 
+            address = lead.get('address', lead.get('property_address', 'Unknown Address'))
+            name = lead.get('name', 'N/A')
+            phone = lead.get('phone', '')
+            email = lead.get('email', '')
+            message = lead.get('message', '')
+
             with col1:
-                st.markdown(f"### {lead.get('address', 'Unknown Address')}")
-                st.markdown(f"**Name:** {lead.get('name', 'N/A')}")
-                st.markdown(f"**Phone:** {lead.get('phone', 'N/A')}")
-                st.markdown(f"**Email:** {lead.get('email', 'N/A')}")
-                if lead.get('message'):
-                    st.markdown(f"**Message:** {lead.get('message')}")
+                st.markdown(f"### 🏠 {address}")
+                st.markdown(f"**Name:** {name}")
+                if phone:
+                    st.markdown(f"**Phone:** `{phone}`")
+                if email:
+                    st.caption(f"📧 {email}")
+                if message:
+                    st.info(f"💬 \"{message}\"")
 
             with col2:
-                submitted = lead.get('submitted_at', lead.get('date', 'N/A'))
-                st.markdown(f"📅 {submitted}")
+                submitted = lead.get('captured_at', lead.get('submitted_at', lead.get('date', '')))
+                if submitted:
+                    st.caption(f"📅 {str(submitted)[:16]}")
+
+                status = lead.get('status', 'new')
+                if status == 'new':
+                    st.markdown("🆕 **NEW**")
+                elif status == 'contacted':
+                    st.markdown("✅ Contacted")
+                elif status == 'scheduled':
+                    st.markdown("📅 Scheduled")
+                else:
+                    st.caption(status)
 
             with col3:
-                status = lead.get('status', 'New')
-                if status == 'New':
-                    st.markdown("🆕 **NEW**")
-                elif status == 'Contacted':
-                    st.markdown("✅ Contacted")
-                elif status == 'Scheduled':
-                    st.markdown("📅 Scheduled")
+                if phone:
+                    # Browser dialer
+                    va_identity = st.session_state.get('va_username', 'va-user')
+                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://aerialleads-public-production.up.railway.app')
+                    import urllib.parse
+                    params = urllib.parse.urlencode({
+                        'identity': va_identity,
+                        'phone': phone,
+                        'name': name or '',
+                        'address': address or ''
+                    })
+                    dialer_url = f"{public_site_url}/dialer?{params}"
+                    st.link_button("📞 Call", dialer_url, use_container_width=True)
 
-                if st.button("📞 Log Call", key=f"inbound_{idx}"):
-                    st.session_state.selected_inbound = lead.to_dict()
+                    if st.button("📝 Log", key=f"inbound_log_{idx}", use_container_width=True):
+                        st.session_state.last_called_lead = {
+                            'address': address,
+                            'phone': phone,
+                            'owner_name': name,
+                            'called_at': datetime.now().isoformat()
+                        }
+                        st.session_state.va_page = "📞 Call Tracker"
+                        st.rerun()
+                else:
+                    st.caption("No phone")
 
             st.markdown("---")
 
