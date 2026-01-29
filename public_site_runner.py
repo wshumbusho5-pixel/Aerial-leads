@@ -314,8 +314,7 @@ TWILIO_API_SECRET = os.environ.get('TWILIO_API_SECRET', '')
 
 try:
     from twilio.rest import Client
-    from twilio.jwt.access_token import AccessToken
-    from twilio.jwt.access_token.grants import VoiceGrant
+    from twilio.jwt.client import ClientCapabilityToken
     from twilio.twiml.voice_response import VoiceResponse, Dial
 
     if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and TWILIO_PHONE_NUMBER:
@@ -328,24 +327,20 @@ except ImportError:
 
 
 def generate_twilio_token(identity: str):
-    """Generate access token for browser calling."""
-    if not TWILIO_CLIENT_AVAILABLE or not TWILIO_API_KEY or not TWILIO_API_SECRET:
+    """Generate capability token for browser calling (SDK 1.x)."""
+    if not TWILIO_CLIENT_AVAILABLE:
         return None
 
     try:
-        token = AccessToken(
-            TWILIO_ACCOUNT_SID,
-            TWILIO_API_KEY,
-            TWILIO_API_SECRET,
-            identity=identity,
-            ttl=3600
-        )
-        voice_grant = VoiceGrant(
-            outgoing_application_sid=TWILIO_TWIML_APP_SID,
-            incoming_allow=False
-        )
-        token.add_grant(voice_grant)
-        return token.to_jwt()
+        # Use Capability Token for SDK 1.x
+        capability = ClientCapabilityToken(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        capability.allow_client_outgoing(TWILIO_TWIML_APP_SID)
+        token = capability.to_jwt()
+        # Ensure it's a string (not bytes)
+        if isinstance(token, bytes):
+            token = token.decode('utf-8')
+        logger.info(f"Generated capability token for: {identity}")
+        return token
     except Exception as e:
         logger.error(f"Token generation failed: {e}")
         return None
@@ -430,13 +425,13 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             </body></html>
         """, status_code=500)
 
-    # Return dialer HTML - Using Twilio Voice SDK 2.x with Access Tokens
+    # Return dialer HTML - Using Twilio Client SDK 1.x with Capability Tokens
     html = f'''<!DOCTYPE html>
 <html>
 <head>
     <title>Browser Dialer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://sdk.twilio.com/js/voice/releases/2.10.2/twilio.min.js"></script>
+    <script src="https://media.twiliocdn.com/sdk/js/client/v1.14/twilio.min.js"></script>
     <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
         body {{
@@ -543,56 +538,40 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             return String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0');
         }}
 
-        async function init() {{
+        function init() {{
             try {{
-                // Twilio Voice SDK 2.x
-                device = new Twilio.Device(token, {{
-                    codecPreferences: [Twilio.Device.Codec.Opus, Twilio.Device.Codec.PCMU],
-                    logLevel: 1
+                // Twilio Client SDK 1.x with Capability Token
+                Twilio.Device.setup(token, {{
+                    debug: true,
+                    enableRingingState: true
                 }});
 
-                device.on('registered', () => {{
+                Twilio.Device.ready(function() {{
+                    console.log('Twilio Device ready');
                     setStatus('Ready to call', 'ready');
                     callBtn.disabled = false;
                 }});
 
-                device.on('error', (err) => {{
+                Twilio.Device.error(function(err) {{
                     console.error('Device error:', err);
-                    setStatus('Error: ' + (err.message || err), 'error');
+                    setStatus('Error: ' + err.message, 'error');
                 }});
 
-                // Register the device to receive calls (required in SDK 2.x)
-                await device.register();
-                console.log('Device registered successfully');
-
-            }} catch(e) {{
-                console.error('Init failed:', e);
-                setStatus('Init failed: ' + e.message, 'error');
-            }}
-        }}
-
-        callBtn.onclick = async () => {{
-            const num = phoneInput.value.trim();
-            if (!num) return alert('Enter a phone number');
-            setStatus('Connecting...', 'connecting');
-
-            try {{
-                // SDK 2.x uses params object
-                activeCall = await device.connect({{ params: {{ To: num }} }});
-                console.log('Call initiated');
-
-                activeCall.on('accept', () => {{
+                Twilio.Device.connect(function(conn) {{
+                    console.log('Call connected');
+                    activeCall = conn;
                     setStatus('On Call', 'on-call');
                     callBtn.style.display = 'none';
                     hangupBtn.style.display = 'block';
                     timerEl.style.display = 'block';
                     startTime = Date.now();
-                    timerInterval = setInterval(() => {{
+                    timerInterval = setInterval(function() {{
                         timerEl.textContent = formatTime(Math.floor((Date.now()-startTime)/1000));
                     }}, 1000);
                 }});
 
-                activeCall.on('disconnect', () => {{
+                Twilio.Device.disconnect(function() {{
+                    console.log('Call disconnected');
                     activeCall = null;
                     setStatus('Call ended', 'ready');
                     callBtn.style.display = 'block';
@@ -601,35 +580,33 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
                     clearInterval(timerInterval);
                 }});
 
-                activeCall.on('cancel', () => {{
-                    activeCall = null;
-                    setStatus('Call cancelled', 'ready');
-                    callBtn.style.display = 'block';
-                    hangupBtn.style.display = 'none';
-                }});
-
-                activeCall.on('error', (err) => {{
-                    console.error('Call error:', err);
-                    setStatus('Call error: ' + err.message, 'error');
-                }});
-
             }} catch(e) {{
-                console.error('Connect failed:', e);
-                setStatus('Connect failed: ' + e.message, 'error');
+                console.error('Init failed:', e);
+                setStatus('Init failed: ' + e.message, 'error');
             }}
+        }}
+
+        callBtn.onclick = function() {{
+            var num = phoneInput.value.trim();
+            if (!num) return alert('Enter a phone number');
+            setStatus('Connecting...', 'connecting');
+            Twilio.Device.connect({{ To: num }});
         }};
 
-        hangupBtn.onclick = () => {{
-            if (activeCall) {{
-                activeCall.disconnect();
-            }}
+        hangupBtn.onclick = function() {{
+            Twilio.Device.disconnectAll();
         }};
 
-        phoneInput.onkeypress = (e) => {{
+        phoneInput.onkeypress = function(e) {{
             if (e.key === 'Enter' && !callBtn.disabled) callBtn.click();
         }};
 
-        init();
+        // Wait for page load then init
+        if (document.readyState === 'complete') {{
+            init();
+        }} else {{
+            window.onload = init;
+        }}
     </script>
 </body>
 </html>'''
