@@ -594,16 +594,11 @@ def show_leads_page(leads_df, va_name):
             - No phone needed!
             """)
 
-            # Test browser dialer button
-            if st.button("🧪 Test Browser Dialer", use_container_width=True):
-                # Open a test dialer
-                test_url = f"/dialer?identity={va_username or 'test-va'}&phone=&name=Test&address=Test"
-                st.markdown(f"""
-                <script>
-                    window.open('{test_url}', 'dialer', 'width=450,height=600');
-                </script>
-                """, unsafe_allow_html=True)
-                st.info("A dialer window should open. Allow microphone access when prompted.")
+            # Test browser dialer link
+            public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://aerialleads-public-production.up.railway.app')
+            test_url = f"{public_site_url}/dialer?identity={va_username or 'test-va'}&phone=&name=Test&address=Test"
+            st.link_button("🧪 Test Browser Dialer", test_url, use_container_width=True)
+            st.caption("Click to open dialer in new tab. Allow microphone access when prompted.")
 
         else:
             st.info("📱 **Phone Dialer Selected**")
@@ -695,25 +690,20 @@ def show_leads_page(leads_df, va_name):
                 va_identity = st.session_state.get('va_username', 'va-user')
 
                 if calling_mode == 'browser' and BROWSER_DIALER_AVAILABLE:
-                    # Browser dialer mode - open dialer in new window
-                    if st.button("🖥️ Call", key=f"call_{idx}", use_container_width=True):
-                        # Encode parameters for URL
-                        import urllib.parse
-                        params = urllib.parse.urlencode({
-                            'identity': va_identity,
-                            'phone': phone,
-                            'name': owner or '',
-                            'address': address or ''
-                        })
-                        dialer_url = f"/dialer?{params}"
+                    # Browser dialer mode - open dialer in new tab
+                    import urllib.parse
+                    params = urllib.parse.urlencode({
+                        'identity': va_identity,
+                        'phone': phone,
+                        'name': owner or '',
+                        'address': address or ''
+                    })
+                    # Use the public site URL for the dialer
+                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://aerialleads-public-production.up.railway.app')
+                    dialer_url = f"{public_site_url}/dialer?{params}"
 
-                        # Open browser dialer in new window
-                        st.markdown(f"""
-                        <script>
-                            window.open('{dialer_url}', 'dialer', 'width=450,height=650,scrollbars=no,resizable=yes');
-                        </script>
-                        """, unsafe_allow_html=True)
-                        st.success("📞 Dialer opened! Check for new window.")
+                    # Use link_button which opens in new tab
+                    st.link_button("🖥️ Call", dialer_url, use_container_width=True)
 
                 elif calling_mode == 'phone' and va_phone and TWILIO_AVAILABLE:
                     # Phone dialer mode - two-leg call
