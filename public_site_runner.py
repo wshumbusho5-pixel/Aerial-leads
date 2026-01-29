@@ -300,6 +300,310 @@ async def submit_lead(
 
     return RedirectResponse(url="/thank-you", status_code=303)
 
+# ============================================
+# BROWSER DIALER API (Twilio WebRTC)
+# ============================================
+
+TWILIO_CLIENT_AVAILABLE = False
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
+TWILIO_TWIML_APP_SID = os.environ.get('TWILIO_TWIML_APP_SID', '')
+TWILIO_API_KEY = os.environ.get('TWILIO_API_KEY', '')
+TWILIO_API_SECRET = os.environ.get('TWILIO_API_SECRET', '')
+
+try:
+    from twilio.rest import Client
+    from twilio.jwt.access_token import AccessToken
+    from twilio.jwt.access_token.grants import VoiceGrant
+    from twilio.twiml.voice_response import VoiceResponse, Dial
+
+    if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and TWILIO_PHONE_NUMBER:
+        TWILIO_CLIENT_AVAILABLE = True
+        logger.info("Twilio browser calling initialized")
+    else:
+        logger.warning("Twilio credentials not fully configured")
+except ImportError:
+    logger.warning("Twilio library not installed")
+
+
+def generate_twilio_token(identity: str):
+    """Generate access token for browser calling."""
+    if not TWILIO_CLIENT_AVAILABLE or not TWILIO_API_KEY or not TWILIO_API_SECRET:
+        return None
+
+    try:
+        token = AccessToken(
+            TWILIO_ACCOUNT_SID,
+            TWILIO_API_KEY,
+            TWILIO_API_SECRET,
+            identity=identity,
+            ttl=3600
+        )
+        voice_grant = VoiceGrant(
+            outgoing_application_sid=TWILIO_TWIML_APP_SID,
+            incoming_allow=False
+        )
+        token.add_grant(voice_grant)
+        return token.to_jwt()
+    except Exception as e:
+        logger.error(f"Token generation failed: {e}")
+        return None
+
+
+def clean_phone(phone: str):
+    """Clean phone to E.164 format."""
+    if not phone:
+        return None
+    digits = ''.join(filter(str.isdigit, str(phone)))
+    if len(digits) == 10:
+        return f"+1{digits}"
+    elif len(digits) == 11 and digits.startswith('1'):
+        return f"+{digits}"
+    elif len(digits) > 10:
+        return f"+{digits}"
+    return None
+
+
+@app.get("/api/dialer/status")
+async def dialer_status():
+    """Check if browser dialer is available."""
+    return {
+        "available": TWILIO_CLIENT_AVAILABLE,
+        "twiml_configured": bool(TWILIO_TWIML_APP_SID),
+        "phone_number": TWILIO_PHONE_NUMBER or "",
+        "api_key_configured": bool(TWILIO_API_KEY and TWILIO_API_SECRET)
+    }
+
+
+@app.get("/api/dialer/token")
+async def get_dialer_token(identity: str = "va-user"):
+    """Generate Twilio token for browser calling."""
+    if not TWILIO_CLIENT_AVAILABLE:
+        return JSONResponse(status_code=503, content={"error": "Twilio not configured"})
+
+    token = generate_twilio_token(identity)
+    if token:
+        return {"token": token, "identity": identity}
+    return JSONResponse(status_code=500, content={"error": "Token generation failed"})
+
+
+@app.post("/api/dialer/twiml")
+async def handle_twiml(request: Request):
+    """TwiML webhook for outbound browser calls."""
+    if not TWILIO_CLIENT_AVAILABLE:
+        return HTMLResponse(content="<Response><Say>Not configured</Say></Response>", media_type="application/xml")
+
+    form = await request.form()
+    to_number = clean_phone(form.get('To', ''))
+
+    if not to_number:
+        return HTMLResponse(content="<Response><Say>Invalid number</Say></Response>", media_type="application/xml")
+
+    response = VoiceResponse()
+    dial = Dial(caller_id=TWILIO_PHONE_NUMBER, timeout=30)
+    dial.number(to_number)
+    response.append(dial)
+    response.say("Call ended. Goodbye.")
+
+    logger.info(f"Browser call to: {to_number}")
+    return HTMLResponse(content=str(response), media_type="application/xml")
+
+
+@app.get("/dialer", response_class=HTMLResponse)
+async def browser_dialer(phone: str = "", name: str = "", address: str = "", identity: str = "va-user"):
+    """Browser dialer page."""
+    if not TWILIO_CLIENT_AVAILABLE:
+        return HTMLResponse(content="""
+            <html><body style='font-family:sans-serif;padding:50px;text-align:center;'>
+            <h1>Browser Dialer Not Available</h1>
+            <p>Twilio credentials not configured.</p>
+            </body></html>
+        """, status_code=503)
+
+    token = generate_twilio_token(identity)
+    if not token:
+        return HTMLResponse(content="""
+            <html><body style='font-family:sans-serif;padding:50px;text-align:center;'>
+            <h1>Token Generation Failed</h1>
+            <p>Check TWILIO_API_KEY and TWILIO_API_SECRET.</p>
+            </body></html>
+        """, status_code=500)
+
+    # Return dialer HTML
+    html = f'''<!DOCTYPE html>
+<html>
+<head>
+    <title>Browser Dialer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://sdk.twilio.com/js/client/releases/1.14.0/twilio.min.js"></script>
+    <style>
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }}
+        .dialer {{
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }}
+        h1 {{ font-size: 1.5rem; text-align: center; margin-bottom: 20px; }}
+        .status {{
+            text-align: center;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }}
+        .status.ready {{ background: #d4edda; color: #155724; }}
+        .status.connecting {{ background: #fff3cd; color: #856404; }}
+        .status.on-call {{ background: #cce5ff; color: #004085; }}
+        .status.error {{ background: #f8d7da; color: #721c24; }}
+        .lead-info {{
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }}
+        .lead-info h3 {{ font-size: 1rem; margin-bottom: 5px; }}
+        .lead-info .phone {{ font-size: 1.3rem; font-weight: 700; color: #4CAF50; margin-top: 10px; }}
+        input {{
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }}
+        input:focus {{ outline: none; border-color: #4CAF50; }}
+        .btn {{
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }}
+        .btn-call {{ background: #4CAF50; color: white; }}
+        .btn-call:disabled {{ background: #ccc; }}
+        .btn-hangup {{ background: #dc3545; color: white; display: none; }}
+        .timer {{
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 20px 0;
+            display: none;
+        }}
+    </style>
+</head>
+<body>
+    <div class="dialer">
+        <h1>Browser Dialer</h1>
+        <div id="status" class="status">Initializing...</div>
+
+        <div id="lead-info" class="lead-info" style="display:{{'block' if phone else 'none'}}">
+            <h3>{name or 'Lead'}</h3>
+            <p>{address or ''}</p>
+            <div class="phone">{phone or ''}</div>
+        </div>
+
+        <input type="tel" id="phone" placeholder="Enter phone number" value="{phone or ''}">
+        <div id="timer" class="timer">00:00</div>
+        <button id="call-btn" class="btn btn-call" disabled>Call</button>
+        <button id="hangup-btn" class="btn btn-hangup">Hang Up</button>
+    </div>
+
+    <script>
+        const token = "{token}";
+        let device, activeCall, timerInterval, startTime;
+
+        const statusEl = document.getElementById('status');
+        const phoneInput = document.getElementById('phone');
+        const callBtn = document.getElementById('call-btn');
+        const hangupBtn = document.getElementById('hangup-btn');
+        const timerEl = document.getElementById('timer');
+
+        function setStatus(text, cls) {{
+            statusEl.textContent = text;
+            statusEl.className = 'status ' + cls;
+        }}
+
+        function formatTime(sec) {{
+            return String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0');
+        }}
+
+        async function init() {{
+            try {{
+                device = new Twilio.Device(token, {{
+                    codecPreferences: ['opus', 'pcmu'],
+                    enableRingingState: true
+                }});
+
+                device.on('ready', () => {{
+                    setStatus('Ready to call', 'ready');
+                    callBtn.disabled = false;
+                }});
+
+                device.on('error', (err) => setStatus('Error: ' + err.message, 'error'));
+
+                device.on('connect', (conn) => {{
+                    activeCall = conn;
+                    setStatus('On Call', 'on-call');
+                    callBtn.style.display = 'none';
+                    hangupBtn.style.display = 'block';
+                    timerEl.style.display = 'block';
+                    startTime = Date.now();
+                    timerInterval = setInterval(() => {{
+                        timerEl.textContent = formatTime(Math.floor((Date.now()-startTime)/1000));
+                    }}, 1000);
+                }});
+
+                device.on('disconnect', () => {{
+                    activeCall = null;
+                    setStatus('Call ended', 'ready');
+                    callBtn.style.display = 'block';
+                    hangupBtn.style.display = 'none';
+                    clearInterval(timerInterval);
+                }});
+            }} catch(e) {{
+                setStatus('Init failed: ' + e.message, 'error');
+            }}
+        }}
+
+        callBtn.onclick = () => {{
+            const num = phoneInput.value.trim();
+            if (!num) return alert('Enter a phone number');
+            setStatus('Connecting...', 'connecting');
+            device.connect({{ To: num }});
+        }};
+
+        hangupBtn.onclick = () => {{
+            if (activeCall) activeCall.disconnect();
+            device.disconnectAll();
+        }};
+
+        phoneInput.onkeypress = (e) => {{
+            if (e.key === 'Enter' && !callBtn.disabled) callBtn.click();
+        }};
+
+        init();
+    </script>
+</body>
+</html>'''
+    return HTMLResponse(content=html)
+
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8080))
