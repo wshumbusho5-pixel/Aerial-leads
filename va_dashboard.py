@@ -210,6 +210,65 @@ def save_appointment(appt_data, va_name):
     appts_df = pd.concat([appts_df, new_appt], ignore_index=True)
     appts_df.to_csv(APPOINTMENTS_FILE, index=False)
 
+# Daily Reports file
+REPORTS_FILE = DATA_DIR / "va_daily_reports.csv"
+
+def load_reports():
+    """Load daily reports"""
+    if REPORTS_FILE.exists():
+        try:
+            return pd.read_csv(REPORTS_FILE)
+        except:
+            return pd.DataFrame()
+    return pd.DataFrame()
+
+def save_daily_report(report_data):
+    """Save a daily report"""
+    reports_df = load_reports()
+    new_report = pd.DataFrame([report_data])
+    reports_df = pd.concat([reports_df, new_report], ignore_index=True)
+    reports_df.to_csv(REPORTS_FILE, index=False)
+
+def get_today_stats(va_name, calls_df):
+    """Get detailed stats for today"""
+    today = datetime.now().strftime('%Y-%m-%d')
+
+    if calls_df.empty or 'va_name' not in calls_df.columns:
+        return {
+            'total_calls': 0,
+            'contacts': 0,
+            'appointments': 0,
+            'interested': 0,
+            'not_interested': 0,
+            'no_answer': 0,
+            'voicemails': 0
+        }
+
+    va_today = calls_df[(calls_df['va_name'] == va_name) & (calls_df['date'] == today)]
+
+    if va_today.empty:
+        return {
+            'total_calls': 0,
+            'contacts': 0,
+            'appointments': 0,
+            'interested': 0,
+            'not_interested': 0,
+            'no_answer': 0,
+            'voicemails': 0
+        }
+
+    results = va_today['result'].value_counts().to_dict() if 'result' in va_today.columns else {}
+
+    return {
+        'total_calls': len(va_today),
+        'contacts': results.get('Contact - Interested', 0) + results.get('Contact - Maybe Later', 0) + results.get('Contact - Not Interested', 0),
+        'appointments': results.get('Appointment Set', 0),
+        'interested': results.get('Contact - Interested', 0),
+        'not_interested': results.get('Contact - Not Interested', 0),
+        'no_answer': results.get('No Answer', 0),
+        'voicemails': results.get('Voicemail Left', 0)
+    }
+
 def load_inbound_leads():
     """Load inbound leads from form submissions"""
     if INBOUND_FILE.exists():
@@ -475,7 +534,7 @@ def show_dashboard():
 
         page = st.radio(
             "Navigation",
-            ["📊 My Stats", "📋 My Leads", "📱 Dialer", f"🔔 Callback Queue{callback_badge}", "📞 Call Tracker", f"📅 Appointments{appt_badge}", "📥 Inbound Leads"],
+            ["📊 My Stats", "📋 My Leads", "📱 Dialer", f"🔔 Callback Queue{callback_badge}", "📞 Call Tracker", f"📅 Appointments{appt_badge}", "📥 Inbound Leads", "📝 End of Day"],
             label_visibility="collapsed"
         )
 
@@ -518,6 +577,8 @@ def show_dashboard():
         show_appointments_page(va_name)
     elif "Inbound" in page:
         show_inbound_page(inbound_df, va_name)
+    elif "End of Day" in page:
+        show_end_of_day_report(va_name, calls_df, stats)
 
 def show_stats_page(stats, calls_df, va_name):
     st.markdown("## 📊 My Stats")
@@ -1013,6 +1074,149 @@ def show_appointments_page(va_name):
             st.dataframe(past[display_cols].tail(20).iloc[::-1], use_container_width=True, hide_index=True)
         else:
             st.caption("No past appointments.")
+
+def show_end_of_day_report(va_name, calls_df, stats):
+    """End of Day Report - auto-fills stats, VA adds insights"""
+    st.markdown("## 📝 End of Day Report")
+    st.markdown("Submit your daily summary before signing off.")
+
+    today = datetime.now().strftime('%Y-%m-%d')
+    today_display = datetime.now().strftime('%A, %B %d, %Y')
+
+    # Check if report already submitted today
+    reports_df = load_reports()
+    already_submitted = False
+    if not reports_df.empty and 'date' in reports_df.columns and 'va_name' in reports_df.columns:
+        today_report = reports_df[(reports_df['date'] == today) & (reports_df['va_name'] == va_name)]
+        if not today_report.empty:
+            already_submitted = True
+
+    if already_submitted:
+        st.success("✅ You've already submitted your report for today!")
+        st.markdown("---")
+        st.markdown("### Your Submitted Report")
+        report = today_report.iloc[-1]
+        st.markdown(f"**Date:** {report.get('date', '')}")
+        st.markdown(f"**Calls Made:** {report.get('total_calls', 0)}")
+        st.markdown(f"**Appointments Set:** {report.get('appointments', 0)}")
+        st.markdown(f"**Hot Leads:** {report.get('hot_leads', 'None')}")
+        st.markdown(f"**Challenges:** {report.get('challenges', 'None')}")
+        st.markdown(f"**Tomorrow's Plan:** {report.get('tomorrow_plan', 'None')}")
+        return
+
+    st.markdown(f"### 📅 {today_display}")
+
+    # Auto-calculated stats section
+    st.markdown("---")
+    st.markdown("### 📊 Today's Stats (Auto-calculated)")
+
+    today_stats = get_today_stats(va_name, calls_df)
+
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Calls", today_stats['total_calls'])
+    with col2:
+        st.metric("Contacts", today_stats['contacts'])
+    with col3:
+        st.metric("Appointments", today_stats['appointments'])
+    with col4:
+        st.metric("Interested", today_stats['interested'])
+
+    # Breakdown
+    with st.expander("📈 Detailed Breakdown"):
+        st.markdown(f"""
+        | Result | Count |
+        |--------|-------|
+        | No Answer | {today_stats['no_answer']} |
+        | Voicemail Left | {today_stats['voicemails']} |
+        | Not Interested | {today_stats['not_interested']} |
+        | Interested | {today_stats['interested']} |
+        | Appointments Set | {today_stats['appointments']} |
+        """)
+
+    # VA Input section - simple but informative
+    st.markdown("---")
+    st.markdown("### 📋 Your Input")
+
+    # Hot leads - most important info
+    hot_leads = st.text_area(
+        "🔥 Hot Leads Today",
+        placeholder="List any promising leads (address, owner name, why they're hot)\n\nExample:\n- 123 Main St - John Smith - ready to sell, inherited property\n- 456 Oak Ave - Mary Johnson - behind on taxes, motivated",
+        height=100
+    )
+
+    # Challenges faced
+    challenges = st.text_area(
+        "⚠️ Challenges or Issues",
+        placeholder="Any problems encountered? (wrong numbers, difficult conversations, system issues)\n\nExample:\n- Many disconnected numbers in the 43215 zip\n- Dialer was slow around 2pm",
+        height=80
+    )
+
+    # Quick wins
+    wins = st.text_area(
+        "🎉 Wins & Highlights",
+        placeholder="Any victories worth mentioning?\n\nExample:\n- Set appointment with motivated seller\n- Got referral from homeowner",
+        height=80
+    )
+
+    # Tomorrow's plan
+    tomorrow_plan = st.text_area(
+        "📅 Plan for Tomorrow",
+        placeholder="What will you focus on tomorrow?\n\nExample:\n- Follow up with interested leads from today\n- Work through callback queue\n- Focus on high-score leads",
+        height=80
+    )
+
+    # Overall rating
+    st.markdown("---")
+    st.markdown("### How was your day?")
+    day_rating = st.select_slider(
+        "Rate your productivity",
+        options=["😫 Tough", "😐 Okay", "🙂 Good", "😊 Great", "🔥 Excellent"],
+        value="🙂 Good"
+    )
+
+    # Submit button
+    st.markdown("---")
+    if st.button("📤 Submit End of Day Report", type="primary", use_container_width=True):
+        if today_stats['total_calls'] == 0 and not hot_leads:
+            st.warning("Please log at least one call or add some notes before submitting.")
+        else:
+            report_data = {
+                'date': today,
+                'va_name': va_name,
+                'submitted_at': datetime.now().isoformat(),
+                'total_calls': today_stats['total_calls'],
+                'contacts': today_stats['contacts'],
+                'appointments': today_stats['appointments'],
+                'interested': today_stats['interested'],
+                'not_interested': today_stats['not_interested'],
+                'no_answer': today_stats['no_answer'],
+                'voicemails': today_stats['voicemails'],
+                'hot_leads': hot_leads,
+                'challenges': challenges,
+                'wins': wins,
+                'tomorrow_plan': tomorrow_plan,
+                'day_rating': day_rating
+            }
+
+            save_daily_report(report_data)
+            st.success("✅ End of Day Report submitted successfully!")
+            st.balloons()
+            st.info("Great work today! See you tomorrow. 👋")
+            st.rerun()
+
+    # Previous reports
+    st.markdown("---")
+    with st.expander("📜 Your Previous Reports"):
+        if not reports_df.empty and 'va_name' in reports_df.columns:
+            va_reports = reports_df[reports_df['va_name'] == va_name].tail(7).iloc[::-1]
+            if not va_reports.empty:
+                for _, report in va_reports.iterrows():
+                    st.markdown(f"**{report.get('date', 'Unknown')}** - {report.get('day_rating', '')} - {report.get('total_calls', 0)} calls, {report.get('appointments', 0)} appts")
+            else:
+                st.caption("No previous reports yet.")
+        else:
+            st.caption("No previous reports yet.")
 
 def show_dialer_page(leads_df, va_name):
     st.markdown("## 📱 Dialer")
