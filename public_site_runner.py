@@ -448,7 +448,7 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
 <head>
     <title>Browser Dialer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script type="text/javascript" src="https://sdk.twilio.com/js/voice/releases/2.7.2/twilio.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@twilio/voice-sdk@2.10.0/dist/twilio.min.js"></script>
     <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
         body {{
