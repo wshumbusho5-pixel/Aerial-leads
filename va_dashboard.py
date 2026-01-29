@@ -188,6 +188,28 @@ def save_call(call_data):
     calls_df = pd.concat([calls_df, new_call], ignore_index=True)
     calls_df.to_csv(CALLS_FILE, index=False)
 
+# Appointments file
+APPOINTMENTS_FILE = DATA_DIR / "appointments.csv"
+
+def load_appointments():
+    """Load scheduled appointments"""
+    if APPOINTMENTS_FILE.exists():
+        try:
+            return pd.read_csv(APPOINTMENTS_FILE)
+        except:
+            return pd.DataFrame()
+    return pd.DataFrame()
+
+def save_appointment(appt_data, va_name):
+    """Save a scheduled appointment"""
+    appts_df = load_appointments()
+    appt_data['scheduled_by'] = va_name
+    appt_data['scheduled_at'] = datetime.now().isoformat()
+    appt_data['status'] = 'scheduled'
+    new_appt = pd.DataFrame([appt_data])
+    appts_df = pd.concat([appts_df, new_appt], ignore_index=True)
+    appts_df.to_csv(APPOINTMENTS_FILE, index=False)
+
 def load_inbound_leads():
     """Load inbound leads from form submissions"""
     if INBOUND_FILE.exists():
@@ -443,9 +465,17 @@ def show_dashboard():
         ready_callbacks = get_ready_callbacks(va_name)
         callback_badge = f" ({len(ready_callbacks)})" if len(ready_callbacks) > 0 else ""
 
+        # Check for upcoming appointments badge
+        appts_df = load_appointments()
+        upcoming_appts = 0
+        if not appts_df.empty and 'date' in appts_df.columns:
+            today = datetime.now().strftime('%Y-%m-%d')
+            upcoming_appts = len(appts_df[(appts_df['date'] >= today) & (appts_df.get('scheduled_by', '') == va_name)])
+        appt_badge = f" ({upcoming_appts})" if upcoming_appts > 0 else ""
+
         page = st.radio(
             "Navigation",
-            ["📊 My Stats", "📋 My Leads", "📱 Dialer", f"🔔 Callback Queue{callback_badge}", "📞 Call Tracker", "📥 Inbound Leads"],
+            ["📊 My Stats", "📋 My Leads", "📱 Dialer", f"🔔 Callback Queue{callback_badge}", "📞 Call Tracker", f"📅 Appointments{appt_badge}", "📥 Inbound Leads"],
             label_visibility="collapsed"
         )
 
@@ -484,6 +514,8 @@ def show_dashboard():
         show_callback_queue_page(va_name)
     elif "Call Tracker" in page:
         show_call_tracker(leads_df, va_name)
+    elif "Appointments" in page:
+        show_appointments_page(va_name)
     elif "Inbound" in page:
         show_inbound_page(inbound_df, va_name)
 
@@ -696,12 +728,24 @@ def show_leads_page(leads_df, va_name):
                         'name': owner or '',
                         'address': address or ''
                     })
-                    # Use the public site URL for the dialer
                     public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://aerialleads-public-production.up.railway.app')
                     dialer_url = f"{public_site_url}/dialer?{params}"
 
-                    # Use link_button which opens in new tab
-                    st.link_button("🖥️ Call", dialer_url, use_container_width=True)
+                    # Two buttons: Call and Log
+                    btn_col1, btn_col2 = st.columns(2)
+                    with btn_col1:
+                        st.link_button("📞", dialer_url, use_container_width=True)
+                    with btn_col2:
+                        if st.button("📝", key=f"log_{idx}", use_container_width=True):
+                            # Save lead info and switch to Call Tracker
+                            st.session_state.last_called_lead = {
+                                'address': address,
+                                'phone': phone,
+                                'owner_name': owner,
+                                'called_at': datetime.now().isoformat()
+                            }
+                            st.session_state.va_page = "📞 Call Tracker"
+                            st.rerun()
 
                 elif calling_mode == 'phone' and va_phone and TWILIO_AVAILABLE:
                     # Phone dialer mode - two-leg call
@@ -735,14 +779,29 @@ def show_call_tracker(leads_df, va_name):
     st.markdown("## 📞 Call Tracker")
     st.markdown("Log your calls and track results.")
 
+    # Check for pre-filled lead info from "Log" button
+    last_lead = st.session_state.get('last_called_lead', {})
+    prefill_address = last_lead.get('address', '')
+    prefill_phone = last_lead.get('phone', '')
+    prefill_owner = last_lead.get('owner_name', '')
+
+    # Show pre-filled info banner
+    if prefill_address:
+        st.success(f"📋 **Logging call for:** {prefill_address} | {prefill_owner} | {prefill_phone}")
+        if st.button("✖️ Clear & Start Fresh", key="clear_prefill"):
+            st.session_state.last_called_lead = {}
+            st.rerun()
+
     # Quick log form
     st.markdown("### Log a Call")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        # Address input - either from leads or manual
-        if not leads_df.empty and 'address' in leads_df.columns:
+        # Address - pre-filled if available
+        if prefill_address:
+            address = st.text_input("Property Address", value=prefill_address)
+        elif not leads_df.empty and 'address' in leads_df.columns:
             addresses = leads_df['address'].dropna().tolist()[:100]
             address = st.selectbox("Property Address", [""] + addresses)
             if not address:
@@ -750,7 +809,12 @@ def show_call_tracker(leads_df, va_name):
         else:
             address = st.text_input("Property Address", placeholder="123 Main St")
 
-        phone = st.text_input("Phone Number Called", placeholder="(614) 555-1234")
+        # Phone - pre-filled if available
+        phone = st.text_input("Phone Number Called", value=prefill_phone, placeholder="(614) 555-1234")
+
+        # Owner name (for reference)
+        if prefill_owner:
+            st.caption(f"👤 Owner: {prefill_owner}")
 
     with col2:
         result = st.selectbox("Call Result", [
@@ -764,7 +828,43 @@ def show_call_tracker(leads_df, va_name):
             "Disconnected"
         ])
 
-        callback = st.date_input("Callback Date (if needed)", value=None)
+        # Show callback date for follow-ups
+        if result in ["Contact - Maybe Later", "Contact - Interested", "No Answer"]:
+            callback = st.date_input("📅 Callback Date", value=None)
+        else:
+            callback = None
+
+    # Appointment scheduling section - appears when "Appointment Set"
+    appointment_data = {}
+    if result == "Appointment Set":
+        st.markdown("---")
+        st.markdown("### 📅 Schedule Appointment")
+
+        appt_col1, appt_col2 = st.columns(2)
+
+        with appt_col1:
+            appt_date = st.date_input("Appointment Date", value=datetime.now().date() + timedelta(days=1))
+            appt_time = st.time_input("Appointment Time", value=datetime.strptime("10:00", "%H:%M").time())
+
+        with appt_col2:
+            appt_type = st.selectbox("Appointment Type", [
+                "Phone Call",
+                "Property Visit",
+                "Video Call",
+                "Office Meeting"
+            ])
+            appt_with = st.text_input("Meeting With", value=prefill_owner, placeholder="Owner name")
+
+        appointment_data = {
+            'date': str(appt_date),
+            'time': str(appt_time),
+            'type': appt_type,
+            'with': appt_with,
+            'address': address,
+            'phone': phone
+        }
+
+        st.info(f"📅 Appointment: {appt_type} on {appt_date} at {appt_time} with {appt_with}")
 
     notes = st.text_area("Notes", placeholder="Any important details from the call...")
 
@@ -776,12 +876,29 @@ def show_call_tracker(leads_df, va_name):
                 "va_name": va_name,
                 "address": address,
                 "phone": phone,
+                "owner_name": prefill_owner,
                 "result": result,
                 "callback_date": str(callback) if callback else "",
                 "notes": notes
             }
+
+            # Add appointment info if set
+            if appointment_data:
+                call_data['appointment_date'] = appointment_data.get('date', '')
+                call_data['appointment_time'] = appointment_data.get('time', '')
+                call_data['appointment_type'] = appointment_data.get('type', '')
+
+                # Also save to appointments file
+                save_appointment(appointment_data, va_name)
+
             save_call(call_data)
+
+            # Clear pre-filled data
+            st.session_state.last_called_lead = {}
+
             st.markdown("<div class='success-msg'>✅ Call logged successfully!</div>", unsafe_allow_html=True)
+            if appointment_data:
+                st.success(f"📅 Appointment scheduled for {appointment_data['date']} at {appointment_data['time']}")
             st.balloons()
         else:
             st.error("Please enter the property address")
@@ -801,6 +918,101 @@ def show_call_tracker(leads_df, va_name):
             st.info("No calls logged yet today.")
     else:
         st.info("No calls logged yet. Make your first call!")
+
+def show_appointments_page(va_name):
+    """Display scheduled appointments for the VA"""
+    st.markdown("## 📅 My Appointments")
+    st.markdown("View and manage your scheduled appointments.")
+
+    appts_df = load_appointments()
+
+    if appts_df.empty:
+        st.info("No appointments scheduled yet. Set appointments from the Call Tracker!")
+        return
+
+    # Filter to this VA's appointments
+    if 'scheduled_by' in appts_df.columns:
+        va_appts = appts_df[appts_df['scheduled_by'] == va_name].copy()
+    else:
+        va_appts = appts_df.copy()
+
+    if va_appts.empty:
+        st.info("No appointments scheduled yet. Set appointments from the Call Tracker!")
+        return
+
+    # Sort by date
+    if 'date' in va_appts.columns:
+        va_appts = va_appts.sort_values('date')
+
+    today = datetime.now().strftime('%Y-%m-%d')
+
+    # Upcoming appointments
+    st.markdown("### 📅 Upcoming")
+    if 'date' in va_appts.columns:
+        upcoming = va_appts[va_appts['date'] >= today]
+    else:
+        upcoming = va_appts
+
+    if not upcoming.empty:
+        for idx, appt in upcoming.iterrows():
+            appt_date = appt.get('date', 'No date')
+            appt_time = appt.get('time', '')
+            appt_type = appt.get('type', 'Appointment')
+            appt_with = appt.get('with', 'Unknown')
+            appt_address = appt.get('address', '')
+            appt_phone = appt.get('phone', '')
+            status = appt.get('status', 'scheduled')
+
+            # Color code based on date
+            is_today = appt_date == today
+            color = "#28a745" if is_today else "#17a2b8"
+
+            with st.container():
+                col1, col2, col3 = st.columns([3, 1, 1])
+
+                with col1:
+                    if is_today:
+                        st.markdown(f"### 🔴 TODAY - {appt_time}")
+                    else:
+                        st.markdown(f"### {appt_date} at {appt_time}")
+
+                    st.markdown(f"**{appt_type}** with **{appt_with}**")
+                    if appt_address:
+                        st.caption(f"📍 {appt_address}")
+                    if appt_phone:
+                        st.caption(f"📞 {appt_phone}")
+
+                with col2:
+                    st.markdown(f"**Status:** {status.title()}")
+
+                with col3:
+                    if st.button("✅ Complete", key=f"complete_{idx}"):
+                        # Update status
+                        appts_df.loc[idx, 'status'] = 'completed'
+                        appts_df.to_csv(APPOINTMENTS_FILE, index=False)
+                        st.success("Marked complete!")
+                        st.rerun()
+
+                    if st.button("❌ Cancel", key=f"cancel_{idx}"):
+                        appts_df.loc[idx, 'status'] = 'cancelled'
+                        appts_df.to_csv(APPOINTMENTS_FILE, index=False)
+                        st.warning("Appointment cancelled")
+                        st.rerun()
+
+                st.markdown("---")
+    else:
+        st.info("No upcoming appointments.")
+
+    # Past appointments
+    st.markdown("### 📜 Past Appointments")
+    if 'date' in va_appts.columns:
+        past = va_appts[va_appts['date'] < today]
+        if not past.empty:
+            display_cols = ['date', 'time', 'type', 'with', 'address', 'status']
+            display_cols = [c for c in display_cols if c in past.columns]
+            st.dataframe(past[display_cols].tail(20).iloc[::-1], use_container_width=True, hide_index=True)
+        else:
+            st.caption("No past appointments.")
 
 def show_dialer_page(leads_df, va_name):
     st.markdown("## 📱 Dialer")
