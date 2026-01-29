@@ -430,13 +430,13 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             </body></html>
         """, status_code=500)
 
-    # Return dialer HTML
+    # Return dialer HTML - Using Twilio Voice SDK 2.x with Access Tokens
     html = f'''<!DOCTYPE html>
 <html>
 <head>
     <title>Browser Dialer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://sdk.twilio.com/js/client/releases/1.14.0/twilio.min.js"></script>
+    <script src="https://sdk.twilio.com/js/voice/releases/2.10.2/twilio.min.js"></script>
     <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
         body {{
@@ -545,20 +545,43 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
 
         async function init() {{
             try {{
+                // Twilio Voice SDK 2.x
                 device = new Twilio.Device(token, {{
-                    codecPreferences: ['opus', 'pcmu'],
-                    enableRingingState: true
+                    codecPreferences: [Twilio.Device.Codec.Opus, Twilio.Device.Codec.PCMU],
+                    logLevel: 1
                 }});
 
-                device.on('ready', () => {{
+                device.on('registered', () => {{
                     setStatus('Ready to call', 'ready');
                     callBtn.disabled = false;
                 }});
 
-                device.on('error', (err) => setStatus('Error: ' + err.message, 'error'));
+                device.on('error', (err) => {{
+                    console.error('Device error:', err);
+                    setStatus('Error: ' + (err.message || err), 'error');
+                }});
 
-                device.on('connect', (conn) => {{
-                    activeCall = conn;
+                // Register the device to receive calls (required in SDK 2.x)
+                await device.register();
+                console.log('Device registered successfully');
+
+            }} catch(e) {{
+                console.error('Init failed:', e);
+                setStatus('Init failed: ' + e.message, 'error');
+            }}
+        }}
+
+        callBtn.onclick = async () => {{
+            const num = phoneInput.value.trim();
+            if (!num) return alert('Enter a phone number');
+            setStatus('Connecting...', 'connecting');
+
+            try {{
+                // SDK 2.x uses params object
+                activeCall = await device.connect({{ params: {{ To: num }} }});
+                console.log('Call initiated');
+
+                activeCall.on('accept', () => {{
                     setStatus('On Call', 'on-call');
                     callBtn.style.display = 'none';
                     hangupBtn.style.display = 'block';
@@ -569,28 +592,37 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
                     }}, 1000);
                 }});
 
-                device.on('disconnect', () => {{
+                activeCall.on('disconnect', () => {{
                     activeCall = null;
                     setStatus('Call ended', 'ready');
                     callBtn.style.display = 'block';
                     hangupBtn.style.display = 'none';
+                    timerEl.style.display = 'none';
                     clearInterval(timerInterval);
                 }});
-            }} catch(e) {{
-                setStatus('Init failed: ' + e.message, 'error');
-            }}
-        }}
 
-        callBtn.onclick = () => {{
-            const num = phoneInput.value.trim();
-            if (!num) return alert('Enter a phone number');
-            setStatus('Connecting...', 'connecting');
-            device.connect({{ To: num }});
+                activeCall.on('cancel', () => {{
+                    activeCall = null;
+                    setStatus('Call cancelled', 'ready');
+                    callBtn.style.display = 'block';
+                    hangupBtn.style.display = 'none';
+                }});
+
+                activeCall.on('error', (err) => {{
+                    console.error('Call error:', err);
+                    setStatus('Call error: ' + err.message, 'error');
+                }});
+
+            }} catch(e) {{
+                console.error('Connect failed:', e);
+                setStatus('Connect failed: ' + e.message, 'error');
+            }}
         }};
 
         hangupBtn.onclick = () => {{
-            if (activeCall) activeCall.disconnect();
-            device.disconnectAll();
+            if (activeCall) {{
+                activeCall.disconnect();
+            }}
         }};
 
         phoneInput.onkeypress = (e) => {{
