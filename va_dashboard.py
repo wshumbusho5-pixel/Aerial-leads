@@ -716,7 +716,7 @@ def show_leads_page(leads_df, va_name):
             """)
 
             # Test browser dialer link
-            public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://aerialleads-public-production.up.railway.app')
+            public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://va-public-production.up.railway.app')
             test_url = f"{public_site_url}/dialer?identity={va_username or 'test-va'}&phone=&name=Test&address=Test"
             st.link_button("🧪 Test Browser Dialer", test_url, use_container_width=True)
             st.caption("Test your microphone before making real calls.")
@@ -816,7 +816,7 @@ def show_leads_page(leads_df, va_name):
                         'name': owner or '',
                         'address': address or ''
                     })
-                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://aerialleads-public-production.up.railway.app')
+                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://va-public-production.up.railway.app')
                     dialer_url = f"{public_site_url}/dialer?{params}"
 
                     # Two buttons: Call and Log
@@ -1506,7 +1506,7 @@ def show_callback_queue_page(va_name):
                 with col3:
                     # Open browser dialer
                     va_identity = st.session_state.get('va_username', 'va-user')
-                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://aerialleads-public-production.up.railway.app')
+                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://va-public-production.up.railway.app')
                     import urllib.parse
                     params = urllib.parse.urlencode({
                         'identity': va_identity,
@@ -1670,7 +1670,7 @@ def show_inbound_page(inbound_df, va_name):
                 if phone:
                     # Browser dialer
                     va_identity = st.session_state.get('va_username', 'va-user')
-                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://aerialleads-public-production.up.railway.app')
+                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://va-public-production.up.railway.app')
                     import urllib.parse
                     params = urllib.parse.urlencode({
                         'identity': va_identity,

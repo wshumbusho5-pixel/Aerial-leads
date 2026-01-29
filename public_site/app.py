@@ -644,9 +644,11 @@ async def api_inbound_leads():
 # BROWSER DIALER API (Twilio WebRTC)
 # ============================================
 
-# Import browser calling module
+# Import browser calling module (try local first, then parent directory)
+BROWSER_CALLING_AVAILABLE = False
+TWILIO_CLIENT_AVAILABLE = False
 try:
-    sys.path.insert(0, str(BASE_DIR.parent))
+    # Try local auth folder first (for Railway deployment)
     from auth.browser_calling import (
         generate_access_token,
         generate_capability_token,
@@ -657,10 +659,24 @@ try:
         TWILIO_CLIENT_AVAILABLE
     )
     BROWSER_CALLING_AVAILABLE = True
-except ImportError as e:
-    logger.warning(f"Browser calling not available: {e}")
-    BROWSER_CALLING_AVAILABLE = False
-    TWILIO_CLIENT_AVAILABLE = False
+    logger.info("Loaded browser calling from local auth folder")
+except ImportError:
+    try:
+        # Fall back to parent directory (for local development)
+        sys.path.insert(0, str(BASE_DIR.parent))
+        from auth.browser_calling import (
+            generate_access_token,
+            generate_capability_token,
+            create_outbound_twiml,
+            get_dialer_html,
+            clean_phone_for_browser,
+            get_twiml_app_info,
+            TWILIO_CLIENT_AVAILABLE
+        )
+        BROWSER_CALLING_AVAILABLE = True
+        logger.info("Loaded browser calling from parent directory")
+    except ImportError as e:
+        logger.warning(f"Browser calling not available: {e}")
 
 
 @app.get("/api/dialer/status")
