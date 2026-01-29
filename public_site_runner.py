@@ -384,8 +384,34 @@ async def dialer_status():
         "available": TWILIO_CLIENT_AVAILABLE,
         "twiml_configured": bool(TWILIO_TWIML_APP_SID),
         "phone_number": TWILIO_PHONE_NUMBER or "",
-        "api_key_configured": bool(TWILIO_API_KEY and TWILIO_API_SECRET)
+        "api_key_configured": bool(TWILIO_API_KEY and TWILIO_API_SECRET),
+        "account_sid": TWILIO_ACCOUNT_SID[:10] + "..." if TWILIO_ACCOUNT_SID else None,
+        "twiml_app_sid": TWILIO_TWIML_APP_SID[:10] + "..." if TWILIO_TWIML_APP_SID else None
     }
+
+
+@app.get("/api/dialer/test-twiml")
+async def test_twiml(phone: str = "+15551234567"):
+    """Test TwiML generation."""
+    try:
+        to_number = clean_phone(phone)
+        if not to_number:
+            return {"error": "Invalid phone", "raw": phone}
+
+        response = VoiceResponse()
+        dial = Dial(caller_id=TWILIO_PHONE_NUMBER, timeout=30)
+        dial.number(to_number)
+        response.append(dial)
+        response.say("Call ended.")
+
+        return {
+            "success": True,
+            "to_number": to_number,
+            "caller_id": TWILIO_PHONE_NUMBER,
+            "twiml": str(response)
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get("/api/dialer/token")
@@ -403,23 +429,37 @@ async def get_dialer_token(identity: str = "va-user"):
 @app.post("/api/dialer/twiml")
 async def handle_twiml(request: Request):
     """TwiML webhook for outbound browser calls."""
-    if not TWILIO_CLIENT_AVAILABLE:
-        return HTMLResponse(content="<Response><Say>Not configured</Say></Response>", media_type="application/xml")
+    try:
+        form = await request.form()
+        raw_to = form.get('To', '')
+        logger.info(f"TwiML request - Raw To: {raw_to}")
 
-    form = await request.form()
-    to_number = clean_phone(form.get('To', ''))
+        to_number = clean_phone(raw_to)
+        logger.info(f"TwiML request - Cleaned To: {to_number}, Caller ID: {TWILIO_PHONE_NUMBER}")
 
-    if not to_number:
-        return HTMLResponse(content="<Response><Say>Invalid number</Say></Response>", media_type="application/xml")
+        if not to_number:
+            logger.error("Invalid phone number")
+            return HTMLResponse(content="<Response><Say>Invalid phone number provided</Say></Response>", media_type="application/xml")
 
-    response = VoiceResponse()
-    dial = Dial(caller_id=TWILIO_PHONE_NUMBER, timeout=30)
-    dial.number(to_number)
-    response.append(dial)
-    response.say("Call ended. Goodbye.")
+        if not TWILIO_PHONE_NUMBER:
+            logger.error("No caller ID configured")
+            return HTMLResponse(content="<Response><Say>Caller ID not configured</Say></Response>", media_type="application/xml")
 
-    logger.info(f"Browser call to: {to_number}")
-    return HTMLResponse(content=str(response), media_type="application/xml")
+        response = VoiceResponse()
+        dial = Dial(caller_id=TWILIO_PHONE_NUMBER, timeout=30)
+        dial.number(to_number)
+        response.append(dial)
+        response.say("Call ended. Goodbye.")
+
+        twiml_str = str(response)
+        logger.info(f"Generated TwiML: {twiml_str}")
+        return HTMLResponse(content=twiml_str, media_type="application/xml")
+
+    except Exception as e:
+        logger.error(f"TwiML error: {e}")
+        import traceback
+        traceback.print_exc()
+        return HTMLResponse(content=f"<Response><Say>Error: {str(e)}</Say></Response>", media_type="application/xml")
 
 
 @app.get("/dialer", response_class=HTMLResponse)
