@@ -550,59 +550,60 @@ def show_leads_page(leads_df, va_name):
         if 'calling_mode' not in st.session_state:
             st.session_state.calling_mode = 'browser' if BROWSER_DIALER_AVAILABLE else 'phone'
 
-        st.markdown("### Choose Your Calling Method")
+        st.markdown("### Calling Method")
 
-        # Browser Dialer option (recommended)
-        col1, col2 = st.columns(2)
+        # Check if user is admin
+        user_role = st.session_state.get('user_role', 'va')
+        is_admin = user_role == 'admin'
 
-        with col1:
-            if BROWSER_DIALER_AVAILABLE:
-                if st.button("🖥️ Browser Dialer (Recommended)", use_container_width=True,
+        # Browser Dialer is the only option for VAs (cost control)
+        if BROWSER_DIALER_AVAILABLE:
+            st.session_state.calling_mode = 'browser'  # Force browser mode
+            st.success("🖥️ **Browser Dialer Active**")
+            st.caption("Make calls directly from your browser using your headset.")
+        else:
+            st.error("Browser Dialer not configured - contact admin")
+
+        # Only show phone dialer option to admins
+        if is_admin:
+            st.markdown("---")
+            st.caption("🔒 Admin-only options:")
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🖥️ Use Browser", use_container_width=True,
                            type="primary" if st.session_state.calling_mode == 'browser' else "secondary"):
                     st.session_state.calling_mode = 'browser'
                     st.rerun()
-                st.caption("Make calls from your browser with headset. Much cheaper!")
-            else:
-                st.button("🖥️ Browser Dialer", use_container_width=True, disabled=True)
-                st.caption("Not configured - contact admin")
-
-        with col2:
-            if TWILIO_AVAILABLE:
-                if st.button("📱 Phone Dialer", use_container_width=True,
-                           type="primary" if st.session_state.calling_mode == 'phone' else "secondary"):
-                    st.session_state.calling_mode = 'phone'
-                    st.rerun()
-                st.caption("Calls your personal phone first")
-            else:
-                st.button("📱 Phone Dialer", use_container_width=True, disabled=True)
-                st.caption("Not configured")
+            with col2:
+                if TWILIO_AVAILABLE:
+                    if st.button("📱 Use Phone", use_container_width=True,
+                               type="primary" if st.session_state.calling_mode == 'phone' else "secondary"):
+                        st.session_state.calling_mode = 'phone'
+                        st.rerun()
+                else:
+                    st.button("📱 Phone N/A", use_container_width=True, disabled=True)
 
         st.markdown("---")
 
         # Show settings based on selected mode
         if st.session_state.calling_mode == 'browser':
-            st.success("🖥️ **Browser Dialer Selected**")
             st.markdown("""
-            **Requirements:**
-            - Headset with microphone (or laptop mic + speakers)
-            - Allow microphone access when prompted
-
-            **How it works:**
-            - Click 'Call' on any lead
-            - A dialer window opens in your browser
-            - Speak through your headset
-            - No phone needed!
+            **How to use:**
+            1. Use a headset with microphone (or laptop mic + speakers)
+            2. Click 'Call' on any lead below
+            3. A dialer opens in new tab - allow microphone access
+            4. Talk through your headset!
             """)
 
             # Test browser dialer link
             public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://aerialleads-public-production.up.railway.app')
             test_url = f"{public_site_url}/dialer?identity={va_username or 'test-va'}&phone=&name=Test&address=Test"
             st.link_button("🧪 Test Browser Dialer", test_url, use_container_width=True)
-            st.caption("Click to open dialer in new tab. Allow microphone access when prompted.")
+            st.caption("Test your microphone before making real calls.")
 
-        else:
-            st.info("📱 **Phone Dialer Selected**")
-            st.caption("When you click 'Call', we'll call your phone first, then connect you to the lead.")
+        elif st.session_state.calling_mode == 'phone' and is_admin:
+            st.info("📱 **Phone Dialer Mode** (Admin)")
+            st.caption("Calls your phone first, then connects to lead.")
 
             new_phone = st.text_input(
                 "Your Phone Number",
@@ -614,7 +615,6 @@ def show_leads_page(leads_df, va_name):
             if st.button("💾 Save Phone Number"):
                 if new_phone:
                     st.session_state.va_phone = new_phone
-                    # Save to database
                     if DB_AUTH_AVAILABLE and va_username:
                         try:
                             db_auth = DatabaseAuth()
@@ -625,14 +625,12 @@ def show_leads_page(leads_df, va_name):
                             conn.close()
                             st.success(f"Phone saved: {new_phone}")
                         except Exception as e:
-                            st.error(f"Could not save to database: {e}")
+                            st.error(f"Could not save: {e}")
                     else:
-                        st.success(f"Phone set for this session: {new_phone}")
-                else:
-                    st.warning("Please enter a phone number")
+                        st.success(f"Phone set: {new_phone}")
 
             if not va_phone:
-                st.warning("⚠️ Enter your phone number above to enable calling")
+                st.warning("⚠️ Enter your phone number to enable calling")
 
     if leads_df.empty:
         st.warning("No leads available. Check back later for new assignments.")
