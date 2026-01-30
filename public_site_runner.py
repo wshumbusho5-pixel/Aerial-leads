@@ -908,17 +908,17 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             <label for="outcome">Call Outcome *</label>
             <select id="outcome" required>
                 <option value="">-- Select Outcome --</option>
-                <option value="no_answer">No Answer</option>
-                <option value="left_voicemail">Left Voicemail</option>
-                <option value="wrong_number">Wrong Number</option>
-                <option value="not_interested">Not Interested</option>
-                <option value="call_back_later">Call Back Later</option>
-                <option value="interested">Interested</option>
-                <option value="appointment_set">Appointment Set</option>
-                <option value="do_not_call">Do Not Call</option>
+                <option value="No Answer">No Answer</option>
+                <option value="Voicemail Left">Left Voicemail</option>
+                <option value="Wrong Number">Wrong Number</option>
+                <option value="Contact - Not Interested">Not Interested</option>
+                <option value="Contact - Maybe Later">Maybe Later / Call Back</option>
+                <option value="Contact - Interested">Interested</option>
+                <option value="Appointment Set">Appointment Set</option>
+                <option value="Do Not Call">Do Not Call</option>
             </select>
 
-            <!-- Appointment fields (shown when outcome is appointment_set) -->
+            <!-- Appointment fields (shown when outcome is Appointment Set) -->
             <div id="appointment-fields" class="appointment-fields">
                 <label>Appointment Date & Time *</label>
                 <div class="form-row">
@@ -994,7 +994,7 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
 
         // Show/hide appointment fields based on outcome
         outcomeSelect.addEventListener('change', function() {{
-            if (this.value === 'appointment_set') {{
+            if (this.value === 'Appointment Set') {{
                 appointmentFields.style.display = 'block';
                 // Set default date to tomorrow
                 const tomorrow = new Date();
@@ -1139,7 +1139,7 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
                 }}
 
                 // If appointment set, create appointment
-                if (outcome === 'appointment_set') {{
+                if (outcome === 'Appointment Set') {{
                     const aptDate = document.getElementById('apt-date').value;
                     const aptTime = document.getElementById('apt-time').value;
                     const aptType = document.getElementById('apt-type').value;
