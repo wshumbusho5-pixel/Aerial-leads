@@ -1210,11 +1210,13 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
         }}
 
         function goToDashboard() {{
-            // Try to close if popup, otherwise redirect
+            // Redirect to VA Portal (different service)
+            const vaPortalUrl = 'https://va-portal-production.up.railway.app';
             if (window.opener) {{
+                window.opener.location.reload();  // Refresh the dashboard
                 window.close();
             }} else {{
-                window.location.href = '/';
+                window.location.href = vaPortalUrl;
             }}
         }}
 
