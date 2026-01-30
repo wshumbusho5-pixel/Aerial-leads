@@ -944,6 +944,17 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
         <div id="success-section" style="display: none;">
             <div class="success-msg" id="success-msg">Call logged successfully!</div>
             <button id="new-call-btn" class="btn btn-call">Make Another Call</button>
+            <button id="back-to-dashboard" class="btn btn-secondary" style="margin-top: 10px;">Back to VA Dashboard</button>
+        </div>
+
+        <!-- ERROR MESSAGE -->
+        <div id="error-section" style="display: none;">
+            <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <strong>Error saving call:</strong>
+                <p id="error-msg"></p>
+            </div>
+            <button id="retry-save" class="btn btn-call">Try Again</button>
+            <button id="back-to-dashboard-error" class="btn btn-secondary" style="margin-top: 10px;">Back to VA Dashboard</button>
         </div>
     </div>
 
@@ -1111,6 +1122,7 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
 
             try {{
                 setStatus('Saving...', 'logging');
+                console.log('Saving call data:', callData);
 
                 // Save call log
                 const logResponse = await fetch('/api/dialer/log-call', {{
@@ -1119,6 +1131,12 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
                     body: JSON.stringify(callData)
                 }});
                 const logResult = await logResponse.json();
+                console.log('Log response:', logResult);
+
+                // Check for errors
+                if (!logResponse.ok || logResult.error) {{
+                    throw new Error(logResult.error || 'Failed to save call log');
+                }}
 
                 // If appointment set, create appointment
                 if (outcome === 'appointment_set') {{
@@ -1143,11 +1161,12 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
                         call_log_id: logResult.call_log_id
                     }};
 
-                    await fetch('/api/dialer/set-appointment', {{
+                    const aptResponse = await fetch('/api/dialer/set-appointment', {{
                         method: 'POST',
                         headers: {{ 'Content-Type': 'application/json' }},
                         body: JSON.stringify(aptData)
                     }});
+                    console.log('Appointment response:', await aptResponse.json());
 
                     document.getElementById('success-msg').textContent = 'Call logged & appointment scheduled!';
                 }} else {{
@@ -1157,11 +1176,15 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
                 // Show success
                 callForm.style.display = 'none';
                 successSection.style.display = 'block';
-                setStatus('Ready to call', 'ready');
+                setStatus('Saved!', 'ready');
 
             }} catch(e) {{
                 console.error('Failed to save:', e);
-                alert('Failed to save call log. Please try again.');
+                // Show error section
+                callForm.style.display = 'none';
+                document.getElementById('error-section').style.display = 'block';
+                document.getElementById('error-msg').textContent = e.message || 'Unknown error. Check console for details.';
+                setStatus('Save failed', 'error');
             }}
         }}
 
@@ -1186,12 +1209,30 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             setStatus('Ready to call', 'ready');
         }}
 
+        function goToDashboard() {{
+            // Try to close if popup, otherwise redirect
+            if (window.opener) {{
+                window.close();
+            }} else {{
+                window.location.href = '/';
+            }}
+        }}
+
+        function retryFromError() {{
+            document.getElementById('error-section').style.display = 'none';
+            callForm.style.display = 'block';
+            setStatus('Ready to save', 'logging');
+        }}
+
         // Event listeners
         callBtn.onclick = makeCall;
         hangupBtn.onclick = hangUp;
         document.getElementById('submit-log').onclick = submitCallLog;
         document.getElementById('skip-log').onclick = skipLog;
         document.getElementById('new-call-btn').onclick = resetForNewCall;
+        document.getElementById('back-to-dashboard').onclick = goToDashboard;
+        document.getElementById('back-to-dashboard-error').onclick = goToDashboard;
+        document.getElementById('retry-save').onclick = retryFromError;
 
         phoneInput.onkeypress = function(e) {{
             if (e.key === 'Enter' && !callBtn.disabled) makeCall();
