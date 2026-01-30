@@ -173,7 +173,36 @@ def load_leads(va_username: str = None):
     return pd.DataFrame()
 
 def load_calls():
-    """Load call history"""
+    """Load call history from database (primary) or CSV (fallback)"""
+    # Try PostgreSQL first
+    if DB_AUTH_AVAILABLE:
+        try:
+            db_auth = DatabaseAuth()
+            conn = db_auth._get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, va_identity, lead_name, lead_phone, lead_address,
+                       call_start, duration_seconds, outcome, notes, follow_up_date
+                FROM call_logs
+                ORDER BY call_start DESC
+                LIMIT 500
+            """)
+            rows = cursor.fetchall()
+            conn.close()
+            if rows:
+                # Map to expected column names
+                df = pd.DataFrame(rows, columns=[
+                    'id', 'va_name', 'owner_name', 'phone', 'address',
+                    'datetime', 'duration', 'result', 'notes', 'callback_date'
+                ])
+                # Extract date and time from datetime
+                df['date'] = pd.to_datetime(df['datetime']).dt.strftime('%Y-%m-%d')
+                df['time'] = pd.to_datetime(df['datetime']).dt.strftime('%H:%M')
+                return df
+        except Exception as e:
+            pass  # Fall through to CSV
+
+    # Fallback to CSV
     if CALLS_FILE.exists():
         try:
             return pd.read_csv(CALLS_FILE)
@@ -182,17 +211,77 @@ def load_calls():
     return pd.DataFrame()
 
 def save_call(call_data):
-    """Save a call log entry - syncs with admin dashboard"""
-    calls_df = load_calls()
+    """Save a call log entry to database and CSV"""
+    # Save to PostgreSQL first
+    if DB_AUTH_AVAILABLE:
+        try:
+            db_auth = DatabaseAuth()
+            conn = db_auth._get_connection()
+            cursor = conn.cursor()
+
+            # Map VA dashboard format to database format
+            cursor.execute("""
+                INSERT INTO call_logs
+                (va_identity, lead_name, lead_phone, lead_address, outcome, notes, follow_up_date)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (
+                call_data.get('va_name', ''),
+                call_data.get('owner_name', ''),
+                call_data.get('phone', ''),
+                call_data.get('address', ''),
+                call_data.get('result', ''),
+                call_data.get('notes', ''),
+                call_data.get('callback_date') or None
+            ))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            pass  # Continue to CSV fallback
+
+    # Also save to CSV for backward compatibility
+    calls_df = pd.DataFrame()
+    if CALLS_FILE.exists():
+        try:
+            calls_df = pd.read_csv(CALLS_FILE)
+        except:
+            pass
     new_call = pd.DataFrame([call_data])
     calls_df = pd.concat([calls_df, new_call], ignore_index=True)
-    calls_df.to_csv(CALLS_FILE, index=False)
+    try:
+        calls_df.to_csv(CALLS_FILE, index=False)
+    except:
+        pass  # Ignore CSV errors on Railway
 
 # Appointments file
 APPOINTMENTS_FILE = DATA_DIR / "appointments.csv"
 
 def load_appointments():
-    """Load scheduled appointments"""
+    """Load scheduled appointments from database (primary) or CSV (fallback)"""
+    # Try PostgreSQL first
+    if DB_AUTH_AVAILABLE:
+        try:
+            db_auth = DatabaseAuth()
+            conn = db_auth._get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, created_by, lead_name, lead_phone, lead_address,
+                       appointment_date, appointment_time, appointment_type, status, notes
+                FROM appointments
+                WHERE status = 'scheduled'
+                ORDER BY appointment_date, appointment_time
+            """)
+            rows = cursor.fetchall()
+            conn.close()
+            if rows:
+                df = pd.DataFrame(rows, columns=[
+                    'id', 'scheduled_by', 'with', 'phone', 'address',
+                    'date', 'time', 'type', 'status', 'notes'
+                ])
+                return df
+        except Exception as e:
+            pass  # Fall through to CSV
+
+    # Fallback to CSV
     if APPOINTMENTS_FILE.exists():
         try:
             return pd.read_csv(APPOINTMENTS_FILE)
@@ -201,14 +290,50 @@ def load_appointments():
     return pd.DataFrame()
 
 def save_appointment(appt_data, va_name):
-    """Save a scheduled appointment"""
-    appts_df = load_appointments()
+    """Save a scheduled appointment to database and CSV"""
     appt_data['scheduled_by'] = va_name
     appt_data['scheduled_at'] = datetime.now().isoformat()
     appt_data['status'] = 'scheduled'
+
+    # Save to PostgreSQL first
+    if DB_AUTH_AVAILABLE:
+        try:
+            db_auth = DatabaseAuth()
+            conn = db_auth._get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO appointments
+                (created_by, lead_name, lead_phone, lead_address,
+                 appointment_date, appointment_time, appointment_type, notes)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                va_name,
+                appt_data.get('with', ''),
+                appt_data.get('phone', ''),
+                appt_data.get('address', ''),
+                appt_data.get('date', ''),
+                appt_data.get('time', ''),
+                appt_data.get('type', 'callback'),
+                appt_data.get('notes', '')
+            ))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            pass  # Continue to CSV
+
+    # Also save to CSV for backward compatibility
+    appts_df = pd.DataFrame()
+    if APPOINTMENTS_FILE.exists():
+        try:
+            appts_df = pd.read_csv(APPOINTMENTS_FILE)
+        except:
+            pass
     new_appt = pd.DataFrame([appt_data])
     appts_df = pd.concat([appts_df, new_appt], ignore_index=True)
-    appts_df.to_csv(APPOINTMENTS_FILE, index=False)
+    try:
+        appts_df.to_csv(APPOINTMENTS_FILE, index=False)
+    except:
+        pass
 
 # Daily Reports file
 REPORTS_FILE = DATA_DIR / "va_daily_reports.csv"
