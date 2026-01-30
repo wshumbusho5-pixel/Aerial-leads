@@ -46,6 +46,12 @@ def get_db_connection():
         logger.error(f"Database connection failed: {e}")
         return None
 
+import hashlib
+
+def hash_password(password: str) -> str:
+    """Hash password using SHA-256."""
+    return hashlib.sha256(password.encode()).hexdigest()
+
 def init_database():
     """Create tables if they don't exist."""
     conn = get_db_connection()
@@ -53,6 +59,77 @@ def init_database():
         return False
     try:
         cursor = conn.cursor()
+
+        # Users table for VA authentication
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(100) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                full_name VARCHAR(255),
+                email VARCHAR(255),
+                role VARCHAR(50) DEFAULT 'va',
+                status VARCHAR(50) DEFAULT 'active',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_login TIMESTAMP,
+                phone VARCHAR(50),
+                notes TEXT
+            )
+        """)
+
+        # Sessions table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS sessions (
+                id SERIAL PRIMARY KEY,
+                session_id VARCHAR(255) UNIQUE NOT NULL,
+                username VARCHAR(100) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP,
+                ip_address VARCHAR(50),
+                user_agent TEXT
+            )
+        """)
+
+        # Activity log
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS activity_log (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(100),
+                action VARCHAR(100),
+                details TEXT,
+                ip_address VARCHAR(50),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # Check if users table is empty and seed default users
+        cursor.execute("SELECT COUNT(*) FROM users")
+        user_count = cursor.fetchone()[0]
+        if user_count == 0:
+            logger.info("Seeding default users...")
+            default_password = hash_password('Lifeline2026')
+            admin_password = hash_password('admin123')
+
+            # Admin user
+            cursor.execute("""
+                INSERT INTO users (username, password_hash, full_name, role, status)
+                VALUES (%s, %s, %s, %s, %s)
+            """, ('admin', admin_password, 'System Admin', 'admin', 'active'))
+
+            # VA users
+            va_users = [
+                ('naomi', 'Naomi Keza', 'naomikezau@gmail.com'),
+                ('keomi', 'Naomi Keza Uwase', 'naomikezau@gmail.com'),
+                ('monalisa', 'Naomi Keza', 'naomikezau@gmail.com'),
+                ('brent', 'Willy Miles', 'wshumbusho5@gmail.com'),
+            ]
+            for username, full_name, email in va_users:
+                cursor.execute("""
+                    INSERT INTO users (username, password_hash, full_name, email, role, status)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (username, default_password, full_name, email, 'va', 'active'))
+
+            logger.info("Seeded admin and 4 VA users")
 
         # Inbound leads table
         cursor.execute("""
