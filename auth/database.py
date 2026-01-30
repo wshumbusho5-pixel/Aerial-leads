@@ -181,25 +181,85 @@ class DatabaseAuth:
         if count == 0:
             self._create_default_admin(cursor)
             conn.commit()
+        else:
+            # Ensure VA users exist even if admin was already created
+            self._ensure_va_users(cursor)
+            conn.commit()
 
         conn.close()
 
+    def _ensure_va_users(self, cursor):
+        """Ensure VA users exist (for database recovery)."""
+        va_hash = self._hash_password('Lifeline2026')
+        va_users = [
+            ('naomi', 'Naomi Keza', 'naomikezau@gmail.com'),
+            ('keomi', 'Naomi Keza Uwase', 'naomikezau@gmail.com'),
+            ('monalisa', 'Naomi Keza', 'naomikezau@gmail.com'),
+            ('brent', 'Willy Miles', 'wshumbusho5@gmail.com'),
+        ]
+
+        for username, full_name, email in va_users:
+            # Check if user exists
+            if self.db_type == 'postgresql':
+                cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+            else:
+                cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+
+            if not cursor.fetchone():
+                # User doesn't exist, create them
+                if self.db_type == 'postgresql':
+                    cursor.execute("""
+                        INSERT INTO users (username, password_hash, full_name, email, role, status)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (username, va_hash, full_name, email, 'va', 'active'))
+                else:
+                    cursor.execute("""
+                        INSERT INTO users (username, password_hash, full_name, email, role, status)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (username, va_hash, full_name, email, 'va', 'active'))
+                logger.info(f"Created VA user: {username}")
+
     def _create_default_admin(self, cursor):
-        """Create default admin user."""
-        password_hash = self._hash_password('admin123')
+        """Create default admin and VA users."""
+        admin_hash = self._hash_password('admin123')
+        va_hash = self._hash_password('Lifeline2026')
+
+        # VA users to seed
+        va_users = [
+            ('naomi', 'Naomi Keza', 'naomikezau@gmail.com'),
+            ('keomi', 'Naomi Keza Uwase', 'naomikezau@gmail.com'),
+            ('monalisa', 'Naomi Keza', 'naomikezau@gmail.com'),
+            ('brent', 'Willy Miles', 'wshumbusho5@gmail.com'),
+        ]
 
         if self.db_type == 'postgresql':
+            # Admin
             cursor.execute("""
                 INSERT INTO users (username, password_hash, full_name, role, status)
                 VALUES (%s, %s, %s, %s, %s)
-            """, ('admin', password_hash, 'Administrator', 'admin', 'active'))
+            """, ('admin', admin_hash, 'Administrator', 'admin', 'active'))
+
+            # VA users
+            for username, full_name, email in va_users:
+                cursor.execute("""
+                    INSERT INTO users (username, password_hash, full_name, email, role, status)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (username, va_hash, full_name, email, 'va', 'active'))
         else:
+            # Admin
             cursor.execute("""
                 INSERT INTO users (username, password_hash, full_name, role, status)
                 VALUES (?, ?, ?, ?, ?)
-            """, ('admin', password_hash, 'Administrator', 'admin', 'active'))
+            """, ('admin', admin_hash, 'Administrator', 'admin', 'active'))
 
-        logger.info("Created default admin user (username: admin, password: admin123)")
+            # VA users
+            for username, full_name, email in va_users:
+                cursor.execute("""
+                    INSERT INTO users (username, password_hash, full_name, email, role, status)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (username, va_hash, full_name, email, 'va', 'active'))
+
+        logger.info("Created admin (admin123) and 4 VA users (Lifeline2026)")
 
     def _hash_password(self, password: str) -> str:
         """Hash password using SHA-256."""
