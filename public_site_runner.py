@@ -427,9 +427,16 @@ TWILIO_CLIENT_AVAILABLE = False
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
 TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
+TWILIO_PHONE_NUMBER_2 = os.environ.get('TWILIO_PHONE_NUMBER_2', '')  # Second number for buyers
 TWILIO_TWIML_APP_SID = os.environ.get('TWILIO_TWIML_APP_SID', '')
 TWILIO_API_KEY = os.environ.get('TWILIO_API_KEY', '')
 TWILIO_API_SECRET = os.environ.get('TWILIO_API_SECRET', '')
+
+# Phone number labels for VA selection
+PHONE_NUMBERS = {
+    'sellers': {'number': TWILIO_PHONE_NUMBER, 'label': 'Sellers Line'},
+    'buyers': {'number': TWILIO_PHONE_NUMBER_2, 'label': 'Buyers Line'}
+}
 
 try:
     from twilio.rest import Client
@@ -551,21 +558,28 @@ async def handle_twiml(request: Request):
     try:
         form = await request.form()
         raw_to = form.get('To', '')
+        selected_caller_id = form.get('CallerId', '') or TWILIO_PHONE_NUMBER
         logger.info(f"TwiML request - Raw To: {raw_to}")
 
         to_number = clean_phone(raw_to)
-        logger.info(f"TwiML request - Cleaned To: {to_number}, Caller ID: {TWILIO_PHONE_NUMBER}")
+
+        # Validate the selected caller ID is one of our numbers
+        valid_caller_ids = [TWILIO_PHONE_NUMBER, TWILIO_PHONE_NUMBER_2]
+        if selected_caller_id not in valid_caller_ids:
+            selected_caller_id = TWILIO_PHONE_NUMBER
+
+        logger.info(f"TwiML request - Cleaned To: {to_number}, Caller ID: {selected_caller_id}")
 
         if not to_number:
             logger.error("Invalid phone number")
             return HTMLResponse(content="<Response><Say>Invalid phone number provided</Say></Response>", media_type="application/xml")
 
-        if not TWILIO_PHONE_NUMBER:
+        if not selected_caller_id:
             logger.error("No caller ID configured")
             return HTMLResponse(content="<Response><Say>Caller ID not configured</Say></Response>", media_type="application/xml")
 
         response = VoiceResponse()
-        dial = Dial(caller_id=TWILIO_PHONE_NUMBER, timeout=30)
+        dial = Dial(caller_id=selected_caller_id, timeout=30)
         dial.number(to_number)
         response.append(dial)
         response.say("Call ended. Goodbye.")
@@ -894,6 +908,12 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
                 <div class="phone" id="lead-phone-display">{phone or ''}</div>
             </div>
 
+            <label for="caller-line">Call From</label>
+            <select id="caller-line">
+                <option value="{TWILIO_PHONE_NUMBER}">Sellers Line ({TWILIO_PHONE_NUMBER})</option>
+                {"<option value='" + TWILIO_PHONE_NUMBER_2 + "'>Buyers Line (" + TWILIO_PHONE_NUMBER_2 + ")</option>" if TWILIO_PHONE_NUMBER_2 else ""}
+            </select>
+
             <input type="tel" id="phone" placeholder="Enter phone number" value="{phone or ''}">
             <div id="timer" class="timer">00:00</div>
             <button id="call-btn" class="btn btn-call" disabled>Call</button>
@@ -1041,12 +1061,13 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
                 return;
             }}
 
-            console.log('Calling:', num);
+            const callerLine = document.getElementById('caller-line').value;
+            console.log('Calling:', num, 'from:', callerLine);
             setStatus('Connecting...', 'connecting');
             callDuration = 0;
 
             try {{
-                const params = {{ To: num }};
+                const params = {{ To: num, CallerId: callerLine }};
                 activeCall = await device.connect({{ params: params }});
 
                 activeCall.on('accept', function() {{

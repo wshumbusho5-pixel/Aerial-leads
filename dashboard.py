@@ -4,6 +4,10 @@ Aerial Leads - Dashboard
 Beautiful web interface for lead generation
 """
 
+# Load .env file BEFORE any other imports
+from dotenv import load_dotenv
+load_dotenv()
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
