@@ -53,6 +53,8 @@ def init_database():
         return False
     try:
         cursor = conn.cursor()
+
+        # Inbound leads table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS inbound_leads (
                 id SERIAL PRIMARY KEY,
@@ -70,9 +72,49 @@ def init_database():
                 notes TEXT
             )
         """)
+
+        # Call logs table - tracks all VA calls
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS call_logs (
+                id SERIAL PRIMARY KEY,
+                call_sid VARCHAR(100),
+                va_identity VARCHAR(100),
+                lead_name VARCHAR(255),
+                lead_phone VARCHAR(50),
+                lead_address TEXT,
+                call_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                call_end TIMESTAMP,
+                duration_seconds INTEGER DEFAULT 0,
+                twilio_status VARCHAR(50),
+                outcome VARCHAR(50),
+                notes TEXT,
+                follow_up_date DATE,
+                appointment_id INTEGER
+            )
+        """)
+
+        # Appointments table - scheduled callbacks and meetings
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS appointments (
+                id SERIAL PRIMARY KEY,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by VARCHAR(100),
+                lead_name VARCHAR(255),
+                lead_phone VARCHAR(50),
+                lead_address TEXT,
+                appointment_date DATE NOT NULL,
+                appointment_time TIME NOT NULL,
+                appointment_type VARCHAR(50) DEFAULT 'callback',
+                status VARCHAR(50) DEFAULT 'scheduled',
+                notes TEXT,
+                reminder_sent BOOLEAN DEFAULT FALSE,
+                call_log_id INTEGER
+            )
+        """)
+
         conn.commit()
         conn.close()
-        logger.info("Database initialized")
+        logger.info("Database initialized with call_logs and appointments tables")
         return True
     except Exception as e:
         logger.error(f"Database init failed: {e}")
@@ -462,6 +504,164 @@ async def handle_twiml(request: Request):
         return HTMLResponse(content=f"<Response><Say>Error: {str(e)}</Say></Response>", media_type="application/xml")
 
 
+@app.post("/api/dialer/log-call")
+async def log_call(request: Request):
+    """Save call log after VA completes a call."""
+    try:
+        data = await request.json()
+        conn = get_db_connection()
+        if not conn:
+            return JSONResponse(status_code=500, content={"error": "Database not available"})
+
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO call_logs
+            (call_sid, va_identity, lead_name, lead_phone, lead_address,
+             duration_seconds, twilio_status, outcome, notes, follow_up_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """, (
+            data.get('call_sid', ''),
+            data.get('va_identity', ''),
+            data.get('lead_name', ''),
+            data.get('lead_phone', ''),
+            data.get('lead_address', ''),
+            int(data.get('duration_seconds', 0)),
+            data.get('twilio_status', ''),
+            data.get('outcome', ''),
+            data.get('notes', ''),
+            data.get('follow_up_date') or None
+        ))
+        call_log_id = cursor.fetchone()[0]
+        conn.commit()
+        conn.close()
+
+        logger.info(f"Call logged: {call_log_id} - {data.get('outcome')} by {data.get('va_identity')}")
+        return {"success": True, "call_log_id": call_log_id}
+    except Exception as e:
+        logger.error(f"Failed to log call: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.post("/api/dialer/set-appointment")
+async def set_appointment(request: Request):
+    """Create an appointment from the dialer."""
+    try:
+        data = await request.json()
+        conn = get_db_connection()
+        if not conn:
+            return JSONResponse(status_code=500, content={"error": "Database not available"})
+
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO appointments
+            (created_by, lead_name, lead_phone, lead_address,
+             appointment_date, appointment_time, appointment_type, notes, call_log_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """, (
+            data.get('created_by', ''),
+            data.get('lead_name', ''),
+            data.get('lead_phone', ''),
+            data.get('lead_address', ''),
+            data.get('appointment_date'),
+            data.get('appointment_time'),
+            data.get('appointment_type', 'callback'),
+            data.get('notes', ''),
+            data.get('call_log_id')
+        ))
+        appointment_id = cursor.fetchone()[0]
+
+        # Update call log with appointment ID if provided
+        if data.get('call_log_id'):
+            cursor.execute("""
+                UPDATE call_logs SET appointment_id = %s WHERE id = %s
+            """, (appointment_id, data.get('call_log_id')))
+
+        conn.commit()
+        conn.close()
+
+        logger.info(f"Appointment created: {appointment_id} for {data.get('lead_name')}")
+        return {"success": True, "appointment_id": appointment_id}
+    except Exception as e:
+        logger.error(f"Failed to create appointment: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/api/dialer/appointments")
+async def get_appointments(va_identity: str = None, date: str = None):
+    """Get appointments, optionally filtered by VA or date."""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return JSONResponse(status_code=500, content={"error": "Database not available"})
+
+        cursor = conn.cursor()
+        query = "SELECT * FROM appointments WHERE status = 'scheduled'"
+        params = []
+
+        if va_identity:
+            query += " AND created_by = %s"
+            params.append(va_identity)
+        if date:
+            query += " AND appointment_date = %s"
+            params.append(date)
+
+        query += " ORDER BY appointment_date, appointment_time"
+        cursor.execute(query, params)
+
+        columns = [desc[0] for desc in cursor.description]
+        appointments = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        conn.close()
+
+        # Convert dates/times to strings for JSON
+        for apt in appointments:
+            for key in apt:
+                if hasattr(apt[key], 'isoformat'):
+                    apt[key] = apt[key].isoformat()
+
+        return {"appointments": appointments}
+    except Exception as e:
+        logger.error(f"Failed to get appointments: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/api/dialer/call-history")
+async def get_call_history(va_identity: str = None, limit: int = 50):
+    """Get recent call logs."""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return JSONResponse(status_code=500, content={"error": "Database not available"})
+
+        cursor = conn.cursor()
+        query = "SELECT * FROM call_logs"
+        params = []
+
+        if va_identity:
+            query += " WHERE va_identity = %s"
+            params.append(va_identity)
+
+        query += " ORDER BY call_start DESC LIMIT %s"
+        params.append(limit)
+
+        cursor.execute(query, params)
+        columns = [desc[0] for desc in cursor.description]
+        calls = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        conn.close()
+
+        # Convert dates to strings for JSON
+        for call in calls:
+            for key in call:
+                if hasattr(call[key], 'isoformat'):
+                    call[key] = call[key].isoformat()
+
+        return {"calls": calls}
+    except Exception as e:
+        logger.error(f"Failed to get call history: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.get("/dialer", response_class=HTMLResponse)
 async def browser_dialer(phone: str = "", name: str = "", address: str = "", identity: str = "va-user"):
     """Browser dialer page."""
@@ -482,11 +682,11 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             </body></html>
         """, status_code=500)
 
-    # Return dialer HTML - Using Twilio Voice SDK 2.x
+    # Return dialer HTML - Using Twilio Voice SDK 2.x with call logging
     html = f'''<!DOCTYPE html>
 <html>
 <head>
-    <title>Browser Dialer</title>
+    <title>Browser Dialer - Lifeline Home Buyers</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@twilio/voice-sdk@2.10.0/dist/twilio.min.js"></script>
     <style>
@@ -504,11 +704,12 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             background: white;
             border-radius: 20px;
             padding: 30px;
-            max-width: 400px;
+            max-width: 450px;
             width: 100%;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }}
-        h1 {{ font-size: 1.5rem; text-align: center; margin-bottom: 20px; }}
+        h1 {{ font-size: 1.5rem; text-align: center; margin-bottom: 20px; color: #1a1a2e; }}
+        h2 {{ font-size: 1.2rem; margin-bottom: 15px; color: #333; }}
         .status {{
             text-align: center;
             padding: 8px 16px;
@@ -520,24 +721,27 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
         .status.connecting {{ background: #fff3cd; color: #856404; }}
         .status.on-call {{ background: #cce5ff; color: #004085; }}
         .status.error {{ background: #f8d7da; color: #721c24; }}
+        .status.logging {{ background: #e2e3e5; color: #383d41; }}
         .lead-info {{
             background: #f8f9fa;
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 20px;
         }}
-        .lead-info h3 {{ font-size: 1rem; margin-bottom: 5px; }}
+        .lead-info h3 {{ font-size: 1rem; margin-bottom: 5px; color: #333; }}
+        .lead-info p {{ color: #666; font-size: 0.9rem; }}
         .lead-info .phone {{ font-size: 1.3rem; font-weight: 700; color: #4CAF50; margin-top: 10px; }}
-        input {{
+        input, select, textarea {{
             width: 100%;
-            padding: 15px;
-            font-size: 1.2rem;
+            padding: 12px 15px;
+            font-size: 1rem;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
-            margin-bottom: 15px;
-            text-align: center;
+            margin-bottom: 12px;
         }}
-        input:focus {{ outline: none; border-color: #4CAF50; }}
+        input[type="tel"] {{ text-align: center; font-size: 1.2rem; }}
+        input:focus, select:focus, textarea:focus {{ outline: none; border-color: #4CAF50; }}
+        textarea {{ resize: vertical; min-height: 80px; }}
         .btn {{
             width: 100%;
             padding: 15px;
@@ -546,48 +750,150 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             border: none;
             border-radius: 10px;
             cursor: pointer;
+            margin-bottom: 10px;
         }}
         .btn-call {{ background: #4CAF50; color: white; }}
-        .btn-call:disabled {{ background: #ccc; }}
+        .btn-call:hover {{ background: #43a047; }}
+        .btn-call:disabled {{ background: #ccc; cursor: not-allowed; }}
         .btn-hangup {{ background: #dc3545; color: white; display: none; }}
+        .btn-hangup:hover {{ background: #c82333; }}
+        .btn-submit {{ background: #007bff; color: white; }}
+        .btn-submit:hover {{ background: #0056b3; }}
+        .btn-secondary {{ background: #6c757d; color: white; }}
+        .btn-secondary:hover {{ background: #545b62; }}
         .timer {{
             text-align: center;
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 700;
             margin: 20px 0;
             display: none;
+            color: #1a1a2e;
+        }}
+        .call-form {{ display: none; }}
+        .form-row {{
+            display: flex;
+            gap: 10px;
+        }}
+        .form-row > * {{ flex: 1; }}
+        .appointment-fields {{ display: none; margin-top: 10px; }}
+        label {{
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }}
+        .divider {{
+            border-top: 1px solid #e0e0e0;
+            margin: 20px 0;
+        }}
+        .success-msg {{
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+        }}
+        .va-identity {{
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+            margin-bottom: 15px;
         }}
     </style>
 </head>
 <body>
     <div class="dialer">
-        <h1>Browser Dialer</h1>
+        <h1>Lifeline Home Buyers</h1>
+        <div class="va-identity">Logged in as: <strong>{identity}</strong></div>
         <div id="status" class="status">Initializing...</div>
 
-        <div id="lead-info" class="lead-info" style="display:{{'block' if phone else 'none'}}">
-            <h3>{name or 'Lead'}</h3>
-            <p>{address or ''}</p>
-            <div class="phone">{phone or ''}</div>
+        <!-- DIALER SECTION -->
+        <div id="dialer-section">
+            <div id="lead-info" class="lead-info" style="display:{{'block' if phone else 'none'}}">
+                <h3 id="lead-name-display">{name or 'Lead'}</h3>
+                <p id="lead-address-display">{address or ''}</p>
+                <div class="phone" id="lead-phone-display">{phone or ''}</div>
+            </div>
+
+            <input type="tel" id="phone" placeholder="Enter phone number" value="{phone or ''}">
+            <div id="timer" class="timer">00:00</div>
+            <button id="call-btn" class="btn btn-call" disabled>Call</button>
+            <button id="hangup-btn" class="btn btn-hangup">Hang Up</button>
         </div>
 
-        <input type="tel" id="phone" placeholder="Enter phone number" value="{phone or ''}">
-        <div id="timer" class="timer">00:00</div>
-        <button id="call-btn" class="btn btn-call" disabled>Call</button>
-        <button id="hangup-btn" class="btn btn-hangup">Hang Up</button>
+        <!-- CALL LOG FORM (shown after call ends) -->
+        <div id="call-form" class="call-form">
+            <div class="divider"></div>
+            <h2>Log This Call</h2>
+
+            <label for="outcome">Call Outcome *</label>
+            <select id="outcome" required>
+                <option value="">-- Select Outcome --</option>
+                <option value="no_answer">No Answer</option>
+                <option value="left_voicemail">Left Voicemail</option>
+                <option value="wrong_number">Wrong Number</option>
+                <option value="not_interested">Not Interested</option>
+                <option value="call_back_later">Call Back Later</option>
+                <option value="interested">Interested</option>
+                <option value="appointment_set">Appointment Set</option>
+                <option value="do_not_call">Do Not Call</option>
+            </select>
+
+            <!-- Appointment fields (shown when outcome is appointment_set) -->
+            <div id="appointment-fields" class="appointment-fields">
+                <label>Appointment Date & Time *</label>
+                <div class="form-row">
+                    <input type="date" id="apt-date" required>
+                    <input type="time" id="apt-time" value="10:00" required>
+                </div>
+                <label for="apt-type">Appointment Type</label>
+                <select id="apt-type">
+                    <option value="callback">Scheduled Callback</option>
+                    <option value="property_visit">Property Visit</option>
+                    <option value="offer_presentation">Offer Presentation</option>
+                </select>
+            </div>
+
+            <label for="notes">Notes</label>
+            <textarea id="notes" placeholder="Enter any notes about this call..."></textarea>
+
+            <button id="submit-log" class="btn btn-submit">Save Call Log</button>
+            <button id="skip-log" class="btn btn-secondary">Skip & Make Another Call</button>
+        </div>
+
+        <!-- SUCCESS MESSAGE -->
+        <div id="success-section" style="display: none;">
+            <div class="success-msg" id="success-msg">Call logged successfully!</div>
+            <button id="new-call-btn" class="btn btn-call">Make Another Call</button>
+        </div>
     </div>
 
     <script>
         const token = "{token}";
+        const vaIdentity = "{identity}";
+        const leadName = "{name or ''}";
+        const leadAddress = "{address or ''}";
+        const leadPhone = "{phone or ''}";
+
         let device = null;
         let activeCall = null;
         let timerInterval = null;
         let startTime = null;
+        let callDuration = 0;
+        let lastCallSid = '';
 
         const statusEl = document.getElementById('status');
         const phoneInput = document.getElementById('phone');
         const callBtn = document.getElementById('call-btn');
         const hangupBtn = document.getElementById('hangup-btn');
         const timerEl = document.getElementById('timer');
+        const dialerSection = document.getElementById('dialer-section');
+        const callForm = document.getElementById('call-form');
+        const successSection = document.getElementById('success-section');
+        const outcomeSelect = document.getElementById('outcome');
+        const appointmentFields = document.getElementById('appointment-fields');
 
         function setStatus(text, cls) {{
             statusEl.textContent = text;
@@ -598,12 +904,23 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             return String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0');
         }}
 
+        // Show/hide appointment fields based on outcome
+        outcomeSelect.addEventListener('change', function() {{
+            if (this.value === 'appointment_set') {{
+                appointmentFields.style.display = 'block';
+                // Set default date to tomorrow
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                document.getElementById('apt-date').value = tomorrow.toISOString().split('T')[0];
+            }} else {{
+                appointmentFields.style.display = 'none';
+            }}
+        }});
+
         async function initDevice() {{
             console.log('Initializing Twilio Device...');
-            console.log('Token (first 50 chars):', token.substring(0, 50));
 
             try {{
-                // Voice SDK 2.x
                 device = new Twilio.Device(token, {{
                     logLevel: 1,
                     codecPreferences: ['opus', 'pcmu']
@@ -620,11 +937,6 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
                     setStatus('Error: ' + twilioError.message, 'error');
                 }});
 
-                device.on('tokenWillExpire', function() {{
-                    console.log('Token expiring soon');
-                }});
-
-                // Register with Twilio
                 await device.register();
                 console.log('Device registration complete');
 
@@ -643,32 +955,33 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
 
             console.log('Calling:', num);
             setStatus('Connecting...', 'connecting');
+            callDuration = 0;
 
             try {{
                 const params = {{ To: num }};
                 activeCall = await device.connect({{ params: params }});
-                console.log('Call object created');
 
                 activeCall.on('accept', function() {{
                     console.log('Call accepted');
+                    lastCallSid = activeCall.parameters.CallSid || '';
                     setStatus('On Call', 'on-call');
                     callBtn.style.display = 'none';
                     hangupBtn.style.display = 'block';
                     timerEl.style.display = 'block';
                     startTime = Date.now();
                     timerInterval = setInterval(function() {{
-                        timerEl.textContent = formatTime(Math.floor((Date.now()-startTime)/1000));
+                        callDuration = Math.floor((Date.now()-startTime)/1000);
+                        timerEl.textContent = formatTime(callDuration);
                     }}, 1000);
                 }});
 
                 activeCall.on('disconnect', function() {{
                     console.log('Call disconnected');
-                    activeCall = null;
-                    setStatus('Call ended', 'ready');
-                    callBtn.style.display = 'block';
-                    hangupBtn.style.display = 'none';
-                    timerEl.style.display = 'none';
                     if (timerInterval) clearInterval(timerInterval);
+                    activeCall = null;
+
+                    // Show call log form
+                    showCallLogForm();
                 }});
 
                 activeCall.on('error', function(err) {{
@@ -682,20 +995,131 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             }}
         }}
 
+        function showCallLogForm() {{
+            setStatus('Log your call', 'logging');
+            dialerSection.style.display = 'none';
+            callForm.style.display = 'block';
+            timerEl.style.display = 'none';
+
+            // Reset form
+            outcomeSelect.value = '';
+            document.getElementById('notes').value = '';
+            appointmentFields.style.display = 'none';
+        }}
+
         function hangUp() {{
             if (activeCall) {{
                 activeCall.disconnect();
             }}
         }}
 
+        async function submitCallLog() {{
+            const outcome = outcomeSelect.value;
+            if (!outcome) {{
+                alert('Please select a call outcome');
+                return;
+            }}
+
+            const callData = {{
+                call_sid: lastCallSid,
+                va_identity: vaIdentity,
+                lead_name: leadName || document.getElementById('lead-name-display').textContent,
+                lead_phone: phoneInput.value,
+                lead_address: leadAddress || document.getElementById('lead-address-display').textContent,
+                duration_seconds: callDuration,
+                twilio_status: 'completed',
+                outcome: outcome,
+                notes: document.getElementById('notes').value
+            }};
+
+            try {{
+                setStatus('Saving...', 'logging');
+
+                // Save call log
+                const logResponse = await fetch('/api/dialer/log-call', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify(callData)
+                }});
+                const logResult = await logResponse.json();
+
+                // If appointment set, create appointment
+                if (outcome === 'appointment_set') {{
+                    const aptDate = document.getElementById('apt-date').value;
+                    const aptTime = document.getElementById('apt-time').value;
+                    const aptType = document.getElementById('apt-type').value;
+
+                    if (!aptDate || !aptTime) {{
+                        alert('Please enter appointment date and time');
+                        return;
+                    }}
+
+                    const aptData = {{
+                        created_by: vaIdentity,
+                        lead_name: callData.lead_name,
+                        lead_phone: callData.lead_phone,
+                        lead_address: callData.lead_address,
+                        appointment_date: aptDate,
+                        appointment_time: aptTime,
+                        appointment_type: aptType,
+                        notes: callData.notes,
+                        call_log_id: logResult.call_log_id
+                    }};
+
+                    await fetch('/api/dialer/set-appointment', {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify(aptData)
+                    }});
+
+                    document.getElementById('success-msg').textContent = 'Call logged & appointment scheduled!';
+                }} else {{
+                    document.getElementById('success-msg').textContent = 'Call logged successfully!';
+                }}
+
+                // Show success
+                callForm.style.display = 'none';
+                successSection.style.display = 'block';
+                setStatus('Ready to call', 'ready');
+
+            }} catch(e) {{
+                console.error('Failed to save:', e);
+                alert('Failed to save call log. Please try again.');
+            }}
+        }}
+
+        function resetForNewCall() {{
+            successSection.style.display = 'none';
+            dialerSection.style.display = 'block';
+            callBtn.style.display = 'block';
+            hangupBtn.style.display = 'none';
+            phoneInput.value = '';
+
+            // Clear lead info if it was prefilled
+            if (!leadPhone) {{
+                document.getElementById('lead-info').style.display = 'none';
+            }}
+        }}
+
+        function skipLog() {{
+            callForm.style.display = 'none';
+            dialerSection.style.display = 'block';
+            callBtn.style.display = 'block';
+            hangupBtn.style.display = 'none';
+            setStatus('Ready to call', 'ready');
+        }}
+
+        // Event listeners
         callBtn.onclick = makeCall;
         hangupBtn.onclick = hangUp;
+        document.getElementById('submit-log').onclick = submitCallLog;
+        document.getElementById('skip-log').onclick = skipLog;
+        document.getElementById('new-call-btn').onclick = resetForNewCall;
 
         phoneInput.onkeypress = function(e) {{
             if (e.key === 'Enter' && !callBtn.disabled) makeCall();
         }};
 
-        // Start when page loads
         window.addEventListener('load', initDevice);
     </script>
 </body>
