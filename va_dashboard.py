@@ -186,26 +186,37 @@ def load_calls():
             conn = db_auth._get_connection()
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT id, va_identity, lead_name, lead_phone, lead_address,
-                       call_start, duration_seconds, outcome, notes, follow_up_date
+                SELECT id, va_identity as va_name, lead_name as owner_name,
+                       lead_phone as phone, lead_address as address,
+                       call_start, duration_seconds as duration,
+                       outcome as result, notes, follow_up_date as callback_date
                 FROM call_logs
-                ORDER BY call_start DESC
+                ORDER BY call_start DESC NULLS LAST
                 LIMIT 500
             """)
             rows = cursor.fetchall()
             conn.close()
+
             if rows:
-                # Map to expected column names
-                df = pd.DataFrame(rows, columns=[
-                    'id', 'va_name', 'owner_name', 'phone', 'address',
-                    'datetime', 'duration', 'result', 'notes', 'callback_date'
-                ])
-                # Extract date and time from datetime
-                df['date'] = pd.to_datetime(df['datetime']).dt.strftime('%Y-%m-%d')
-                df['time'] = pd.to_datetime(df['datetime']).dt.strftime('%H:%M')
+                # Rows are dicts from RealDictCursor
+                df = pd.DataFrame([dict(row) for row in rows])
+                # Extract date and time from call_start
+                if 'call_start' in df.columns and not df['call_start'].isna().all():
+                    df['date'] = pd.to_datetime(df['call_start']).dt.strftime('%Y-%m-%d')
+                    df['time'] = pd.to_datetime(df['call_start']).dt.strftime('%H:%M')
+                else:
+                    df['date'] = datetime.now().strftime('%Y-%m-%d')
+                    df['time'] = datetime.now().strftime('%H:%M')
                 return df
+            else:
+                # No rows in database, return empty DataFrame with expected columns
+                return pd.DataFrame(columns=['id', 'va_name', 'owner_name', 'phone', 'address',
+                                            'date', 'time', 'duration', 'result', 'notes', 'callback_date'])
         except Exception as e:
-            pass  # Fall through to CSV
+            import traceback
+            print(f"Database error in load_calls: {e}")
+            traceback.print_exc()
+            # Fall through to CSV
 
     # Fallback to CSV
     if CALLS_FILE.exists():
@@ -227,8 +238,8 @@ def save_call(call_data):
             # Map VA dashboard format to database format
             cursor.execute("""
                 INSERT INTO call_logs
-                (va_identity, lead_name, lead_phone, lead_address, outcome, notes, follow_up_date)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                (va_identity, lead_name, lead_phone, lead_address, outcome, notes, follow_up_date, call_start)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
             """, (
                 call_data.get('va_name', ''),
                 call_data.get('owner_name', ''),
@@ -240,8 +251,11 @@ def save_call(call_data):
             ))
             conn.commit()
             conn.close()
+            print(f"Call saved to database: {call_data.get('va_name')} - {call_data.get('result')}")
         except Exception as e:
-            pass  # Continue to CSV fallback
+            import traceback
+            print(f"Database error in save_call: {e}")
+            traceback.print_exc()
 
     # Also save to CSV for backward compatibility
     calls_df = pd.DataFrame()
@@ -269,8 +283,10 @@ def load_appointments():
             conn = db_auth._get_connection()
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT id, created_by, lead_name, lead_phone, lead_address,
-                       appointment_date, appointment_time, appointment_type, status, notes
+                SELECT id, created_by as scheduled_by, lead_name as "with",
+                       lead_phone as phone, lead_address as address,
+                       appointment_date as date, appointment_time as time,
+                       appointment_type as type, status, notes
                 FROM appointments
                 WHERE status = 'scheduled'
                 ORDER BY appointment_date, appointment_time
@@ -278,13 +294,20 @@ def load_appointments():
             rows = cursor.fetchall()
             conn.close()
             if rows:
-                df = pd.DataFrame(rows, columns=[
-                    'id', 'scheduled_by', 'with', 'phone', 'address',
-                    'date', 'time', 'type', 'status', 'notes'
-                ])
+                df = pd.DataFrame([dict(row) for row in rows])
+                # Convert date/time to strings if needed
+                if 'date' in df.columns:
+                    df['date'] = df['date'].astype(str)
+                if 'time' in df.columns:
+                    df['time'] = df['time'].astype(str)
                 return df
+            else:
+                return pd.DataFrame(columns=['id', 'scheduled_by', 'with', 'phone', 'address',
+                                            'date', 'time', 'type', 'status', 'notes'])
         except Exception as e:
-            pass  # Fall through to CSV
+            import traceback
+            print(f"Database error in load_appointments: {e}")
+            traceback.print_exc()
 
     # Fallback to CSV
     if APPOINTMENTS_FILE.exists():
