@@ -207,6 +207,11 @@ def load_calls():
                 else:
                     df['date'] = datetime.now().strftime('%Y-%m-%d')
                     df['time'] = datetime.now().strftime('%H:%M')
+                # Convert callback_date to string for comparisons
+                if 'callback_date' in df.columns:
+                    df['callback_date'] = df['callback_date'].apply(
+                        lambda x: x.strftime('%Y-%m-%d') if hasattr(x, 'strftime') else (str(x) if x else '')
+                    )
                 return df
             else:
                 # No rows in database, return empty DataFrame with expected columns
@@ -295,11 +300,15 @@ def load_appointments():
             conn.close()
             if rows:
                 df = pd.DataFrame([dict(row) for row in rows])
-                # Convert date/time to strings if needed
+                # Convert date/time to strings for comparisons
                 if 'date' in df.columns:
-                    df['date'] = df['date'].astype(str)
+                    df['date'] = df['date'].apply(
+                        lambda x: x.strftime('%Y-%m-%d') if hasattr(x, 'strftime') else str(x) if x else ''
+                    )
                 if 'time' in df.columns:
-                    df['time'] = df['time'].astype(str)
+                    df['time'] = df['time'].apply(
+                        lambda x: x.strftime('%H:%M') if hasattr(x, 'strftime') else str(x) if x else ''
+                    )
                 return df
             else:
                 return pd.DataFrame(columns=['id', 'scheduled_by', 'with', 'phone', 'address',
