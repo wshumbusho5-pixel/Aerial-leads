@@ -15,6 +15,11 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Clear stale cache on each load to prevent showing old data
+if 'cache_cleared' not in st.session_state:
+    st.cache_data.clear()
+    st.session_state.cache_cleared = True
+
 import pandas as pd
 from pathlib import Path
 from datetime import datetime, timedelta
