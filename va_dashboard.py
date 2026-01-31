@@ -733,6 +733,36 @@ def show_dashboard():
         st.caption(f"🎤 RVM Today: {rvm_usage}/{RVM_DAILY_LIMIT_PER_VA}")
 
         st.markdown("---")
+
+        # Change Password section
+        with st.expander("🔐 Change Password"):
+            current_pwd = st.text_input("Current Password", type="password", key="current_pwd")
+            new_pwd = st.text_input("New Password", type="password", key="new_pwd")
+            confirm_pwd = st.text_input("Confirm New Password", type="password", key="confirm_pwd")
+
+            if st.button("Update Password", use_container_width=True):
+                if not current_pwd or not new_pwd or not confirm_pwd:
+                    st.error("Please fill in all fields")
+                elif new_pwd != confirm_pwd:
+                    st.error("New passwords do not match")
+                elif len(new_pwd) < 8:
+                    st.error("Password must be at least 8 characters")
+                else:
+                    try:
+                        if DB_AUTH_AVAILABLE:
+                            db_auth = DatabaseAuth()
+                            va_username = st.session_state.get('va_username', va_name)
+                            success, msg = db_auth.change_password(va_username, current_pwd, new_pwd)
+                            if success:
+                                st.success("Password changed successfully!")
+                            else:
+                                st.error(msg)
+                        else:
+                            st.error("Database not available")
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+
+        st.markdown("---")
         if st.button("Sign Out", use_container_width=True):
             # Properly logout from auth system
             if AUTH_AVAILABLE and st.session_state.session_id:

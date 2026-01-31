@@ -467,6 +467,66 @@ class DatabaseAuth:
             conn.close()
             return False, f"Error deleting user: {str(e)}"
 
+    def change_password(self, username: str, current_password: str, new_password: str) -> Tuple[bool, str]:
+        """
+        Change user's password after verifying current password.
+
+        Args:
+            username: User's username
+            current_password: Current password for verification
+            new_password: New password to set
+
+        Returns:
+            Tuple of (success, message)
+        """
+        if len(new_password) < 8:
+            return False, "New password must be at least 8 characters"
+
+        conn = self._get_connection()
+        cursor = conn.cursor()
+
+        try:
+            # Verify current password
+            current_hash = self._hash_password(current_password)
+
+            if self.db_type == 'postgresql':
+                cursor.execute("""
+                    SELECT id FROM users
+                    WHERE username = %s AND password_hash = %s AND status = 'active'
+                """, (username, current_hash))
+            else:
+                cursor.execute("""
+                    SELECT id FROM users
+                    WHERE username = ? AND password_hash = ? AND status = 'active'
+                """, (username, current_hash))
+
+            if not cursor.fetchone():
+                conn.close()
+                return False, "Current password is incorrect"
+
+            # Update to new password
+            new_hash = self._hash_password(new_password)
+
+            if self.db_type == 'postgresql':
+                cursor.execute("""
+                    UPDATE users SET password_hash = %s WHERE username = %s
+                """, (new_hash, username))
+            else:
+                cursor.execute("""
+                    UPDATE users SET password_hash = ? WHERE username = ?
+                """, (new_hash, username))
+
+            conn.commit()
+            conn.close()
+
+            logger.info(f"Password changed for user: {username}")
+            return True, "Password changed successfully"
+
+        except Exception as e:
+            logger.error(f"Error changing password: {e}")
+            conn.close()
+            return False, f"Error changing password: {str(e)}"
+
     def get_all_users(self, role: str = None) -> List[Dict]:
         """Get all users, optionally filtered by role."""
         conn = self._get_connection()

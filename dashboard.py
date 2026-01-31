@@ -2184,9 +2184,33 @@ elif page == "👥 VA Management":
                 else:
                     st.error("❌ Invalid credentials")
     else:
-        # Logout button
-        col1, col2 = st.columns([6, 1])
+        # Logout and Change Password
+        col1, col2, col3 = st.columns([5, 1.5, 1])
         with col2:
+            with st.popover("🔐 Password"):
+                st.markdown("**Change Password**")
+                admin_current_pwd = st.text_input("Current", type="password", key="admin_cur_pwd")
+                admin_new_pwd = st.text_input("New (8+ chars)", type="password", key="admin_new_pwd")
+                admin_confirm_pwd = st.text_input("Confirm", type="password", key="admin_conf_pwd")
+                if st.button("Update", key="admin_pwd_btn"):
+                    if not admin_current_pwd or not admin_new_pwd or not admin_confirm_pwd:
+                        st.error("Fill all fields")
+                    elif admin_new_pwd != admin_confirm_pwd:
+                        st.error("Passwords don't match")
+                    elif len(admin_new_pwd) < 8:
+                        st.error("Min 8 characters")
+                    else:
+                        try:
+                            db_auth = DatabaseAuth()
+                            username = st.session_state.va_user.get('username', 'admin')
+                            success, msg = db_auth.change_password(username, admin_current_pwd, admin_new_pwd)
+                            if success:
+                                st.success("Changed!")
+                            else:
+                                st.error(msg)
+                        except Exception as e:
+                            st.error(str(e))
+        with col3:
             if st.button("🚪 Logout"):
                 st.session_state.va_authenticated = False
                 st.session_state.va_user = None
