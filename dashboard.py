@@ -6630,6 +6630,82 @@ elif page == "🏢 Investor Finder":
 
     # Data directory for investors
     INVESTORS_DATA_DIR = Path(__file__).parent / "data" / "buyers" / "processed"
+    INVESTORS_RAW_DIR = Path(__file__).parent / "data" / "buyers" / "raw"
+
+    # Admin: Data refresh section
+    with st.expander("⚙️ Admin: Refresh Investor Data", expanded=False):
+        st.warning("⚠️ **This is a heavy operation** - only run quarterly or when adding new markets.")
+
+        # Check data freshness
+        franklin_file = INVESTORS_DATA_DIR / "investor_prospects_franklin_tier_1.csv"
+        hamilton_file = INVESTORS_DATA_DIR / "investor_prospects_hamilton_tier_1.csv"
+
+        col_f, col_h = st.columns(2)
+        with col_f:
+            if franklin_file.exists():
+                mod_time = datetime.fromtimestamp(franklin_file.stat().st_mtime)
+                days_old = (datetime.now() - mod_time).days
+                st.info(f"**Columbus data:** {mod_time.strftime('%Y-%m-%d')} ({days_old} days old)")
+            else:
+                st.warning("**Columbus data:** Not found")
+
+        with col_h:
+            if hamilton_file.exists():
+                mod_time = datetime.fromtimestamp(hamilton_file.stat().st_mtime)
+                days_old = (datetime.now() - mod_time).days
+                st.info(f"**Cincinnati data:** {mod_time.strftime('%Y-%m-%d')} ({days_old} days old)")
+            else:
+                st.warning("**Cincinnati data:** Not found")
+
+        st.markdown("---")
+
+        refresh_county = st.selectbox(
+            "Select market to refresh",
+            ["franklin", "hamilton"],
+            format_func=lambda x: "Columbus (Franklin Co.)" if x == "franklin" else "Cincinnati (Hamilton Co.)",
+            key="refresh_county"
+        )
+
+        st.markdown("""
+        **What this does:**
+        1. Loads property records from county data files
+        2. Identifies multi-property owners (portfolios)
+        3. Classifies entities (LLC, Corp, Trust, Individual)
+        4. Scores each owner's investor likelihood (0-100)
+        5. Exports tiered investor lists (Tier 1, 2, 3)
+        """)
+
+        if st.button("🔄 Refresh Investor Data", type="primary", key="refresh_investors_btn"):
+            try:
+                with st.spinner(f"Running investor pipeline for {refresh_county}... This may take several minutes."):
+                    # Import and run pipeline
+                    import sys
+                    sys.path.insert(0, str(Path(__file__).parent))
+
+                    try:
+                        from buyers.pipeline.investor_pipeline import InvestorPipeline
+
+                        pipeline = InvestorPipeline(county=refresh_county)
+                        investors_df = pipeline.run()
+
+                        if not investors_df.empty:
+                            pipeline.export_investors(investors_df)
+                            st.success(f"✅ Successfully identified {len(investors_df):,} investors in {refresh_county}!")
+                            st.balloons()
+                        else:
+                            st.warning("No investors found. Check that source data files exist.")
+
+                    except ImportError as e:
+                        st.error(f"Pipeline import error: {e}")
+                        st.info("Make sure all dependencies are installed and source data files exist in data/buyers/raw/")
+
+            except Exception as e:
+                st.error(f"Error running pipeline: {e}")
+                import traceback
+                st.code(traceback.format_exc())
+
+        st.markdown("---")
+        st.caption("💡 Recommended: Run this quarterly to keep investor data fresh.")
 
     def load_investor_data(county: str = 'franklin', tier: str = None):
         """Load investor prospects from CSV files"""
