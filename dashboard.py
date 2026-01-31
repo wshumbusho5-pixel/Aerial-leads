@@ -6862,19 +6862,100 @@ elif page == "🏢 Investor Finder":
 
             export_tier = st.selectbox("Select tier to export", ["all", "tier_1", "tier_2", "tier_3"], key="export_tier")
             if export_tier != "all":
-                export_df = investors_df[investors_df['tier'] == export_tier]
+                export_df = investors_df[investors_df['tier'] == export_tier].copy()
             else:
-                export_df = investors_df
+                export_df = investors_df.copy()
 
             st.write(f"Ready to export **{len(export_df):,}** investors")
 
+            # Regular export
+            st.markdown("#### Standard Export")
             csv = export_df.to_csv(index=False)
             st.download_button(
-                "📥 Download CSV",
+                "📥 Download CSV (Raw)",
                 csv,
                 f"investors_{inv_county}_{export_tier}.csv",
                 "text/csv",
                 use_container_width=True
+            )
+
+            st.markdown("---")
+
+            # Skip Trace Ready Export
+            st.markdown("#### 📞 Skip Trace Ready Export")
+            st.markdown("Adds city, state, and formats addresses for skip tracing services")
+
+            # County to city/state mapping
+            county_info = {
+                'franklin': {'city': 'Columbus', 'state': 'OH', 'default_zips': ['43201', '43202', '43203', '43204', '43205', '43206', '43207', '43209', '43210', '43211', '43212', '43213', '43214', '43215', '43219', '43220', '43221', '43222', '43223', '43224', '43227', '43228', '43229', '43230', '43231', '43232', '43235']},
+                'hamilton': {'city': 'Cincinnati', 'state': 'OH', 'default_zips': ['45201', '45202', '45203', '45204', '45205', '45206', '45207', '45208', '45209', '45210', '45211', '45212', '45213', '45214', '45215', '45216', '45217', '45218', '45219', '45220', '45223', '45224', '45225', '45226', '45227', '45229', '45230', '45231', '45232', '45233', '45236', '45237', '45238', '45239', '45240', '45241', '45242', '45243', '45244', '45245', '45246', '45247', '45248', '45249', '45251', '45252', '45255']}
+            }
+
+            info = county_info.get(inv_county, {'city': 'Unknown', 'state': 'OH', 'default_zips': []})
+
+            def prepare_for_skip_trace(df, county_info):
+                """Prepare investor data for skip tracing"""
+                skip_df = df.copy()
+
+                # Add city and state
+                skip_df['city'] = county_info['city']
+                skip_df['state'] = county_info['state']
+
+                # Try to extract zip from address if it contains one
+                import re
+                def extract_zip(addr):
+                    if pd.isna(addr) or not addr:
+                        return ''
+                    # Look for 5-digit zip code pattern
+                    match = re.search(r'\b(\d{5})(?:-\d{4})?\b', str(addr))
+                    return match.group(1) if match else ''
+
+                skip_df['zip_code'] = skip_df['owner_address'].apply(extract_zip)
+
+                # If no zip found in address, try mailing address
+                mask = skip_df['zip_code'] == ''
+                if 'mailing_address' in skip_df.columns:
+                    skip_df.loc[mask, 'zip_code'] = skip_df.loc[mask, 'mailing_address'].apply(extract_zip)
+
+                # Clean up address (remove zip if we extracted it)
+                def clean_address(addr):
+                    if pd.isna(addr) or not addr:
+                        return ''
+                    # Remove trailing zip codes
+                    cleaned = re.sub(r'\s*\b\d{5}(?:-\d{4})?\s*$', '', str(addr))
+                    return cleaned.strip().strip(',')
+
+                skip_df['street_address'] = skip_df['owner_address'].apply(clean_address)
+
+                # Use mailing address if owner address is empty
+                mask = skip_df['street_address'] == ''
+                if 'mailing_address' in skip_df.columns:
+                    skip_df.loc[mask, 'street_address'] = skip_df.loc[mask, 'mailing_address'].apply(clean_address)
+
+                # Select and reorder columns for skip trace
+                skip_cols = ['owner_name', 'street_address', 'city', 'state', 'zip_code',
+                            'portfolio_size', 'investor_score', 'entity_type', 'tier']
+                available = [c for c in skip_cols if c in skip_df.columns]
+
+                return skip_df[available]
+
+            skip_ready_df = prepare_for_skip_trace(export_df, info)
+
+            # Show preview
+            st.dataframe(skip_ready_df.head(5), use_container_width=True)
+
+            # Stats on address completeness
+            has_zip = (skip_ready_df['zip_code'] != '').sum()
+            st.caption(f"📊 {has_zip}/{len(skip_ready_df)} records have zip codes extracted ({has_zip/len(skip_ready_df)*100:.1f}%)")
+
+            skip_csv = skip_ready_df.to_csv(index=False)
+            st.download_button(
+                "📞 Download Skip Trace Ready CSV",
+                skip_csv,
+                f"investors_{inv_county}_{export_tier}_skip_trace_ready.csv",
+                "text/csv",
+                use_container_width=True,
+                type="primary"
             )
 
 
