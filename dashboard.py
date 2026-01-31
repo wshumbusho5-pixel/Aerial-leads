@@ -140,7 +140,7 @@ with st.sidebar:
 
     page = st.radio(
         "Navigation",
-        ["🏠 Home", "🚀 Generate Leads", "⚖️ Probate & Foreclosure", "📞 Skip Trace", "🛡️ DNC Scrub", "☎️ Call Tracker", "👥 VA Management", "📱 Dialer", "📥 Inbound Leads", "💰 Deal Pipeline", "📅 Appointments", "💬 SMS Campaigns", "🔄 Follow-ups", "🎯 Reverse Targeting", "📬 Direct Mail", "📲 RVM & Numbers", "🤝 Buyer Matching", "🔍 Search Owner", "📊 View Leads", "🐋 Whale Owners", "📈 Statistics", "📋 Data Quality", "⚙️ Data Management", "🔐 User Management", "📋 VA Recruiting"],
+        ["🏠 Home", "🚀 Generate Leads", "⚖️ Probate & Foreclosure", "📞 Skip Trace", "🛡️ DNC Scrub", "☎️ Call Tracker", "👥 VA Management", "📱 Dialer", "📥 Inbound Leads", "💰 Deal Pipeline", "📅 Appointments", "💬 SMS Campaigns", "🔄 Follow-ups", "🎯 Reverse Targeting", "📬 Direct Mail", "📲 RVM & Numbers", "🤝 Buyer Matching", "🏢 Investor Finder", "🔍 Search Owner", "📊 View Leads", "🐋 Whale Owners", "📈 Statistics", "📋 Data Quality", "⚙️ Data Management", "🔐 User Management", "📋 VA Recruiting"],
         label_visibility="collapsed"
     )
 
@@ -6619,6 +6619,187 @@ elif page == "🤝 Buyer Matching":
                 st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No buyer data yet. Add buyers and record their purchases to see rankings.")
+
+
+# ========================================
+# INVESTOR FINDER PAGE
+# ========================================
+elif page == "🏢 Investor Finder":
+    st.markdown('<h1 class="main-header">🏢 Investor Finder</h1>', unsafe_allow_html=True)
+    st.markdown("Find active real estate investors from public records - multi-property owners in Columbus & Cincinnati")
+
+    # Data directory for investors
+    INVESTORS_DATA_DIR = Path(__file__).parent / "data" / "buyers" / "processed"
+
+    def load_investor_data(county: str = 'franklin', tier: str = None):
+        """Load investor prospects from CSV files"""
+        investors = []
+        if tier:
+            files = {tier: f'investor_prospects_{county}_{tier}.csv'}
+        else:
+            files = {
+                'tier_1': f'investor_prospects_{county}_tier_1.csv',
+                'tier_2': f'investor_prospects_{county}_tier_2.csv',
+                'tier_3': f'investor_prospects_{county}_tier_3.csv',
+            }
+        for tier_name, filename in files.items():
+            filepath = INVESTORS_DATA_DIR / filename
+            if filepath.exists():
+                try:
+                    df = pd.read_csv(filepath)
+                    df['tier'] = tier_name
+                    investors.append(df)
+                except Exception as e:
+                    st.error(f"Error loading {filename}: {e}")
+        if investors:
+            return pd.concat(investors, ignore_index=True).fillna('')
+        return pd.DataFrame()
+
+    # Controls
+    col1, col2, col3 = st.columns([2, 2, 3])
+    with col1:
+        inv_county = st.selectbox(
+            "Market",
+            ["franklin", "hamilton"],
+            format_func=lambda x: "Columbus (Franklin Co.)" if x == "franklin" else "Cincinnati (Hamilton Co.)",
+            key="inv_county"
+        )
+    with col2:
+        inv_tier = st.selectbox(
+            "Investor Tier",
+            ["all", "tier_1", "tier_2", "tier_3"],
+            format_func=lambda x: {"all": "All Tiers", "tier_1": "Tier 1 - High Confidence", "tier_2": "Tier 2 - Medium", "tier_3": "Tier 3 - Lower"}.get(x, x),
+            key="inv_tier"
+        )
+    with col3:
+        inv_search = st.text_input("Search investor name", placeholder="Enter name to search...", key="inv_search")
+
+    # Load data
+    tier_filter = None if inv_tier == "all" else inv_tier
+    investors_df = load_investor_data(county=inv_county, tier=tier_filter)
+
+    if investors_df.empty:
+        st.warning(f"No investor data found for {inv_county}. Run the investor identification scripts to generate data.")
+    else:
+        # Apply search
+        if inv_search:
+            investors_df = investors_df[investors_df['owner_name'].str.contains(inv_search, case=False, na=False)]
+
+        # Stats
+        st.markdown("---")
+        col1, col2, col3, col4, col5 = st.columns(5)
+        with col1:
+            st.metric("Total Investors", f"{len(investors_df):,}")
+        with col2:
+            t1 = len(investors_df[investors_df['tier'] == 'tier_1'])
+            st.metric("Tier 1 (Best)", t1)
+        with col3:
+            t2 = len(investors_df[investors_df['tier'] == 'tier_2'])
+            st.metric("Tier 2", t2)
+        with col4:
+            avg_port = investors_df['portfolio_size'].mean() if 'portfolio_size' in investors_df.columns else 0
+            st.metric("Avg Portfolio", f"{avg_port:.0f}")
+        with col5:
+            total_props = investors_df['portfolio_size'].sum() if 'portfolio_size' in investors_df.columns else 0
+            st.metric("Total Properties", f"{total_props:,.0f}")
+
+        st.markdown("---")
+
+        # Tabs for different views
+        tab1, tab2, tab3 = st.tabs(["📋 Investor List", "📊 Analytics", "📤 Export"])
+
+        with tab1:
+            st.markdown(f"### Showing {len(investors_df):,} investors")
+
+            # Sort options
+            sort_col = st.selectbox("Sort by", ["portfolio_size", "investor_score", "owner_name"], format_func=lambda x: {"portfolio_size": "Portfolio Size", "investor_score": "Investor Score", "owner_name": "Name"}.get(x, x))
+            investors_df = investors_df.sort_values(sort_col, ascending=(sort_col == 'owner_name'))
+
+            # Display table view
+            display_cols = ['owner_name', 'portfolio_size', 'investor_score', 'entity_type', 'tier', 'owner_address']
+            available_cols = [c for c in display_cols if c in investors_df.columns]
+
+            st.dataframe(
+                investors_df[available_cols].head(100),
+                use_container_width=True,
+                column_config={
+                    "owner_name": st.column_config.TextColumn("Investor Name", width="large"),
+                    "portfolio_size": st.column_config.NumberColumn("Properties", format="%d"),
+                    "investor_score": st.column_config.ProgressColumn("Score", min_value=0, max_value=100),
+                    "entity_type": st.column_config.TextColumn("Type"),
+                    "tier": st.column_config.TextColumn("Tier"),
+                    "owner_address": st.column_config.TextColumn("Address", width="large"),
+                }
+            )
+
+            # Expandable details
+            st.markdown("### Investor Details")
+            for idx, inv in investors_df.head(20).iterrows():
+                tier_icon = {"tier_1": "🟢", "tier_2": "🟡", "tier_3": "🟠"}.get(inv.get('tier', ''), "⚪")
+                with st.expander(f"{tier_icon} **{inv['owner_name']}** — {inv.get('portfolio_size', 0)} properties"):
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        st.markdown(f"**Portfolio:** {inv.get('portfolio_size', 0)} properties")
+                        st.markdown(f"**Score:** {inv.get('investor_score', 0)}/100")
+                        st.markdown(f"**Entity:** {inv.get('entity_type', 'Unknown').upper()}")
+                    with c2:
+                        st.markdown(f"**Address:** {inv.get('owner_address', 'N/A')}")
+                        st.markdown(f"**Mailing:** {inv.get('mailing_address', 'N/A')}")
+                        if inv.get('total_market_value'):
+                            st.markdown(f"**Total Value:** ${inv.get('total_market_value', 0):,.0f}")
+
+                    if inv.get('score_reasons'):
+                        st.caption(f"**Why:** {inv['score_reasons'][:150]}...")
+
+                    # Quick actions
+                    bc1, bc2 = st.columns(2)
+                    with bc1:
+                        if st.button("📞 Skip Trace", key=f"skip_{idx}"):
+                            st.info("Add to skip trace queue")
+                    with bc2:
+                        if st.button("➕ Add to Buyers", key=f"add_{idx}"):
+                            st.success("Added to buyer list")
+
+        with tab2:
+            st.markdown("### Investor Analytics")
+
+            # Portfolio size distribution
+            if 'portfolio_size' in investors_df.columns:
+                fig = px.histogram(investors_df, x='portfolio_size', nbins=30, title="Portfolio Size Distribution")
+                st.plotly_chart(fig, use_container_width=True)
+
+            # Entity type breakdown
+            if 'entity_type' in investors_df.columns:
+                entity_counts = investors_df['entity_type'].value_counts()
+                fig2 = px.pie(values=entity_counts.values, names=entity_counts.index, title="Investor Entity Types")
+                st.plotly_chart(fig2, use_container_width=True)
+
+            # Tier breakdown
+            if 'tier' in investors_df.columns:
+                tier_counts = investors_df['tier'].value_counts()
+                fig3 = px.bar(x=tier_counts.index, y=tier_counts.values, title="Investors by Tier", labels={'x': 'Tier', 'y': 'Count'})
+                st.plotly_chart(fig3, use_container_width=True)
+
+        with tab3:
+            st.markdown("### Export Investor Data")
+            st.markdown("Download investor lists for outreach campaigns")
+
+            export_tier = st.selectbox("Select tier to export", ["all", "tier_1", "tier_2", "tier_3"], key="export_tier")
+            if export_tier != "all":
+                export_df = investors_df[investors_df['tier'] == export_tier]
+            else:
+                export_df = investors_df
+
+            st.write(f"Ready to export **{len(export_df):,}** investors")
+
+            csv = export_df.to_csv(index=False)
+            st.download_button(
+                "📥 Download CSV",
+                csv,
+                f"investors_{inv_county}_{export_tier}.csv",
+                "text/csv",
+                use_container_width=True
+            )
 
 
 # ========================================

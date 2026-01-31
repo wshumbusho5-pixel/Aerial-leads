@@ -81,6 +81,9 @@ CALLS_FILE = PROCESSED_DIR / "call_log.csv"
 INBOUND_FILE = PROCESSED_DIR / "inbound_leads.csv"
 VA_ASSIGNMENTS_FILE = PROCESSED_DIR / "va_assignments.csv"
 
+# Investor/Buyer data directories
+BUYERS_DATA_DIR = BASE_DIR / "data" / "buyers" / "processed"
+
 # RVM files (shared with admin dashboard)
 RVM_CAMPAIGNS_FILE = DATA_DIR / "rvm_campaigns.json"
 RVM_DROPS_FILE = DATA_DIR / "rvm_drops.csv"
@@ -324,6 +327,40 @@ def load_appointments():
             return pd.read_csv(APPOINTMENTS_FILE)
         except:
             return pd.DataFrame()
+    return pd.DataFrame()
+
+def load_investors(county: str = 'franklin', tier: str = None):
+    """Load investor prospects from CSV files
+
+    Args:
+        county: 'franklin' (Columbus) or 'hamilton' (Cincinnati)
+        tier: 'tier_1', 'tier_2', 'tier_3', or None for all
+    """
+    investors = []
+
+    if tier:
+        files = {tier: f'investor_prospects_{county}_{tier}.csv'}
+    else:
+        files = {
+            'tier_1': f'investor_prospects_{county}_tier_1.csv',
+            'tier_2': f'investor_prospects_{county}_tier_2.csv',
+            'tier_3': f'investor_prospects_{county}_tier_3.csv',
+        }
+
+    for tier_name, filename in files.items():
+        filepath = BUYERS_DATA_DIR / filename
+        if filepath.exists():
+            try:
+                df = pd.read_csv(filepath)
+                df['tier'] = tier_name
+                investors.append(df)
+            except Exception as e:
+                print(f"Error loading {filename}: {e}")
+
+    if investors:
+        df = pd.concat(investors, ignore_index=True)
+        df = df.fillna('')
+        return df
     return pd.DataFrame()
 
 def save_appointment(appt_data, va_name):
@@ -723,7 +760,7 @@ def show_dashboard():
 
         page = st.radio(
             "Navigation",
-            ["📊 My Stats", "📋 My Leads", "📱 Dialer", f"🔔 Callback Queue{callback_badge}", "📞 Call Tracker", f"📅 Appointments{appt_badge}", "📥 Inbound Leads", "📝 End of Day"],
+            ["📊 My Stats", "📋 My Leads", "📱 Dialer", f"🔔 Callback Queue{callback_badge}", "📞 Call Tracker", f"📅 Appointments{appt_badge}", "📥 Inbound Leads", "🏢 Investor Leads", "📝 End of Day"],
             label_visibility="collapsed"
         )
 
@@ -796,6 +833,8 @@ def show_dashboard():
         show_appointments_page(va_name)
     elif "Inbound" in page:
         show_inbound_page(inbound_df, va_name)
+    elif "Investor Leads" in page:
+        show_investor_leads_page(va_name)
     elif "End of Day" in page:
         show_end_of_day_report(va_name, calls_df, stats)
 
@@ -1886,6 +1925,135 @@ def show_inbound_page(inbound_df, va_name):
                     st.caption("No phone")
 
             st.markdown("---")
+
+def show_investor_leads_page(va_name):
+    """Show investor/buyer leads for IDS team"""
+    st.markdown("## 🏢 Investor Leads")
+    st.markdown("Find and contact active real estate investors in your market.")
+
+    # County and tier selection
+    col1, col2, col3 = st.columns([2, 2, 2])
+
+    with col1:
+        county = st.selectbox(
+            "Market",
+            ["franklin", "hamilton"],
+            format_func=lambda x: "Columbus (Franklin Co.)" if x == "franklin" else "Cincinnati (Hamilton Co.)"
+        )
+
+    with col2:
+        tier = st.selectbox(
+            "Investor Tier",
+            ["all", "tier_1", "tier_2", "tier_3"],
+            format_func=lambda x: {
+                "all": "All Tiers",
+                "tier_1": "Tier 1 - High Confidence",
+                "tier_2": "Tier 2 - Medium Confidence",
+                "tier_3": "Tier 3 - Lower Confidence"
+            }.get(x, x)
+        )
+
+    with col3:
+        search = st.text_input("Search by name", placeholder="Enter investor name...")
+
+    # Load investors
+    tier_filter = None if tier == "all" else tier
+    investors_df = load_investors(county=county, tier=tier_filter)
+
+    if investors_df.empty:
+        st.warning(f"No investor data found for {county}. Check that investor CSV files exist.")
+        return
+
+    # Apply search filter
+    if search:
+        investors_df = investors_df[investors_df['owner_name'].str.contains(search, case=False, na=False)]
+
+    # Stats
+    st.markdown("---")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Investors", len(investors_df))
+    with col2:
+        tier1_count = len(investors_df[investors_df['tier'] == 'tier_1']) if 'tier' in investors_df.columns else 0
+        st.metric("Tier 1 (Best)", tier1_count)
+    with col3:
+        avg_portfolio = investors_df['portfolio_size'].mean() if 'portfolio_size' in investors_df.columns else 0
+        st.metric("Avg Portfolio Size", f"{avg_portfolio:.0f}")
+    with col4:
+        total_properties = investors_df['portfolio_size'].sum() if 'portfolio_size' in investors_df.columns else 0
+        st.metric("Total Properties", f"{total_properties:,.0f}")
+
+    st.markdown("---")
+
+    # Display investors
+    st.markdown(f"### Showing {len(investors_df)} investors")
+
+    # Pagination
+    page_size = 20
+    if 'investor_page' not in st.session_state:
+        st.session_state.investor_page = 0
+
+    total_pages = (len(investors_df) - 1) // page_size + 1
+    start_idx = st.session_state.investor_page * page_size
+    end_idx = start_idx + page_size
+
+    # Page navigation
+    nav_col1, nav_col2, nav_col3 = st.columns([1, 3, 1])
+    with nav_col1:
+        if st.button("← Previous", disabled=st.session_state.investor_page == 0):
+            st.session_state.investor_page -= 1
+            st.rerun()
+    with nav_col2:
+        st.markdown(f"<center>Page {st.session_state.investor_page + 1} of {total_pages}</center>", unsafe_allow_html=True)
+    with nav_col3:
+        if st.button("Next →", disabled=st.session_state.investor_page >= total_pages - 1):
+            st.session_state.investor_page += 1
+            st.rerun()
+
+    # Display investor cards
+    for idx, investor in investors_df.iloc[start_idx:end_idx].iterrows():
+        tier_color = {"tier_1": "🟢", "tier_2": "🟡", "tier_3": "🟠"}.get(investor.get('tier', ''), "⚪")
+        portfolio_size = investor.get('portfolio_size', 0)
+        investor_score = investor.get('investor_score', 0)
+
+        with st.expander(f"{tier_color} **{investor['owner_name']}** — {portfolio_size} properties (Score: {investor_score})"):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown(f"**Entity Type:** {investor.get('entity_type', 'Unknown').upper()}")
+                st.markdown(f"**Portfolio Size:** {portfolio_size} properties")
+                st.markdown(f"**Investor Score:** {investor_score}/100")
+                st.markdown(f"**Tier:** {investor.get('tier', 'Unknown').replace('_', ' ').title()}")
+
+            with col2:
+                st.markdown(f"**Address:** {investor.get('owner_address', 'N/A')}")
+                st.markdown(f"**Mailing:** {investor.get('mailing_address', 'N/A')}")
+                if investor.get('total_market_value'):
+                    st.markdown(f"**Total Value:** ${investor.get('total_market_value', 0):,.0f}")
+
+            # Sample properties
+            if investor.get('sample_properties'):
+                st.markdown("**Sample Properties:**")
+                try:
+                    props = eval(investor['sample_properties']) if isinstance(investor['sample_properties'], str) else investor['sample_properties']
+                    for prop in props[:3]:
+                        st.caption(f"  • {prop}")
+                except:
+                    st.caption(str(investor['sample_properties'])[:100])
+
+            # Score reasons
+            if investor.get('score_reasons'):
+                st.markdown("**Why High Score:**")
+                st.caption(investor['score_reasons'][:200])
+
+            # Action buttons
+            btn_col1, btn_col2, btn_col3 = st.columns(3)
+            with btn_col1:
+                st.button("📋 Copy Info", key=f"copy_{idx}", help="Copy investor details")
+            with btn_col2:
+                st.button("✅ Mark Contacted", key=f"contacted_{idx}")
+            with btn_col3:
+                st.button("⭐ Add to Buyers", key=f"add_buyer_{idx}")
 
 # Main app
 def main():
