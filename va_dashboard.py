@@ -758,9 +758,25 @@ def show_dashboard():
             upcoming_appts = len(appts_df[(appts_df['date'] >= today) & (appts_df.get('scheduled_by', '') == va_name)])
         appt_badge = f" ({upcoming_appts})" if upcoming_appts > 0 else ""
 
+        # Get user role to determine which pages to show
+        user_role = st.session_state.get('user_role', 'va')
+
+        # Define pages based on role
+        if user_role == 'va_ids':
+            # IDS (Investor Development Specialist) - Investor/Buyer focused
+            nav_pages = ["📊 My Stats", "📱 Dialer", "📞 Call Tracker", "🏢 Investor Leads", "📝 End of Day"]
+            st.caption("🏷️ Role: Investor Development (IDS)")
+        elif user_role == 'va_pas':
+            # PAS (Property Acquisition Specialist) - Seller focused
+            nav_pages = ["📊 My Stats", "📋 My Leads", "📱 Dialer", f"🔔 Callback Queue{callback_badge}", "📞 Call Tracker", f"📅 Appointments{appt_badge}", "📥 Inbound Leads", "📝 End of Day"]
+            st.caption("🏷️ Role: Property Acquisition (PAS)")
+        else:
+            # Default 'va' role - show all pages (backwards compatible)
+            nav_pages = ["📊 My Stats", "📋 My Leads", "📱 Dialer", f"🔔 Callback Queue{callback_badge}", "📞 Call Tracker", f"📅 Appointments{appt_badge}", "📥 Inbound Leads", "🏢 Investor Leads", "📝 End of Day"]
+
         page = st.radio(
             "Navigation",
-            ["📊 My Stats", "📋 My Leads", "📱 Dialer", f"🔔 Callback Queue{callback_badge}", "📞 Call Tracker", f"📅 Appointments{appt_badge}", "📥 Inbound Leads", "🏢 Investor Leads", "📝 End of Day"],
+            nav_pages,
             label_visibility="collapsed"
         )
 

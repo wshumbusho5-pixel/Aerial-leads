@@ -54,6 +54,7 @@ try:
     from recruiting.va_applications import VAApplications, APPLICATION_STATUS, STATUS_DISPLAY, COLD_CALL_SCRIPTS
     DB_AUTH_AVAILABLE = True
     RECRUITING_AVAILABLE = True
+    ROLE_DISPLAY = {"admin": "Admin", "va_pas": "VA - Property Acquisition (PAS)", "va_ids": "VA - Investor Development (IDS)", "va": "VA (Legacy)", "manager": "Manager"}
 except ImportError as e:
     DEPLOY_MODE = True
     # Fallback paths for deployment
@@ -79,7 +80,8 @@ except ImportError as e:
     APPLICATION_STATUS = ['applied', 'reviewing', 'script_sent', 'video_submitted', 'video_approved', 'interview', 'hired', 'rejected', 'withdrawn']
     STATUS_DISPLAY = {'applied': 'Applied', 'reviewing': 'Under Review', 'script_sent': 'Script Sent', 'video_submitted': 'Video Submitted', 'video_approved': 'Video Approved', 'interview': 'Interview', 'hired': 'Hired', 'rejected': 'Rejected', 'withdrawn': 'Withdrawn'}
     COLD_CALL_SCRIPTS = {'general': {'name': 'General Script', 'script': 'Script not available'}}
-    ROLES = ["admin", "va", "manager"]
+    ROLES = ["admin", "va_pas", "va_ids", "va", "manager"]
+    ROLE_DISPLAY = {"admin": "Admin", "va_pas": "VA - Property Acquisition (PAS)", "va_ids": "VA - Investor Development (IDS)", "va": "VA (Legacy)", "manager": "Manager"}
     MAIL_TEMPLATES = {}
     DEFAULT_RVM_SCRIPTS = {}
     SMS_CAMPAIGN_STATUS = ["draft", "scheduled", "sending", "paused", "completed", "cancelled"]
@@ -7047,16 +7049,28 @@ elif page == "🔐 User Management":
                                 st.rerun()
 
                     with action_cols[1]:
-                        new_role = st.selectbox(
+                        # Role selection with friendly names
+                        role_options = list(ROLE_DISPLAY.keys())
+                        role_labels = list(ROLE_DISPLAY.values())
+                        current_role_idx = role_options.index(user['role']) if user['role'] in role_options else 1
+                        selected_idx = st.selectbox(
                             "Change Role",
-                            ROLES,
-                            index=ROLES.index(user['role']) if user['role'] in ROLES else 1,
+                            range(len(role_options)),
+                            format_func=lambda x: role_labels[x],
+                            index=current_role_idx,
                             key=f"role_{user['username']}"
                         )
+                        new_role = role_options[selected_idx]
                         if new_role != user['role']:
                             if st.button("Update Role", key=f"update_role_{user['username']}"):
                                 auth.update_user(user['username'], {'role': new_role})
-                                st.success("Role updated")
+                                # Also update in database
+                                if db_auth:
+                                    try:
+                                        db_auth.update_user(user['username'], role=new_role)
+                                    except:
+                                        pass
+                                st.success(f"Role updated to {ROLE_DISPLAY.get(new_role, new_role)}")
                                 st.rerun()
 
     with tab2:
@@ -7066,7 +7080,11 @@ elif page == "🔐 User Management":
         new_password = st.text_input("Password", type="password", placeholder="Temporary password")
         new_fullname = st.text_input("Full Name", placeholder="John Smith")
         new_email = st.text_input("Email (optional)", placeholder="john@example.com")
-        new_role = st.selectbox("Role", ROLES, index=1)  # Default to VA
+        # Role selection with friendly names
+        role_options = list(ROLE_DISPLAY.keys())
+        role_labels = list(ROLE_DISPLAY.values())
+        selected_role_idx = st.selectbox("Role", range(len(role_options)), format_func=lambda x: role_labels[x], index=1)  # Default to VA-PAS
+        new_role = role_options[selected_role_idx]
 
         if st.button("➕ Create User", type="primary"):
             if new_username and new_password and new_fullname:
