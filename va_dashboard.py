@@ -514,11 +514,18 @@ def get_va_stats(va_name, calls_df):
     today = datetime.now().strftime('%Y-%m-%d')
     week_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
 
+    # Count contacts (any result starting with "Contact")
+    contacts_count = 0
+    appointments_count = 0
+    if 'result' in va_calls.columns:
+        contacts_count = len(va_calls[va_calls['result'].astype(str).str.startswith('Contact')])
+        appointments_count = len(va_calls[va_calls['result'].astype(str).str.contains('Appointment', case=False, na=False)])
+
     stats = {
         "today": len(va_calls[va_calls.get('date', '') == today]) if 'date' in va_calls.columns else 0,
         "week": len(va_calls[va_calls.get('date', '') >= week_ago]) if 'date' in va_calls.columns else len(va_calls),
-        "contacts": len(va_calls[va_calls.get('result', '') == 'Contact']) if 'result' in va_calls.columns else 0,
-        "appointments": len(va_calls[va_calls.get('result', '') == 'Appointment']) if 'result' in va_calls.columns else 0
+        "contacts": contacts_count,
+        "appointments": appointments_count
     }
     return stats
 
