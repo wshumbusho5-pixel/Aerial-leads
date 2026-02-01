@@ -759,48 +759,69 @@ class RVMManager:
         return client.stop_campaign(session_id)
 
 
-# Default voicemail scripts
+# Default voicemail scripts - Psychology Enhanced (Curiosity-based, no manufactured emotion)
 DEFAULT_RVM_SCRIPTS = {
-    'probate_warm': {
-        'name': 'Probate Warm Introduction',
-        'script_text': '''Hi, this is Willy from Lifeline Home Buyers.
+    'probate': {
+        'name': 'Probate / Inherited Property',
+        'script_text': '''Hey, this is Willy.
 
-I understand you may have inherited a property recently. I know this can be a difficult time, and I wanted to reach out personally.
+I came across a property on [STREET NAME] and I wasn't sure if I should reach out or not.
 
-My family lost our home years ago when no one would help, so I started Lifeline to make sure other families have options.
+I don't know your situation. I don't know if selling is even on your mind.
 
-If you're thinking about selling the property, I'd love to chat. No pressure - just options.
+But if you've ever wondered what it would look like to just... move on from it - no repairs, no agents, no waiting - I'd be happy to talk through your options.
 
-Give me a call back at [YOUR NUMBER]. Again, this is Willy from Lifeline Home Buyers.
+No pressure. Just a conversation if it makes sense.
 
-Take care.''',
-        'duration_seconds': 35
+It's Willy. [YOUR NUMBER].''',
+        'duration_seconds': 20
     },
-    'tax_delinquent_warm': {
-        'name': 'Tax Delinquent Warm Introduction',
-        'script_text': '''Hi there, this is Willy from Lifeline Home Buyers.
+    'tax_situation': {
+        'name': 'Tax Situation',
+        'script_text': '''Hey, it's Willy with Lifeline Home Buyers.
 
-I noticed your property may have some tax issues. I'm calling because my own family lost our home to back taxes, and I don't want to see that happen to anyone else.
+I'm calling about a property on [STREET NAME]. I'll keep this short.
 
-I buy houses for cash and can help with tax situations. No judgment, just solutions.
+I don't know what's going on with the property. Maybe nothing. Maybe something.
 
-If you'd like to talk about your options, call me back at [YOUR NUMBER].
+But if there's a version of this where you walk away with cash and move on - that's a conversation I'm happy to have.
 
-This is Willy from Lifeline Home Buyers. Hope to hear from you.''',
-        'duration_seconds': 32
+No judgment. No pressure.
+
+It's Willy. [YOUR NUMBER]. Call me back if it makes sense.''',
+        'duration_seconds': 18
     },
-    'general_investor': {
-        'name': 'General Investor Introduction',
-        'script_text': '''Hi, this is Willy with Lifeline Home Buyers.
+    'absentee_owner': {
+        'name': 'General / Absentee Owner',
+        'script_text': '''Hey, this is Willy.
 
-I'm a local real estate investor and I'm interested in buying properties in your area for cash.
+I've got kind of an unusual question about your property on [STREET NAME].
 
-If you've ever thought about selling your house - whether it needs work, you're relocating, or you just want a quick, hassle-free sale - I'd love to make you an offer.
+I'm not sure if selling is even on your radar - probably not.
 
-Call or text me back at [YOUR NUMBER].
+But if you've ever thought "I'd sell this if I didn't have to deal with all the hassle" - that's exactly what I do.
 
-Thanks, and have a great day!''',
-        'duration_seconds': 28
+Cash. No agents. You pick the timeline.
+
+If that sounds like a conversation worth having, call me back. [YOUR NUMBER].
+
+If not, no worries. Take care.''',
+        'duration_seconds': 22
+    },
+    'code_violation': {
+        'name': 'Code Violation',
+        'script_text': '''Hey, it's Willy.
+
+Calling about the property on [STREET NAME].
+
+I don't know your situation - and honestly, it's none of my business.
+
+But if you've ever thought "I just want this off my plate" - I buy properties for cash, any condition.
+
+Might be worth a quick conversation. Might not.
+
+It's Willy. [YOUR NUMBER]. Hope to hear from you.''',
+        'duration_seconds': 17
     }
 }
 
