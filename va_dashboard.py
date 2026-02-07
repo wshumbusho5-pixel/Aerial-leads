@@ -1057,17 +1057,17 @@ def show_leads_page(leads_df, va_name):
             ('phone_6', 'phone_6_type'),
         ]
 
-        # Priority: Landline=1, Mobile/Wireless=2, VOIP=3, Unknown=4
+        # Priority: Mobile=1 (direct to owner), Landline=2, VOIP=3, Unknown=4
         def get_phone_priority(phone_type):
             if not phone_type:
                 return 4
             phone_type_lower = str(phone_type).lower()
-            if 'land' in phone_type_lower:
-                return 1
-            elif 'mobile' in phone_type_lower or 'wireless' in phone_type_lower or 'cell' in phone_type_lower:
-                return 2
+            if 'mobile' in phone_type_lower or 'wireless' in phone_type_lower or 'cell' in phone_type_lower:
+                return 1  # BEST - direct line to the decision maker
+            elif 'land' in phone_type_lower:
+                return 2  # OK - anyone in house might answer
             elif 'voip' in phone_type_lower:
-                return 3
+                return 3  # LAST - often burner/inactive numbers
             return 4
 
         for phone_col, type_col in phone_columns:
@@ -1082,7 +1082,7 @@ def show_leads_page(leads_df, va_name):
                     priority = get_phone_priority(phone_type)
                     all_phones.append((clean_phone, str(phone_type), priority))
 
-        # Sort by priority (Landline first, then Mobile, then VOIP, then Unknown)
+        # Sort by priority (Mobile first, then Landline, then VOIP, then Unknown)
         all_phones.sort(key=lambda x: x[2])
 
         with st.expander(f"**{address}** - {owner} ({len(all_phones)} phones)", expanded=False):
@@ -1113,10 +1113,10 @@ def show_leads_page(leads_df, va_name):
                     phone_num, phone_type, priority = phone_data
 
                     # Type indicator with color
-                    if priority == 1:  # Landline
-                        type_badge = "🏠 Landline"
-                    elif priority == 2:  # Mobile
+                    if priority == 1:  # Mobile - BEST
                         type_badge = "📱 Mobile"
+                    elif priority == 2:  # Landline
+                        type_badge = "🏠 Landline"
                     elif priority == 3:  # VOIP
                         type_badge = "🌐 VOIP"
                     else:
