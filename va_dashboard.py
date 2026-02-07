@@ -1042,15 +1042,48 @@ def show_leads_page(leads_df, va_name):
         city = lead.get('city', '')
         owner = lead.get('owner_name', lead.get('owner', 'Unknown Owner'))
 
-        # Get ALL phone numbers
-        all_phones = []
-        for phone_col in ['phone', 'phone_1', 'phone_2', 'phone_3', 'phone_4', 'phone_5', 'phone_6']:
+        # Get ALL phone numbers with their types
+        all_phones = []  # List of (phone, type, priority) tuples
+        seen_phones = set()
+
+        # Phone column mappings - check both naming conventions
+        phone_columns = [
+            ('phone', 'phone_type'),
+            ('phone_1', 'phone_1_type'),
+            ('phone_2', 'phone_2_type'),
+            ('phone_3', 'phone_3_type'),
+            ('phone_4', 'phone_4_type'),
+            ('phone_5', 'phone_5_type'),
+            ('phone_6', 'phone_6_type'),
+        ]
+
+        # Priority: Landline=1, Mobile/Wireless=2, VOIP=3, Unknown=4
+        def get_phone_priority(phone_type):
+            if not phone_type:
+                return 4
+            phone_type_lower = str(phone_type).lower()
+            if 'land' in phone_type_lower:
+                return 1
+            elif 'mobile' in phone_type_lower or 'wireless' in phone_type_lower or 'cell' in phone_type_lower:
+                return 2
+            elif 'voip' in phone_type_lower:
+                return 3
+            return 4
+
+        for phone_col, type_col in phone_columns:
             phone_val = lead.get(phone_col, '')
             if phone_val and str(phone_val).strip() and str(phone_val).lower() not in ['nan', 'none', '']:
-                # Clean phone number
                 clean_phone = str(phone_val).strip()
-                if clean_phone and clean_phone not in all_phones:  # Avoid duplicates
-                    all_phones.append(clean_phone)
+                if clean_phone and clean_phone not in seen_phones:
+                    seen_phones.add(clean_phone)
+                    phone_type = lead.get(type_col, '')
+                    if not phone_type or str(phone_type).lower() in ['nan', 'none', '']:
+                        phone_type = 'Unknown'
+                    priority = get_phone_priority(phone_type)
+                    all_phones.append((clean_phone, str(phone_type), priority))
+
+        # Sort by priority (Landline first, then Mobile, then VOIP, then Unknown)
+        all_phones.sort(key=lambda x: x[2])
 
         with st.expander(f"**{address}** - {owner} ({len(all_phones)} phones)", expanded=False):
             # Lead info
@@ -1068,19 +1101,31 @@ def show_leads_page(leads_df, va_name):
                 else:
                     st.markdown("❄️ Cold Lead")
 
-            # Display ALL phone numbers with call buttons
+            # Display ALL phone numbers with call buttons (sorted: Landline > Mobile > VOIP)
             if all_phones:
-                st.markdown("**📞 Phone Numbers:**")
+                st.markdown("**📞 Phone Numbers** *(sorted by quality)*:")
                 calling_mode = st.session_state.get('calling_mode', 'phone')
                 va_phone = st.session_state.get('va_phone', '')
                 va_identity = st.session_state.get('va_username', 'va-user')
                 public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://va-public-production.up.railway.app')
 
-                for phone_idx, phone_num in enumerate(all_phones):
+                for phone_idx, phone_data in enumerate(all_phones):
+                    phone_num, phone_type, priority = phone_data
+
+                    # Type indicator with color
+                    if priority == 1:  # Landline
+                        type_badge = "🏠 Landline"
+                    elif priority == 2:  # Mobile
+                        type_badge = "📱 Mobile"
+                    elif priority == 3:  # VOIP
+                        type_badge = "🌐 VOIP"
+                    else:
+                        type_badge = f"❓ {phone_type}"
+
                     phone_col1, phone_col2, phone_col3 = st.columns([3, 1, 1])
 
                     with phone_col1:
-                        st.markdown(f"**{phone_idx + 1}.** {phone_num}")
+                        st.markdown(f"**{phone_idx + 1}.** {phone_num} *({type_badge})*")
 
                     with phone_col2:
                         if calling_mode == 'browser' and BROWSER_DIALER_AVAILABLE:
