@@ -1092,7 +1092,7 @@ def show_leads_page(leads_df, va_name):
                                 'address': address or ''
                             })
                             dialer_url = f"{public_site_url}/dialer?{params}"
-                            st.link_button("📞 Call", dialer_url, key=f"call_{idx}_{phone_idx}", use_container_width=True)
+                            st.link_button("📞 Call", dialer_url, use_container_width=True)
                         elif calling_mode == 'phone' and va_phone and TWILIO_AVAILABLE:
                             if st.button("📱 Call", key=f"phone_call_{idx}_{phone_idx}", use_container_width=True):
                                 with st.spinner("Calling..."):
