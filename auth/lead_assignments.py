@@ -63,6 +63,10 @@ def assign_leads_to_db(leads_df: pd.DataFrame, assigned_to: str, assigned_by: st
             owner_name = lead.get('owner_name', lead.get('owner', lead.get('owner_1', '')))
             phone = lead.get('phone', lead.get('phone_1', ''))
             phone_2 = lead.get('phone_2', '')
+            phone_3 = lead.get('phone_3', '')
+            phone_4 = lead.get('phone_4', '')
+            phone_5 = lead.get('phone_5', '')
+            phone_6 = lead.get('phone_6', '')
             email = lead.get('email', '')
 
             property_type = lead.get('property_type', '')
@@ -87,12 +91,14 @@ def assign_leads_to_db(leads_df: pd.DataFrame, assigned_to: str, assigned_by: st
             cursor.execute("""
                 INSERT INTO lead_assignments (
                     assigned_to, assigned_by, priority, address, owner_name,
-                    phone, phone_2, email, property_type, bedrooms, bathrooms,
+                    phone, phone_2, phone_3, phone_4, phone_5, phone_6,
+                    email, property_type, bedrooms, bathrooms,
                     sqft, year_built, estimated_value, motivation_score, lead_type, notes
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 assigned_to, assigned_by, priority, address, owner_name,
-                phone, phone_2, email, property_type, bedrooms, bathrooms,
+                phone, phone_2, phone_3, phone_4, phone_5, phone_6,
+                email, property_type, bedrooms, bathrooms,
                 sqft, year_built, estimated_value, motivation_score, lead_type, notes
             ))
             count += 1

@@ -64,6 +64,17 @@ try:
 except ImportError:
     pass
 
+# Qualified buyers module for IDS team
+QUALIFIED_BUYERS_AVAILABLE = False
+try:
+    from buyers.qualified_buyers import (
+        add_buyer, get_buyers_df, get_buyer_stats,
+        PROPERTY_TYPES, CONDITION_PREFS, INTEREST_LEVELS, INTEREST_DISPLAY
+    )
+    QUALIFIED_BUYERS_AVAILABLE = True
+except ImportError:
+    pass
+
 AUTH_AVAILABLE = DB_AUTH_AVAILABLE or CSV_AUTH_AVAILABLE
 
 # Configure paths - works both locally and deployed
@@ -1027,95 +1038,89 @@ def show_leads_page(leads_df, va_name):
     st.markdown("---")
 
     for idx, lead in filtered.head(50).iterrows():
-        col1, col2, col3 = st.columns([3, 1, 1])
+        address = lead.get('address', lead.get('property_address', 'Unknown Address'))
+        city = lead.get('city', '')
+        owner = lead.get('owner_name', lead.get('owner', 'Unknown Owner'))
 
-        with col1:
-            address = lead.get('address', lead.get('property_address', 'Unknown Address'))
-            city = lead.get('city', '')
-            owner = lead.get('owner_name', lead.get('owner', 'Unknown Owner'))
-            phone = lead.get('phone', lead.get('phone_1', ''))
-            phone_2 = lead.get('phone_2', '')
+        # Get ALL phone numbers
+        all_phones = []
+        for phone_col in ['phone', 'phone_1', 'phone_2', 'phone_3', 'phone_4', 'phone_5', 'phone_6']:
+            phone_val = lead.get(phone_col, '')
+            if phone_val and str(phone_val).strip() and str(phone_val).lower() not in ['nan', 'none', '']:
+                # Clean phone number
+                clean_phone = str(phone_val).strip()
+                if clean_phone and clean_phone not in all_phones:  # Avoid duplicates
+                    all_phones.append(clean_phone)
 
-            st.markdown(f"**{address}**")
-            st.caption(f"Owner: {owner}")
+        with st.expander(f"**{address}** - {owner} ({len(all_phones)} phones)", expanded=False):
+            # Lead info
+            col_info, col_score = st.columns([3, 1])
+            with col_info:
+                st.caption(f"Owner: {owner}")
+                if city:
+                    st.caption(f"City: {city}")
+            with col_score:
+                score = lead.get('motivation_score', lead.get('score', 0))
+                if score and score >= 70:
+                    st.markdown("🔥 **Hot Lead**")
+                elif score and score >= 50:
+                    st.markdown("🌡️ Warm Lead")
+                else:
+                    st.markdown("❄️ Cold Lead")
 
-            # Display phone numbers prominently
-            if phone:
-                st.markdown(f"📞 **{phone}**" + (f" | {phone_2}" if phone_2 else ""))
-            else:
-                st.caption("No phone number")
-
-        with col2:
-            score = lead.get('motivation_score', lead.get('score', 0))
-            if score and score >= 70:
-                st.markdown("🔥 **Hot**")
-            elif score and score >= 50:
-                st.markdown("🌡️ Warm")
-            else:
-                st.markdown("❄️ Cold")
-
-        with col3:
-            # Make calls based on selected mode
-            if phone:
+            # Display ALL phone numbers with call buttons
+            if all_phones:
+                st.markdown("**📞 Phone Numbers:**")
                 calling_mode = st.session_state.get('calling_mode', 'phone')
                 va_phone = st.session_state.get('va_phone', '')
                 va_identity = st.session_state.get('va_username', 'va-user')
+                public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://va-public-production.up.railway.app')
 
-                if calling_mode == 'browser' and BROWSER_DIALER_AVAILABLE:
-                    # Browser dialer mode - open dialer in new tab
-                    import urllib.parse
-                    params = urllib.parse.urlencode({
-                        'identity': va_identity,
-                        'phone': phone,
-                        'name': owner or '',
-                        'address': address or ''
-                    })
-                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://va-public-production.up.railway.app')
-                    dialer_url = f"{public_site_url}/dialer?{params}"
+                for phone_idx, phone_num in enumerate(all_phones):
+                    phone_col1, phone_col2, phone_col3 = st.columns([3, 1, 1])
 
-                    # Two buttons: Call and Log
-                    btn_col1, btn_col2 = st.columns(2)
-                    with btn_col1:
-                        st.link_button("📞", dialer_url, use_container_width=True)
-                    with btn_col2:
-                        if st.button("📝", key=f"log_{idx}", use_container_width=True):
-                            # Save lead info and switch to Call Tracker
+                    with phone_col1:
+                        st.markdown(f"**{phone_idx + 1}.** {phone_num}")
+
+                    with phone_col2:
+                        if calling_mode == 'browser' and BROWSER_DIALER_AVAILABLE:
+                            import urllib.parse
+                            params = urllib.parse.urlencode({
+                                'identity': va_identity,
+                                'phone': phone_num,
+                                'name': owner or '',
+                                'address': address or ''
+                            })
+                            dialer_url = f"{public_site_url}/dialer?{params}"
+                            st.link_button("📞 Call", dialer_url, key=f"call_{idx}_{phone_idx}", use_container_width=True)
+                        elif calling_mode == 'phone' and va_phone and TWILIO_AVAILABLE:
+                            if st.button("📱 Call", key=f"phone_call_{idx}_{phone_idx}", use_container_width=True):
+                                with st.spinner("Calling..."):
+                                    success, message, call_sid = initiate_two_leg_call(
+                                        va_phone=va_phone,
+                                        lead_phone=phone_num,
+                                        lead_name=owner,
+                                        lead_address=address
+                                    )
+                                    if success:
+                                        st.success(f"📞 {message}")
+                                    else:
+                                        st.error(message)
+                        else:
+                            st.button("📞 Call", key=f"no_call_{idx}_{phone_idx}", disabled=True, use_container_width=True)
+
+                    with phone_col3:
+                        if st.button("📝 Log", key=f"log_{idx}_{phone_idx}", use_container_width=True):
                             st.session_state.last_called_lead = {
                                 'address': address,
-                                'phone': phone,
+                                'phone': phone_num,
                                 'owner_name': owner,
                                 'called_at': datetime.now().isoformat()
                             }
                             st.session_state.va_page = "📞 Call Tracker"
                             st.rerun()
-
-                elif calling_mode == 'phone' and va_phone and TWILIO_AVAILABLE:
-                    # Phone dialer mode - two-leg call
-                    if st.button("📱 Call", key=f"call_{idx}", use_container_width=True):
-                        with st.spinner("Calling your phone..."):
-                            success, message, call_sid = initiate_two_leg_call(
-                                va_phone=va_phone,
-                                lead_phone=phone,
-                                lead_name=owner,
-                                lead_address=address
-                            )
-                            if success:
-                                st.success(f"📞 {message}")
-                                st.info("Answer your phone to connect to the lead!")
-                            else:
-                                st.error(f"❌ {message}")
-
-                elif calling_mode == 'phone' and not va_phone:
-                    st.button("📱 Call", key=f"call_{idx}", use_container_width=True, disabled=True)
-                    st.caption("Set phone ↑")
-
-                else:
-                    # Fallback to tel: link
-                    st.link_button("📞 Call", f"tel:{phone}", use_container_width=True)
             else:
-                st.button("📞 No Phone", key=f"call_{idx}", disabled=True)
-
-        st.markdown("---")
+                st.warning("No phone numbers available for this lead")
 
 def show_call_tracker(leads_df, va_name):
     st.markdown("## 📞 Call Tracker")
@@ -1949,10 +1954,172 @@ def show_inbound_page(inbound_df, va_name):
 
             st.markdown("---")
 
+
+def show_add_buyer_form(va_name, prefill: dict = None):
+    """Form for VAs to add qualified buyers"""
+    st.markdown("### ➕ Add Qualified Buyer")
+    st.info("When an investor says they're interested, capture their buying criteria here.")
+
+    if not QUALIFIED_BUYERS_AVAILABLE:
+        st.error("Qualified buyers module not available. Please contact admin.")
+        return
+
+    with st.form("add_buyer_form", clear_on_submit=True):
+        st.markdown("**Contact Information**")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            buyer_name = st.text_input("Name *", value=prefill.get('name', '') if prefill else '')
+            buyer_phone = st.text_input("Phone *", value=prefill.get('phone', '') if prefill else '')
+            buyer_email = st.text_input("Email", value=prefill.get('email', '') if prefill else '')
+
+        with col2:
+            buyer_company = st.text_input("Company/LLC", value=prefill.get('company', '') if prefill else '')
+            buyer_phone_2 = st.text_input("Phone 2")
+            buyer_address = st.text_input("Address", value=prefill.get('address', '') if prefill else '')
+
+        st.markdown("---")
+        st.markdown("**Buying Criteria**")
+
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            price_min = st.number_input("Min Budget ($)", min_value=0, value=0, step=10000)
+            price_max = st.number_input("Max Budget ($)", min_value=0, value=150000, step=10000)
+
+        with col2:
+            prop_types = st.multiselect(
+                "Property Types",
+                options=PROPERTY_TYPES,
+                default=['SFR']
+            )
+            condition = st.selectbox("Condition Preference", options=CONDITION_PREFS)
+
+        with col3:
+            areas = st.text_input("Areas/Zip Codes", placeholder="43215, 43201, Franklinton")
+            interest = st.selectbox(
+                "Interest Level",
+                options=INTEREST_LEVELS,
+                format_func=lambda x: INTEREST_DISPLAY.get(x, x)
+            )
+
+        st.markdown("---")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            cash_buyer = st.checkbox("Cash Buyer", value=True)
+
+        with col2:
+            financing = st.text_input("Financing Type (if not cash)", placeholder="Hard money, Conventional")
+
+        notes = st.text_area("Notes", placeholder="Any additional info about this buyer...")
+
+        submitted = st.form_submit_button("✅ Add Buyer", type="primary", use_container_width=True)
+
+        if submitted:
+            if not buyer_name or not buyer_phone:
+                st.error("Name and Phone are required!")
+            else:
+                success, message, buyer_id = add_buyer(
+                    name=buyer_name,
+                    phone=buyer_phone,
+                    created_by=va_name,
+                    company=buyer_company,
+                    phone_2=buyer_phone_2,
+                    email=buyer_email,
+                    address=buyer_address,
+                    price_min=price_min,
+                    price_max=price_max,
+                    property_types=prop_types,
+                    areas=areas,
+                    condition_pref=condition,
+                    cash_buyer=cash_buyer,
+                    financing_type=financing if not cash_buyer else '',
+                    interest_level=interest,
+                    notes=notes
+                )
+
+                if success:
+                    st.success(f"✅ {message}")
+                    st.balloons()
+                else:
+                    st.error(f"❌ {message}")
+
+
+def show_my_added_buyers(va_name):
+    """Show buyers added by this VA"""
+    st.markdown("### 👥 Buyers I've Added")
+
+    if not QUALIFIED_BUYERS_AVAILABLE:
+        st.error("Qualified buyers module not available.")
+        return
+
+    buyers_df = get_buyers_df()
+
+    if len(buyers_df) == 0:
+        st.info("No buyers added yet. When you find an interested investor, add them using the form!")
+        return
+
+    # Filter to this VA's buyers
+    my_buyers = buyers_df[buyers_df['created_by'] == va_name] if 'created_by' in buyers_df.columns else buyers_df
+
+    if len(my_buyers) == 0:
+        st.info("You haven't added any buyers yet. Start adding interested investors!")
+        return
+
+    # Stats
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("My Total Buyers", len(my_buyers))
+    with col2:
+        hot_count = len(my_buyers[my_buyers['interest_level'] == 'hot']) if 'interest_level' in my_buyers.columns else 0
+        st.metric("🔥 Hot Buyers", hot_count)
+    with col3:
+        today = datetime.now().strftime('%Y-%m-%d')
+        today_count = len(my_buyers[my_buyers['created_at'].str.startswith(today)]) if 'created_at' in my_buyers.columns else 0
+        st.metric("Added Today", today_count)
+
+    st.markdown("---")
+
+    # Display buyers
+    for _, buyer in my_buyers.iterrows():
+        interest_icon = {'hot': '🔥', 'warm': '👍', 'cold': '❄️'}.get(buyer.get('interest_level', ''), '❓')
+
+        with st.expander(f"{interest_icon} **{buyer['name']}** — ${buyer.get('price_min', 0):,.0f} - ${buyer.get('price_max', 0):,.0f}"):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown(f"**Phone:** {buyer.get('phone', 'N/A')}")
+                st.markdown(f"**Email:** {buyer.get('email', 'N/A')}")
+                st.markdown(f"**Company:** {buyer.get('company', 'N/A')}")
+
+            with col2:
+                st.markdown(f"**Property Types:** {buyer.get('property_types', 'Any')}")
+                st.markdown(f"**Areas:** {buyer.get('areas', 'Any')}")
+                st.markdown(f"**Condition:** {buyer.get('condition_pref', 'Any')}")
+                st.markdown(f"**Cash Buyer:** {'Yes' if buyer.get('cash_buyer') else 'No'}")
+
+            if buyer.get('notes'):
+                st.markdown(f"**Notes:** {buyer['notes']}")
+
+            st.caption(f"Added: {buyer.get('created_at', 'Unknown')[:10]}")
+
+
 def show_investor_leads_page(va_name):
     """Show investor/buyer leads for IDS team"""
     st.markdown("## 🏢 Investor Leads")
-    st.markdown("Find and contact active real estate investors in your market.")
+
+    # Tabs for browsing vs adding buyers
+    inv_tab1, inv_tab2, inv_tab3 = st.tabs(["📋 Browse Investors", "➕ Add Qualified Buyer", "👥 My Added Buyers"])
+
+    with inv_tab2:
+        show_add_buyer_form(va_name)
+
+    with inv_tab3:
+        show_my_added_buyers(va_name)
+
+    with inv_tab1:
+        st.markdown("Find and contact active real estate investors in your market.")
 
     # County and tier selection
     col1, col2, col3 = st.columns([2, 2, 2])
