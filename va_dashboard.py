@@ -729,7 +729,7 @@ def show_login():
                     if success and user:
                         st.session_state.va_logged_in = True
                         st.session_state.va_name = user.get('full_name', username)
-                        st.session_state.va_username = username  # Store username for database lookups
+                        st.session_state.va_username = user.get('username', username)  # Use DB username for correct case
                         st.session_state.va_phone = user.get('va_phone', '') or ''  # Store VA's phone for calling
                         st.session_state.session_id = session_id
                         st.session_state.user_role = user.get('role', 'va')
