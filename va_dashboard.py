@@ -781,8 +781,8 @@ def show_dashboard():
 
         # Define pages based on role
         if user_role == 'va_ids':
-            # IDS (Investor Development Specialist) - Investor/Buyer focused
-            nav_pages = ["📊 My Stats", "📱 Dialer", "📞 Call Tracker", "🏢 Investor Leads", "📝 End of Day"]
+            # IDS (Investor Development Specialist) - Investor/Buyer focused + assigned leads
+            nav_pages = ["📊 My Stats", "📋 My Leads", "📱 Dialer", "📞 Call Tracker", "🏢 Investor Leads", "📝 End of Day"]
             st.caption("🏷️ Role: Investor Development (IDS)")
         elif user_role == 'va_pas':
             # PAS (Property Acquisition Specialist) - Seller focused
