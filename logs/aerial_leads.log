@@ -188,3 +188,34 @@
 2026-02-09 19:11:45 - VAManager - INFO - Assigned 50 leads to VA-SHANTAL-1903
 2026-02-09 19:20:08 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
 2026-02-09 21:40:58 - ProbateScraper - INFO - Scraping executor info for 33 cases...
+2026-02-09 21:41:32 - ProbateScraper - INFO - Scraped executor info: 20/33 found
+2026-02-09 21:42:09 - ProbateScraper - INFO - Starting probate scrape (last 90 days)
+2026-02-09 21:42:09 - ProbateScraper - INFO - Setting up Firefox WebDriver...
+2026-02-09 21:42:18 - ProbateScraper - INFO - WebDriver initialized successfully
+2026-02-09 21:42:18 - ProbateScraper - INFO - Searching case type: EST
+2026-02-09 21:42:34 - ProbateScraper - INFO - Current URL after submit: https://probatesearch.franklincountyohio.gov/netdata/PBCTypeInx.ndm/input?string=E%20
+2026-02-09 21:42:34 - ProbateScraper - INFO - Got page source: 39079 chars
+2026-02-09 21:42:34 - ProbateScraper - INFO - Parsed 40 cases from results
+2026-02-09 21:42:34 - ProbateScraper - INFO - Found 40 EST cases
+2026-02-09 21:42:34 - ProbateScraper - INFO - Searching case type: REL
+2026-02-09 21:42:49 - ProbateScraper - INFO - Current URL after submit: https://probatesearch.franklincountyohio.gov/netdata/PBCTypeInx.ndm/input?string=E%20
+2026-02-09 21:42:49 - ProbateScraper - INFO - Got page source: 39079 chars
+2026-02-09 21:42:49 - ProbateScraper - INFO - Parsed 40 cases from results
+2026-02-09 21:42:49 - ProbateScraper - INFO - Found 40 REL cases
+2026-02-09 21:42:49 - ProbateScraper - INFO - Searching case type: SUM
+2026-02-09 21:43:05 - ProbateScraper - INFO - Current URL after submit: https://probatesearch.franklincountyohio.gov/netdata/PBCTypeInx.ndm/input?string=E%20
+2026-02-09 21:43:05 - ProbateScraper - INFO - Got page source: 39079 chars
+2026-02-09 21:43:05 - ProbateScraper - INFO - Parsed 40 cases from results
+2026-02-09 21:43:05 - ProbateScraper - INFO - Found 40 SUM cases
+2026-02-09 21:43:05 - ProbateScraper - INFO - Total probate cases found: 40
+2026-02-09 21:44:20 - ProbateScraper - INFO - Scraping executor info for 40 cases...
+2026-02-09 21:46:12 - ProbateScraper - INFO - Scraped executor info: 40/40 found
+2026-02-09 21:47:27 - SheriffSaleScraper - INFO - Starting sheriff sale scrape for franklin county
+2026-02-09 21:47:29 - SheriffSaleScraper - INFO - Found 3 sheriff sale listings
+2026-02-09 21:47:29 - SheriffSaleScraper - INFO - Total sheriff sale properties: 3
+2026-02-09 21:48:13 - SkipTracer - INFO - SkipTracer initialized with provider: batchdata
+2026-02-09 21:48:13 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-09 21:49:26 - SkipTracer - INFO - SkipTracer initialized with provider: batchdata
+2026-02-09 21:49:26 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-09 21:58:57 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-09 21:59:18 - VAManager - INFO - Assigned 3 leads to VA-JANA-1902

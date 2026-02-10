@@ -2869,9 +2869,14 @@ elif page == "👥 VA Management":
                     file_size = imp_file.stat().st_size
                     if file_size > 100:  # Skip empty files
                         try:
+                            imp_df = pd.read_csv(imp_file, nrows=5)
                             row_count = len(pd.read_csv(imp_file))
                             import_name = imp_file.stem.replace('_', ' ').title()
-                            lead_sources[f"import:{imp_file.name}"] = f"📥 IMPORTED: {import_name} ({row_count:,} leads)"
+                            # Check if it has phone numbers (skip traced)
+                            phone_cols = [c for c in imp_df.columns if 'phone' in c.lower()]
+                            has_phones = any(imp_df[col].notna().any() for col in phone_cols) if phone_cols else False
+                            phone_indicator = "📞" if has_phones else "📥"
+                            lead_sources[f"import:{imp_file.name}"] = f"{phone_indicator} IMPORTED: {import_name} ({row_count:,} leads)"
                         except:
                             pass
 
@@ -2911,16 +2916,25 @@ elif page == "👥 VA Management":
             st.markdown("**Lead Categories:**")
             category = st.radio(
                 "Filter by category",
-                ["All Sources", "Generated Leads", "Investor Leads (IDS)", "Imported Leads", "Batches"],
+                ["All Sources", "📞 Skip Traced Only", "Generated Leads", "Investor Leads (IDS)", "Imported Leads", "Batches"],
                 horizontal=True,
                 key="lead_category_filter"
             )
 
             # Filter lead sources by category
-            if category == "Generated Leads":
+            if category == "📞 Skip Traced Only":
+                # Show only files with phone indicator
+                filtered_sources = {k: v for k, v in lead_sources.items() if v.startswith("📞")}
+                if not filtered_sources:
+                    st.info("💡 No skip traced leads found. Skip trace some leads first in the Skip Trace page!")
+                    filtered_sources = {"all_leads": "📊 All Leads (Combined)"}
+            elif category == "Generated Leads":
                 filtered_sources = {k: v for k, v in lead_sources.items() if k in ['all_leads', 'regular_sellers', 'whale_investors', 'probate', 'sheriff_sale', 'inbound']}
             elif category == "Investor Leads (IDS)":
-                filtered_sources = {k: v for k, v in lead_sources.items() if k.startswith('investor:')}
+                # Include investor files AND imported/skip traced files that contain 'investor' in name
+                filtered_sources = {k: v for k, v in lead_sources.items()
+                                   if k.startswith('investor:') or
+                                   ('investor' in k.lower() and (k.startswith('import:') or k.startswith('skiptrace:')))}
                 if not filtered_sources:
                     st.info("💡 No investor leads found. Run Investor Finder first!")
                     filtered_sources = {"all_leads": "📊 All Leads (Combined)"}  # Fallback
@@ -3086,11 +3100,17 @@ elif page == "👥 VA Management":
                     # Filter options
                     min_score = st.slider("Minimum motivation score", 0, 100, 50)
 
-                    # DNC filter option
-                    dnc_col1, dnc_col2 = st.columns([2, 1])
-                    with dnc_col1:
-                        dnc_filter = st.checkbox("Only Safe to Call (DNC checked)", value=False,
+                    # Filter options row
+                    filter_col1, filter_col2 = st.columns(2)
+                    with filter_col1:
+                        phone_filter = st.checkbox("📞 Only Skip Traced (has phone)", value=False,
+                                                  help="Only show leads that have been skip traced (have phone numbers)")
+                    with filter_col2:
+                        dnc_filter = st.checkbox("🛡️ Only Safe to Call (DNC checked)", value=False,
                                                 help="Only show leads marked as safe to call after DNC check")
+
+                    # DNC check button
+                    dnc_col1, dnc_col2 = st.columns([2, 1])
                     with dnc_col2:
                         if st.button("🛡️ Run DNC Check", key="quick_dnc"):
                             with st.spinner("Checking DNC status..."):
@@ -3156,6 +3176,24 @@ elif page == "👥 VA Management":
                             preview_df = preview_df[preview_df['safe_to_call'] == True]
                         elif dnc_filter and 'safe_to_call' not in preview_df.columns:
                             st.warning("⚠️ Leads haven't been DNC checked yet. Go to DNC Scrub page first.")
+
+                        # Apply phone filter if checked - only show skip traced leads
+                        if phone_filter:
+                            phone_cols = [c for c in preview_df.columns if 'phone' in c.lower()]
+                            if phone_cols:
+                                # Keep rows where at least one phone column has a value
+                                def has_phone(row):
+                                    for col in phone_cols:
+                                        val = str(row.get(col, ''))
+                                        if val and val != 'nan' and val.strip() and len(val.strip()) >= 7:
+                                            return True
+                                    return False
+                                before_count = len(preview_df)
+                                preview_df = preview_df[preview_df.apply(has_phone, axis=1)]
+                                after_count = len(preview_df)
+                                st.info(f"📞 Found {after_count} leads with phone numbers (filtered out {before_count - after_count})")
+                            else:
+                                st.warning("⚠️ No phone columns found. Leads may not have been skip traced yet.")
 
                         st.session_state['preview_leads'] = preview_df
                         st.session_state['preview_va'] = selected_va_id
