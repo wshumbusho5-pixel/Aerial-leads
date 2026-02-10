@@ -1487,12 +1487,16 @@ elif page == "📞 Skip Trace":
             st.markdown("### Select Leads")
 
             # Create selection DataFrame
-            display_cols = ['address', 'owner_name', 'motivation_score', 'tier', 'taxes_owed']
+            # Set display columns based on lead type
+            if is_investor_leads:
+                display_cols = [c for c in ['owner_name', 'owner_address', 'portfolio_size', 'investor_score'] if c in filtered_df.columns]
+            else:
+                display_cols = [c for c in ['address', 'owner_name', 'motivation_score', 'tier', 'taxes_owed'] if c in filtered_df.columns]
             if 'phone' in filtered_df.columns:
                 display_cols.append('phone')
 
             # Use data editor for selection
-            selection_df = filtered_df[display_cols].head(50).copy()
+            selection_df = filtered_df[display_cols].head(50).copy() if display_cols else filtered_df.head(50).copy()
             selection_df.insert(0, 'Select', False)
 
             edited_df = st.data_editor(
