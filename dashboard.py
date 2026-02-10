@@ -2891,11 +2891,27 @@ elif page == "👥 VA Management":
                         except:
                             pass
 
+            # Add INVESTOR LEADS from Investor Finder
+            investors_dir = Path(__file__).parent / "data" / "buyers" / "processed"
+            if investors_dir.exists():
+                investor_files = sorted(investors_dir.glob('investor_prospects_*.csv'), reverse=True)
+                for inv_file in investor_files[:10]:  # Last 10 files
+                    try:
+                        inv_df = pd.read_csv(inv_file, nrows=5)
+                        row_count = len(pd.read_csv(inv_file))
+                        inv_name = inv_file.stem.replace('_', ' ').title()
+                        # Check if it has phone numbers (skip traced)
+                        has_phones = 'phone' in inv_df.columns and inv_df['phone'].notna().any()
+                        phone_indicator = "📞" if has_phones else "🏢"
+                        lead_sources[f"investor:{inv_file.name}"] = f"{phone_indicator} INVESTOR: {inv_name} ({row_count:,} leads)"
+                    except:
+                        pass
+
             # Category selector for easier navigation
             st.markdown("**Lead Categories:**")
             category = st.radio(
                 "Filter by category",
-                ["All Sources", "Generated Leads", "Imported Leads", "Batches"],
+                ["All Sources", "Generated Leads", "Investor Leads (IDS)", "Imported Leads", "Batches"],
                 horizontal=True,
                 key="lead_category_filter"
             )
@@ -2903,6 +2919,11 @@ elif page == "👥 VA Management":
             # Filter lead sources by category
             if category == "Generated Leads":
                 filtered_sources = {k: v for k, v in lead_sources.items() if k in ['all_leads', 'regular_sellers', 'whale_investors', 'probate', 'sheriff_sale', 'inbound']}
+            elif category == "Investor Leads (IDS)":
+                filtered_sources = {k: v for k, v in lead_sources.items() if k.startswith('investor:')}
+                if not filtered_sources:
+                    st.info("💡 No investor leads found. Run Investor Finder first!")
+                    filtered_sources = {"all_leads": "📊 All Leads (Combined)"}  # Fallback
             elif category == "Imported Leads":
                 filtered_sources = {k: v for k, v in lead_sources.items() if k.startswith('import:') or k.startswith('skiptrace:')}
                 if not filtered_sources:
@@ -3019,6 +3040,18 @@ elif page == "👥 VA Management":
                 st_file = skip_trace_dir / st_filename
                 if st_file.exists():
                     leads_df = pd.read_csv(st_file)
+
+            elif lead_source.startswith("investor:"):
+                # Load investor leads
+                inv_filename = lead_source.split(":", 1)[1]
+                inv_file = investors_dir / inv_filename
+                if inv_file.exists():
+                    leads_df = pd.read_csv(inv_file)
+                    # Map investor columns to standard columns for assignment
+                    if 'owner_name' in leads_df.columns and 'address' not in leads_df.columns:
+                        leads_df['address'] = leads_df.get('owner_address', leads_df.get('mailing_address', ''))
+                    if 'motivation_score' not in leads_df.columns:
+                        leads_df['motivation_score'] = leads_df.get('investor_score', 50)
 
             # Show lead count for selected source
             source_display = lead_sources.get(lead_source, filtered_sources.get(lead_source, lead_source))
