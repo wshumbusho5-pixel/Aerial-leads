@@ -1389,9 +1389,17 @@ elif page == "📞 Skip Trace":
                                 'success': result.success
                             })
 
-                        # Save updated DataFrame to both files for compatibility
-                        df.to_csv(PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv', index=False)
-                        df.to_csv(PROCESSED_DATA_DIR / 'all_leads_real.csv', index=False)
+                        # Save updated DataFrame
+                        if is_investor_leads:
+                            # Save back to the investor file
+                            df.to_csv(file_options[selected_inv_file], index=False)
+                            # Also save a timestamped copy
+                            inv_output = PROCESSED_DATA_DIR / f'skip_traced_investors_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+                            df.to_csv(inv_output, index=False)
+                        else:
+                            # Save property leads to both files for compatibility
+                            df.to_csv(PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv', index=False)
+                            df.to_csv(PROCESSED_DATA_DIR / 'all_leads_real.csv', index=False)
 
                         progress_bar.progress(100)
                         status_text.text("✅ Bulk skip trace complete!")
