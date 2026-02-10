@@ -3220,6 +3220,9 @@ elif page == "👥 VA Management":
                             if display_df[col].dtype == 'object' or display_df[col].dtype == 'float64':
                                 display_df[col] = display_df[col].fillna('').astype(str)
 
+                        # Add row numbers (matching the actual row position in the full list)
+                        display_df.insert(0, 'Row #', range(start_row, start_row + len(display_df)))
+
                         st.dataframe(display_df, hide_index=True, use_container_width=True)
                         if len(selected_df) > 50:
                             st.caption(f"Showing first 50 of {len(selected_df)} selected leads...")
