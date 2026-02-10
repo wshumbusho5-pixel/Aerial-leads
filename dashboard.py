@@ -3247,10 +3247,28 @@ elif page == "👥 VA Management":
                     except Exception as e:
                         preview_df['Assigned To'] = "—"
 
-                    # Filter option for unassigned only
-                    show_unassigned_only = st.checkbox("Show only unassigned leads", value=False)
+                    # Filter options
+                    filter_col1, filter_col2 = st.columns(2)
+                    with filter_col1:
+                        show_unassigned_only = st.checkbox("Show only unassigned leads", value=False)
+                    with filter_col2:
+                        show_with_contact_only = st.checkbox("📞 Only leads with contacts", value=False,
+                                                             help="Filter to show only leads that have phone numbers")
+
                     if show_unassigned_only:
                         preview_df = preview_df[preview_df['Assigned To'] == "—"]
+
+                    # Filter to only show leads with phone numbers
+                    if show_with_contact_only:
+                        phone_cols = [c for c in preview_df.columns if 'phone' in c.lower()]
+                        if phone_cols:
+                            def has_contact(row):
+                                for col in phone_cols:
+                                    val = str(row.get(col, ''))
+                                    if val and val != 'nan' and val.strip() and len(val.strip()) >= 7:
+                                        return True
+                                return False
+                            preview_df = preview_df[preview_df.apply(has_contact, axis=1)]
 
                     total_leads = len(preview_df)
                     assigned_count = len(preview_df[preview_df['Assigned To'] != "—"])
