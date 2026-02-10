@@ -51,6 +51,15 @@ try:
     from auth.database import DatabaseAuth
     from auth.lead_assignments import assign_leads_to_db, get_all_assignments, get_assignment_stats
     from buyers.buyer_matcher import BuyerMatcher
+    from buyers.qualified_buyers import (
+        get_buyers_df as get_qualified_buyers,
+        get_buyer_stats as get_qualified_stats,
+        update_buyer as update_qualified_buyer,
+        get_active_buyers,
+        get_buyers_by_criteria,
+        BUYER_STATUS, STATUS_DISPLAY, PROPERTY_TYPES, CONDITION_PREFS, INTEREST_LEVELS, INTEREST_DISPLAY
+    )
+    QUALIFIED_BUYERS_AVAILABLE = True
     from recruiting.va_applications import VAApplications, APPLICATION_STATUS, STATUS_DISPLAY, COLD_CALL_SCRIPTS
     DB_AUTH_AVAILABLE = True
     RECRUITING_AVAILABLE = True
@@ -59,8 +68,8 @@ except ImportError as e:
     DEPLOY_MODE = True
     # Fallback paths for deployment
     DATA_DIR = Path("/app/data")
-    RAW_DATA_DIR = DATA_DIR / "raw"
-    PROCESSED_DATA_DIR = DATA_DIR / "processed"
+    RAW_DATA_DIR = DATA_DIR / "sellers" / "raw"
+    PROCESSED_DATA_DIR = DATA_DIR / "sellers" / "processed"
     BATCHDATA_API_KEY = os.environ.get("BATCHDATA_API_KEY", "")
     # Create placeholder classes
     class DummyClass:
@@ -111,22 +120,19 @@ st.markdown("""
     .main-header {
         font-size: 3rem;
         font-weight: bold;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #667eea !important;
         margin-bottom: 1rem;
     }
     .metric-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 1.5rem;
         border-radius: 10px;
-        color: white;
+        color: white !important;
         margin-bottom: 1rem;
     }
     .stButton>button {
-        width: 100%;
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        color: white !important;
         font-weight: bold;
         border: none;
         padding: 0.75rem;
@@ -1625,6 +1631,474 @@ elif page == "📞 Skip Trace":
             else:
                 st.warning("Please enter both owner name and address")
 
+    # ========================================
+    # EXTERNAL SKIP TRACE SECTION
+    # ========================================
+    st.markdown("---")
+    st.markdown("## 📤 External Skip Trace Provider")
+    st.markdown("Export leads for your external skip tracer and import the results back")
+
+    try:
+        from skip_tracing.external_skip_trace import (
+            export_property_leads_for_skip_trace,
+            export_investor_leads_for_skip_trace,
+            import_skip_traced_data,
+            get_recent_exports,
+            SKIP_TRACE_EXPORT_DIR
+        )
+        EXTERNAL_SKIP_AVAILABLE = True
+    except ImportError:
+        EXTERNAL_SKIP_AVAILABLE = False
+        st.warning("External skip trace module not available")
+
+    if EXTERNAL_SKIP_AVAILABLE:
+        ext_tab1, ext_tab2, ext_tab3 = st.tabs(["📤 Export for Skip Trace", "📥 Import Results", "📋 Assign to VAs"])
+
+        # TAB 1: Export
+        with ext_tab1:
+            st.markdown("### Export Clean CSV for Skip Tracing")
+            st.info("This exports ONLY the fields needed for skip tracing (name, address) - no scoring or internal data.")
+
+            # Load ALL property leads (main file + all batches)
+            def load_all_property_leads():
+                """Load leads from main file and all batch files."""
+                all_dfs = []
+
+                # Main leads file
+                main_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+                if not main_file.exists():
+                    main_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+                if main_file.exists():
+                    all_dfs.append(pd.read_csv(main_file))
+
+                # Batch files
+                batches_dir = PROCESSED_DATA_DIR / 'batches'
+                if batches_dir.exists():
+                    for batch_file in batches_dir.glob('batch_*.csv'):
+                        # Skip tier-specific files to avoid duplicates
+                        if '_tier_' not in batch_file.name:
+                            try:
+                                all_dfs.append(pd.read_csv(batch_file))
+                            except Exception:
+                                pass
+
+                if all_dfs:
+                    combined = pd.concat(all_dfs, ignore_index=True)
+                    # Remove duplicates based on address
+                    if 'address' in combined.columns:
+                        combined = combined.drop_duplicates(subset=['address'], keep='first')
+                    return combined
+                return pd.DataFrame()
+
+            INVESTORS_DIR = Path(__file__).parent / "data" / "buyers" / "processed"
+            investor_files = list(INVESTORS_DIR.glob("investor_prospects_*_tier_*.csv"))
+
+            # Show available lead counts
+            all_property_leads = load_all_property_leads()
+            col_info1, col_info2 = st.columns(2)
+            with col_info1:
+                st.metric("Property Leads (PAS)", f"{len(all_property_leads):,}")
+            with col_info2:
+                total_inv = sum(len(pd.read_csv(f)) for f in investor_files) if investor_files else 0
+                st.metric("Investor Leads (IDS)", f"{total_inv:,}")
+
+            export_type = st.radio(
+                "Select lead type to export",
+                ["Property Leads (PAS)", "Investor Leads (IDS)"],
+                horizontal=True,
+                key="ext_export_type"
+            )
+
+            if export_type == "Property Leads (PAS)":
+                # Use the combined property leads
+                prop_df = all_property_leads
+
+                if len(prop_df) > 0:
+                    # Check for whale/portfolio data
+                    has_portfolio = 'portfolio_size' in prop_df.columns
+
+                    # Owner type filter
+                    st.markdown("#### Lead Type")
+                    owner_type = st.radio(
+                        "Who do you want to call?",
+                        ["Regular Sellers (1-3 properties)", "Whale Investors (10+ properties)", "All Leads"],
+                        horizontal=True,
+                        key="ext_owner_type",
+                        help="Whales are investors with 10+ properties - consider using tired landlord script or adding to buyer list"
+                    )
+
+                    # Entity keywords for detection
+                    ENTITY_KEYWORDS_STATS = [
+                        ' LLC', ' L.L.C', ' INC', ' CORP', ' CO,', ' CO ',
+                        ' TRUST', ' TRS', ' TRUSTEE', ' ESTATE',
+                        ' LP', ' L.P.', ' LLP', ' L.L.P', ' LTD', ' LIMITED',
+                        ' HOLDINGS', ' INVESTMENTS', ' INVESTMENT', ' PROPERTIES', ' PROPERTY',
+                        ' PARTNERS', ' PARTNERSHIP', ' GROUP', ' CAPITAL',
+                        ' CHURCH', ' MINISTRIES', ' MINISTRY', ' FOUNDATION',
+                        ' BANK', ' CREDIT UNION', ' MORTGAGE',
+                        ' REALTY', ' REAL ESTATE', ' RENTAL', ' RENTALS',
+                        ' MANAGEMENT', ' ASSET', ' ASSETS', ' VENTURES',
+                        ' COUNTY', ' STATE OF', ' CITY OF', ' FORFEITURE'
+                    ]
+
+                    def is_entity_stats(name):
+                        if pd.isna(name):
+                            return False
+                        name_upper = str(name).upper()
+                        return any(kw in name_upper for kw in ENTITY_KEYWORDS_STATS)
+
+                    # Calculate stats - entities/whales vs regular sellers
+                    if 'owner_name' in prop_df.columns:
+                        entity_mask = prop_df['owner_name'].apply(is_entity_stats)
+                        whale_mask = prop_df['portfolio_size'] >= 10 if has_portfolio else pd.Series([False] * len(prop_df))
+                        investor_count = len(prop_df[entity_mask | whale_mask])
+                        regular_count = len(prop_df[~entity_mask & ~whale_mask])
+                    elif has_portfolio:
+                        investor_count = len(prop_df[prop_df['portfolio_size'] >= 10])
+                        regular_count = len(prop_df[prop_df['portfolio_size'] < 10])
+                    else:
+                        investor_count = 0
+                        regular_count = len(prop_df)
+
+                    col_stat1, col_stat2 = st.columns(2)
+                    with col_stat1:
+                        st.metric("Regular Sellers (Individuals)", f"{regular_count:,}")
+                    with col_stat2:
+                        st.metric("Investors (LLC/Corp/10+ props)", f"{investor_count:,}")
+
+                    st.markdown("#### Filters")
+                    # Filter options
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        min_score_exp = st.slider("Min Motivation Score", 0, 100, 50, key="ext_min_score")
+                    with col2:
+                        tiers_exp = st.multiselect("Tiers", [1, 2, 3], default=[1, 2], key="ext_tiers")
+                    with col3:
+                        # Filter for leads without phone
+                        only_no_phone = st.checkbox("Only leads without phone", value=True, key="ext_no_phone")
+
+                    # Apply filters
+                    filtered_df = prop_df.copy()
+
+                    # Entity keywords that indicate investors/companies (not regular homeowners)
+                    ENTITY_KEYWORDS = [
+                        ' LLC', ' L.L.C', ' INC', ' CORP', ' CO,', ' CO ',
+                        ' TRUST', ' TRS', ' TRUSTEE', ' ESTATE',
+                        ' LP', ' L.P.', ' LLP', ' L.L.P', ' LTD', ' LIMITED',
+                        ' HOLDINGS', ' INVESTMENTS', ' INVESTMENT', ' PROPERTIES', ' PROPERTY',
+                        ' PARTNERS', ' PARTNERSHIP', ' GROUP', ' CAPITAL',
+                        ' CHURCH', ' MINISTRIES', ' MINISTRY', ' FOUNDATION',
+                        ' BANK', ' CREDIT UNION', ' MORTGAGE',
+                        ' REALTY', ' REAL ESTATE', ' RENTAL', ' RENTALS',
+                        ' MANAGEMENT', ' ASSET', ' ASSETS', ' VENTURES',
+                        ' COUNTY', ' STATE OF', ' CITY OF', ' FORFEITURE'
+                    ]
+
+                    def is_entity(name):
+                        """Check if owner name looks like a company/entity."""
+                        if pd.isna(name):
+                            return False
+                        name_upper = str(name).upper()
+                        return any(kw in name_upper for kw in ENTITY_KEYWORDS)
+
+                    # Apply owner type filter
+                    if owner_type == "Regular Sellers (1-3 properties)":
+                        # Exclude entities by name
+                        if 'owner_name' in filtered_df.columns:
+                            filtered_df = filtered_df[~filtered_df['owner_name'].apply(is_entity)]
+                        # Also filter by portfolio size if available
+                        if has_portfolio:
+                            filtered_df = filtered_df[filtered_df['portfolio_size'] < 10]
+                    elif owner_type == "Whale Investors (10+ properties)":
+                        # Include entities OR high portfolio count
+                        if 'owner_name' in filtered_df.columns and has_portfolio:
+                            is_entity_mask = filtered_df['owner_name'].apply(is_entity)
+                            is_whale_mask = filtered_df['portfolio_size'] >= 10
+                            filtered_df = filtered_df[is_entity_mask | is_whale_mask]
+                        elif has_portfolio:
+                            filtered_df = filtered_df[filtered_df['portfolio_size'] >= 10]
+                        elif 'owner_name' in filtered_df.columns:
+                            filtered_df = filtered_df[filtered_df['owner_name'].apply(is_entity)]
+                    # "All Leads" keeps everything
+
+                    if 'motivation_score' in filtered_df.columns:
+                        filtered_df = filtered_df[filtered_df['motivation_score'] >= min_score_exp]
+                    if tiers_exp and 'tier' in filtered_df.columns:
+                        filtered_df = filtered_df[filtered_df['tier'].isin(tiers_exp)]
+                    if only_no_phone and 'phone' in filtered_df.columns:
+                        filtered_df = filtered_df[filtered_df['phone'].isna() | (filtered_df['phone'] == '') | (filtered_df['phone'].astype(str) == 'nan')]
+
+                    st.metric("Leads to Export", len(filtered_df))
+
+                    # Show tip for whales
+                    if owner_type == "Whale Investors (10+ properties)":
+                        st.info("💡 **Tip:** These are investors! Consider adding them to your buyer list too. They might want to sell some properties AND buy others.")
+
+                        # Option to copy whales to IDS investor list
+                        if st.button("📋 Copy Whales to Investor/Buyer List", key="copy_whales_to_ids"):
+                            try:
+                                # Save whales as investor prospects
+                                whales_for_ids = filtered_df[['owner_name', 'mailing_address', 'phone', 'phone_2', 'email', 'portfolio_size']].copy() if 'portfolio_size' in filtered_df.columns else filtered_df[['owner_name', 'mailing_address', 'phone', 'phone_2', 'email']].copy()
+                                whales_for_ids = whales_for_ids.rename(columns={'owner_name': 'name', 'mailing_address': 'address'})
+
+                                # Save to IDS directory
+                                ids_path = Path(__file__).parent / "data" / "buyers" / "processed" / "whale_investors_from_pas.csv"
+                                whales_for_ids.to_csv(ids_path, index=False)
+                                st.success(f"✅ Copied {len(whales_for_ids)} whale investors to buyer list!")
+                                st.info(f"Saved to: {ids_path.name}")
+                            except Exception as e:
+                                st.error(f"Error: {e}")
+
+                    if len(filtered_df) > 0:
+                        # Final validation: remove any rows with empty owner_name AND empty address
+                        if 'owner_name' in filtered_df.columns and 'address' in filtered_df.columns:
+                            valid_data_mask = (
+                                (filtered_df['owner_name'].fillna('').astype(str).str.strip() != '') |
+                                (filtered_df['address'].fillna('').astype(str).str.strip() != '')
+                            )
+                            filtered_df = filtered_df[valid_data_mask]
+                            st.caption(f"After removing empty rows: {len(filtered_df)} leads")
+
+                        if st.button("📤 Export Property Leads", type="primary", key="ext_export_prop_btn"):
+                            with st.spinner("Exporting..."):
+                                export_path, export_id, count = export_property_leads_for_skip_trace(filtered_df)
+                                st.success(f"✅ Exported {count} leads!")
+                                st.info(f"Export ID: {export_id}")
+
+                                # Provide download
+                                with open(export_path, 'r') as f:
+                                    st.download_button(
+                                        "⬇️ Download CSV",
+                                        f.read(),
+                                        file_name=Path(export_path).name,
+                                        mime="text/csv",
+                                        key="ext_download_prop"
+                                    )
+                    else:
+                        st.warning("No leads match your filters")
+                else:
+                    st.warning("No property leads found. Generate leads first!")
+
+            else:  # Investor Leads
+                INVESTORS_DIR = Path(__file__).parent / "data" / "buyers" / "processed"
+
+                # Find investor files
+                investor_files = list(INVESTORS_DIR.glob("investor_prospects_*_tier_*.csv"))
+
+                if investor_files:
+                    # Let user select which file
+                    file_options = {f.stem: f for f in investor_files}
+                    selected_file = st.selectbox(
+                        "Select investor list",
+                        options=list(file_options.keys()),
+                        key="ext_inv_file"
+                    )
+
+                    if selected_file:
+                        inv_df = pd.read_csv(file_options[selected_file])
+
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            min_portfolio = st.number_input("Min Portfolio Size", 1, 100, 3, key="ext_min_port")
+                        with col2:
+                            only_no_phone_inv = st.checkbox("Only without phone", value=True, key="ext_no_phone_inv")
+
+                        # Apply filters
+                        if 'portfolio_size' in inv_df.columns:
+                            filtered_inv = inv_df[inv_df['portfolio_size'] >= min_portfolio]
+                        else:
+                            filtered_inv = inv_df
+
+                        if only_no_phone_inv and 'phone' in filtered_inv.columns:
+                            filtered_inv = filtered_inv[filtered_inv['phone'].isna() | (filtered_inv['phone'] == '')]
+
+                        st.metric("Investors to Export", len(filtered_inv))
+
+                        if len(filtered_inv) > 0:
+                            if st.button("📤 Export Investor Leads", type="primary", key="ext_export_inv_btn"):
+                                with st.spinner("Exporting..."):
+                                    export_path, export_id, count = export_investor_leads_for_skip_trace(filtered_inv)
+                                    st.success(f"✅ Exported {count} investors!")
+                                    st.info(f"Export ID: {export_id}")
+
+                                    with open(export_path, 'r') as f:
+                                        st.download_button(
+                                            "⬇️ Download CSV",
+                                            f.read(),
+                                            file_name=Path(export_path).name,
+                                            mime="text/csv",
+                                            key="ext_download_inv"
+                                        )
+                        else:
+                            st.warning("No investors match your filters")
+                else:
+                    st.warning("No investor data found. Run Investor Finder first!")
+
+            # Show recent exports
+            st.markdown("---")
+            st.markdown("### Recent Exports")
+            recent = get_recent_exports()
+            if recent:
+                for exp in recent[:5]:
+                    col1, col2, col3 = st.columns([3, 1, 1])
+                    with col1:
+                        st.text(exp['filename'])
+                    with col2:
+                        st.text(exp['type'])
+                    with col3:
+                        st.text(exp['created'].strftime('%m/%d %H:%M'))
+            else:
+                st.info("No exports yet")
+
+        # TAB 2: Import
+        with ext_tab2:
+            st.markdown("### Import Skip Traced Results")
+            st.info("""
+            Upload the CSV returned by your skip tracer. It should include:
+            - **skip_trace_id** (from your export) - for accurate matching
+            - **phone** or **phone_1** - primary phone number
+            - **phone_2** - secondary phone (optional)
+            - **email** - email address (optional)
+            """)
+
+            uploaded_file = st.file_uploader(
+                "Upload skip traced CSV",
+                type=['csv'],
+                key="ext_upload_skip"
+            )
+
+            if uploaded_file:
+                imported_df = pd.read_csv(uploaded_file)
+                st.write(f"**Uploaded:** {len(imported_df)} records")
+                st.write("**Columns found:**", list(imported_df.columns))
+
+                # Preview
+                st.dataframe(imported_df.head(5), use_container_width=True)
+
+                import_type = st.radio(
+                    "Lead type",
+                    ["Property Leads", "Investor Leads"],
+                    horizontal=True,
+                    key="ext_import_type"
+                )
+
+                if st.button("📥 Import & Match", type="primary", key="ext_import_btn"):
+                    with st.spinner("Matching records..."):
+                        lead_type = 'property' if import_type == "Property Leads" else 'investor'
+                        matched_df, match_count, unmatched = import_skip_traced_data(imported_df, lead_type)
+
+                        st.success(f"✅ Matched {match_count} records!")
+                        if unmatched > 0:
+                            st.warning(f"⚠️ {unmatched} records could not be matched")
+
+                        # Store in session state for assignment
+                        st.session_state['skip_traced_leads'] = matched_df
+                        st.session_state['skip_traced_type'] = lead_type
+
+                        # Preview matched data
+                        st.markdown("### Matched Data Preview")
+                        display_cols = ['owner_name', 'address', 'phone', 'phone_2', 'email']
+                        display_cols = [c for c in display_cols if c in matched_df.columns]
+                        st.dataframe(matched_df[display_cols].head(10), use_container_width=True)
+
+                        st.info("Go to **Assign to VAs** tab to assign these leads")
+
+        # TAB 3: Assign to VAs
+        with ext_tab3:
+            st.markdown("### Assign Skip Traced Leads to VAs")
+
+            if 'skip_traced_leads' not in st.session_state or st.session_state.get('skip_traced_leads') is None:
+                st.info("Import skip traced data first, then come here to assign leads to your VAs")
+            else:
+                matched_df = st.session_state['skip_traced_leads']
+                lead_type = st.session_state.get('skip_traced_type', 'property')
+
+                st.success(f"**{len(matched_df)}** skip traced {lead_type} leads ready to assign")
+
+                # Filter to only leads with phone numbers
+                if 'phone' in matched_df.columns:
+                    leads_with_phone = matched_df[matched_df['phone'].notna() & (matched_df['phone'] != '')]
+                    st.metric("Leads with Phone Numbers", len(leads_with_phone))
+                else:
+                    leads_with_phone = matched_df
+
+                # Get list of VAs
+                if DB_AUTH_AVAILABLE:
+                    try:
+                        db_auth = DatabaseAuth()
+                        all_users = db_auth.list_users()
+                        va_users = [u for u in all_users if u.get('role') in ['va', 'va_pas', 'va_ids']]
+                        va_options = {f"{u['full_name']} ({u['username']})": u['username'] for u in va_users}
+                    except:
+                        va_options = {}
+                else:
+                    va_options = {}
+
+                if va_options:
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        selected_va_display = st.selectbox(
+                            "Assign to VA",
+                            options=list(va_options.keys()),
+                            key="ext_assign_va"
+                        )
+                        selected_va = va_options[selected_va_display] if selected_va_display else None
+
+                    with col2:
+                        priority = st.selectbox(
+                            "Priority",
+                            ["normal", "high", "urgent", "low"],
+                            key="ext_assign_priority"
+                        )
+
+                    # Number of leads to assign
+                    max_assign = len(leads_with_phone)
+                    num_to_assign = st.slider(
+                        "Number of leads to assign",
+                        min_value=1,
+                        max_value=max_assign,
+                        value=min(50, max_assign),
+                        key="ext_num_assign"
+                    )
+
+                    if st.button("✅ Assign Leads", type="primary", key="ext_assign_btn"):
+                        if selected_va:
+                            leads_to_assign = leads_with_phone.head(num_to_assign)
+
+                            count, message = assign_leads_to_db(
+                                leads_to_assign,
+                                assigned_to=selected_va,
+                                assigned_by='admin',
+                                priority=priority
+                            )
+
+                            if count > 0:
+                                st.success(f"✅ Assigned {count} leads to {selected_va_display}!")
+                                st.balloons()
+
+                                # Remove assigned leads from session state
+                                remaining = matched_df[~matched_df.index.isin(leads_to_assign.index)]
+                                st.session_state['skip_traced_leads'] = remaining if len(remaining) > 0 else None
+                            else:
+                                st.error(f"Failed to assign: {message}")
+                        else:
+                            st.warning("Please select a VA")
+                else:
+                    st.warning("No VAs found. Add VAs in User Management first.")
+
+                # Option to download the matched data
+                st.markdown("---")
+                if st.button("💾 Save Skip Traced Data", key="ext_save_btn"):
+                    # Save to processed directory
+                    if lead_type == 'property':
+                        output_path = PROCESSED_DATA_DIR / f'skip_traced_leads_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+                    else:
+                        output_path = Path(__file__).parent / "data" / "buyers" / "processed" / f'skip_traced_investors_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+
+                    matched_df.to_csv(output_path, index=False)
+                    st.success(f"✅ Saved to {output_path.name}")
+
 
 # ========================================
 # DNC SCRUB PAGE
@@ -2285,95 +2759,539 @@ elif page == "👥 VA Management":
         with tab2:
             st.markdown("### 📋 Lead Assignment")
 
-            # Get available leads
-            leads_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
-            if not leads_file.exists():
-                leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+            # ============================================
+            # LEAD SOURCE SELECTOR
+            # ============================================
+            st.markdown("#### 📂 Select Lead Source")
 
-            if leads_file.exists():
-                leads_df = pd.read_csv(leads_file)
-                vas_df = va_manager.get_all_vas()
+            # Entity detection for filtering
+            ENTITY_KEYWORDS_VA = [
+                ' LLC', ' L.L.C', ' INC', ' CORP', ' CO,', ' CO ',
+                ' TRUST', ' TRS', ' TRUSTEE', ' ESTATE',
+                ' LP', ' L.P.', ' LLP', ' L.L.P', ' LTD', ' LIMITED',
+                ' HOLDINGS', ' INVESTMENTS', ' INVESTMENT', ' PROPERTIES', ' PROPERTY',
+                ' PARTNERS', ' PARTNERSHIP', ' GROUP', ' CAPITAL',
+                ' CHURCH', ' MINISTRIES', ' MINISTRY', ' FOUNDATION',
+                ' BANK', ' CREDIT UNION', ' MORTGAGE',
+                ' REALTY', ' REAL ESTATE', ' RENTAL', ' RENTALS',
+                ' MANAGEMENT', ' ASSET', ' ASSETS', ' VENTURES',
+                ' COUNTY', ' STATE OF', ' CITY OF', ' FORFEITURE'
+            ]
 
-                if vas_df.empty:
-                    st.warning("⚠️ No VAs available. Add VAs first!")
-                else:
-                    col1, col2 = st.columns(2)
+            def is_entity_va(name):
+                if pd.isna(name):
+                    return False
+                name_upper = str(name).upper()
+                return any(kw in name_upper for kw in ENTITY_KEYWORDS_VA)
 
-                    with col1:
-                        st.markdown("#### 🎯 Manual Assignment")
+            # Build lead source options
+            lead_sources = {
+                "all_leads": "📊 All Leads (Combined)",
+                "regular_sellers": "👤 Regular Sellers (Individuals only)",
+                "whale_investors": "🐋 Whale Investors (LLC/Corp/10+ properties)",
+                "probate": "⚖️ Probate Leads",
+                "sheriff_sale": "🏛️ Sheriff Sale / Pre-Foreclosure",
+                "inbound": "📥 Inbound Leads (Website inquiries)",
+            }
 
-                        # Select VA
-                        va_options = {f"{row['name']} (@{row['username']})": row['user_id'] for _, row in vas_df.iterrows()}
-                        selected_va_name = st.selectbox("Select VA", list(va_options.keys()))
-                        selected_va_id = va_options[selected_va_name]
+            # Add batch files if they exist
+            batches_dir = PROCESSED_DATA_DIR / 'batches'
+            if batches_dir.exists():
+                batch_files = sorted(batches_dir.glob('batch_*.csv'))
+                for bf in batch_files:
+                    if '_tier_' not in bf.name:
+                        batch_name = bf.stem.replace('_', ' ').title()
+                        lead_sources[f"batch:{bf.name}"] = f"📦 {batch_name}"
 
-                        # Number of leads
-                        num_leads = st.slider("Number of leads to assign", 5, 100, 25)
+            # Add IMPORTED leads - any CSV in the imports folder
+            imports_dir = DATA_DIR / 'imports'
+            imports_dir.mkdir(parents=True, exist_ok=True)
+            if imports_dir.exists():
+                import_files = sorted(imports_dir.glob('*.csv'))
+                for imp_file in import_files:
+                    file_size = imp_file.stat().st_size
+                    if file_size > 100:  # Skip empty files
+                        try:
+                            row_count = len(pd.read_csv(imp_file))
+                            import_name = imp_file.stem.replace('_', ' ').title()
+                            lead_sources[f"import:{imp_file.name}"] = f"📥 IMPORTED: {import_name} ({row_count:,} leads)"
+                        except:
+                            pass
 
-                        # Priority
-                        priority = st.select_slider("Priority", options=[1, 2, 3, 4, 5], value=3,
-                                                   format_func=lambda x: {1: "🔴 Urgent", 2: "🟠 High", 3: "🟡 Normal", 4: "🟢 Low", 5: "⚪ Lowest"}[x])
+            # Add SKIP TRACED leads that were imported back
+            skip_trace_dir = DATA_DIR / 'skip_trace_exports'
+            if skip_trace_dir.exists():
+                # Look for files that have phone data (imported back from skip tracer)
+                for st_file in sorted(skip_trace_dir.glob('*.csv'), reverse=True)[:10]:  # Last 10 files
+                    if not st_file.name.startswith('mapping_') and not st_file.name.startswith('property_leads_') and not st_file.name.startswith('investor_leads_'):
+                        try:
+                            df_check = pd.read_csv(st_file, nrows=5)
+                            # If it has phone column with data, it's likely imported skip trace results
+                            if 'phone' in df_check.columns and df_check['phone'].notna().any():
+                                row_count = len(pd.read_csv(st_file))
+                                st_name = st_file.stem.replace('_', ' ').title()
+                                lead_sources[f"skiptrace:{st_file.name}"] = f"📞 SKIP TRACED: {st_name} ({row_count:,} leads)"
+                        except:
+                            pass
 
-                        # Filter options
-                        min_score = st.slider("Minimum motivation score", 0, 100, 50)
+            # Category selector for easier navigation
+            st.markdown("**Lead Categories:**")
+            category = st.radio(
+                "Filter by category",
+                ["All Sources", "Generated Leads", "Imported Leads", "Batches"],
+                horizontal=True,
+                key="lead_category_filter"
+            )
 
-                        if st.button("📋 Assign Leads", use_container_width=True):
-                            # Filter and assign
-                            filtered = leads_df[leads_df['motivation_score'] >= min_score].head(num_leads)
-                            if len(filtered) > 0:
-                                # Save to local CSV (existing behavior)
+            # Filter lead sources by category
+            if category == "Generated Leads":
+                filtered_sources = {k: v for k, v in lead_sources.items() if k in ['all_leads', 'regular_sellers', 'whale_investors', 'probate', 'sheriff_sale', 'inbound']}
+            elif category == "Imported Leads":
+                filtered_sources = {k: v for k, v in lead_sources.items() if k.startswith('import:') or k.startswith('skiptrace:')}
+                if not filtered_sources:
+                    st.info("💡 No imported leads yet. Drop CSV files in `data/imports/` folder or import skip trace results.")
+                    filtered_sources = {"all_leads": "📊 All Leads (Combined)"}  # Fallback
+            elif category == "Batches":
+                filtered_sources = {k: v for k, v in lead_sources.items() if k.startswith('batch:')}
+                if not filtered_sources:
+                    st.info("💡 No batch files found.")
+                    filtered_sources = {"all_leads": "📊 All Leads (Combined)"}  # Fallback
+            else:
+                filtered_sources = lead_sources
+
+            lead_source = st.selectbox(
+                "Choose which leads to assign",
+                options=list(filtered_sources.keys()),
+                format_func=lambda x: filtered_sources.get(x, lead_sources.get(x, x)),
+                key="va_lead_source"
+            )
+
+            # Load leads based on selection
+            leads_df = pd.DataFrame()
+
+            if lead_source == "all_leads":
+                # Load all leads from main file + batches
+                main_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+                if not main_file.exists():
+                    main_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+                all_dfs = []
+                if main_file.exists():
+                    all_dfs.append(pd.read_csv(main_file))
+                if batches_dir.exists():
+                    for bf in batches_dir.glob('batch_*.csv'):
+                        if '_tier_' not in bf.name:
+                            all_dfs.append(pd.read_csv(bf))
+                if all_dfs:
+                    leads_df = pd.concat(all_dfs, ignore_index=True)
+                    if 'address' in leads_df.columns:
+                        leads_df = leads_df.drop_duplicates(subset=['address'], keep='first')
+
+            elif lead_source == "regular_sellers":
+                # Load all and filter to individuals only
+                main_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+                if not main_file.exists():
+                    main_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+                all_dfs = []
+                if main_file.exists():
+                    all_dfs.append(pd.read_csv(main_file))
+                if batches_dir.exists():
+                    for bf in batches_dir.glob('batch_*.csv'):
+                        if '_tier_' not in bf.name:
+                            all_dfs.append(pd.read_csv(bf))
+                if all_dfs:
+                    leads_df = pd.concat(all_dfs, ignore_index=True)
+                    if 'address' in leads_df.columns:
+                        leads_df = leads_df.drop_duplicates(subset=['address'], keep='first')
+                    # Filter out entities
+                    if 'owner_name' in leads_df.columns:
+                        leads_df = leads_df[~leads_df['owner_name'].apply(is_entity_va)]
+
+            elif lead_source == "whale_investors":
+                # Load all and filter to entities/whales
+                main_file = PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv'
+                if not main_file.exists():
+                    main_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+                all_dfs = []
+                if main_file.exists():
+                    all_dfs.append(pd.read_csv(main_file))
+                if batches_dir.exists():
+                    for bf in batches_dir.glob('batch_*.csv'):
+                        if '_tier_' not in bf.name:
+                            all_dfs.append(pd.read_csv(bf))
+                if all_dfs:
+                    leads_df = pd.concat(all_dfs, ignore_index=True)
+                    if 'address' in leads_df.columns:
+                        leads_df = leads_df.drop_duplicates(subset=['address'], keep='first')
+                    # Filter to entities or high portfolio
+                    if 'owner_name' in leads_df.columns:
+                        entity_mask = leads_df['owner_name'].apply(is_entity_va)
+                        whale_mask = leads_df['portfolio_size'] >= 10 if 'portfolio_size' in leads_df.columns else pd.Series([False] * len(leads_df))
+                        leads_df = leads_df[entity_mask | whale_mask]
+
+            elif lead_source == "probate":
+                probate_file = PROCESSED_DATA_DIR / 'probate_leads.csv'
+                if probate_file.exists():
+                    leads_df = pd.read_csv(probate_file)
+
+            elif lead_source == "sheriff_sale":
+                sheriff_file = PROCESSED_DATA_DIR / 'sheriff_sale_leads.csv'
+                if sheriff_file.exists():
+                    leads_df = pd.read_csv(sheriff_file)
+
+            elif lead_source == "inbound":
+                inbound_file = DATA_DIR / 'inbound_leads.csv'
+                if inbound_file.exists():
+                    leads_df = pd.read_csv(inbound_file)
+
+            elif lead_source.startswith("batch:"):
+                batch_filename = lead_source.split(":", 1)[1]
+                batch_file = batches_dir / batch_filename
+                if batch_file.exists():
+                    leads_df = pd.read_csv(batch_file)
+
+            elif lead_source.startswith("import:"):
+                # Load from imports directory
+                import_filename = lead_source.split(":", 1)[1]
+                import_file = imports_dir / import_filename
+                if import_file.exists():
+                    leads_df = pd.read_csv(import_file)
+
+            elif lead_source.startswith("skiptrace:"):
+                # Load skip traced results
+                st_filename = lead_source.split(":", 1)[1]
+                st_file = skip_trace_dir / st_filename
+                if st_file.exists():
+                    leads_df = pd.read_csv(st_file)
+
+            # Show lead count for selected source
+            source_display = lead_sources.get(lead_source, filtered_sources.get(lead_source, lead_source))
+            if len(leads_df) > 0:
+                st.success(f"✅ **{len(leads_df):,}** leads available from: {source_display}")
+            else:
+                st.warning(f"⚠️ No leads found for: {source_display}")
+
+            # Continue with assignment UI
+            vas_df = va_manager.get_all_vas()
+
+            if vas_df.empty:
+                st.warning("⚠️ No VAs available. Add VAs first!")
+            elif len(leads_df) == 0:
+                st.info("Select a lead source with available leads")
+            else:
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.markdown("#### 🎯 Manual Assignment")
+
+                    # Select VA - store both user_id and username
+                    va_options = {f"{row['name']} (@{row['username']})": {'user_id': row['user_id'], 'username': row['username']} for _, row in vas_df.iterrows()}
+                    selected_va_name = st.selectbox("Select VA", list(va_options.keys()))
+                    selected_va_id = va_options[selected_va_name]['user_id']
+                    selected_va_username = va_options[selected_va_name]['username']
+
+                    # Priority
+                    priority = st.select_slider("Priority", options=[1, 2, 3, 4, 5], value=3,
+                                               format_func=lambda x: {1: "🔴 Urgent", 2: "🟠 High", 3: "🟡 Normal", 4: "🟢 Low", 5: "⚪ Lowest"}[x])
+
+                    # Filter options
+                    min_score = st.slider("Minimum motivation score", 0, 100, 50)
+
+                    # DNC filter option
+                    dnc_col1, dnc_col2 = st.columns([2, 1])
+                    with dnc_col1:
+                        dnc_filter = st.checkbox("Only Safe to Call (DNC checked)", value=False,
+                                                help="Only show leads marked as safe to call after DNC check")
+                    with dnc_col2:
+                        if st.button("🛡️ Run DNC Check", key="quick_dnc"):
+                            with st.spinner("Checking DNC status..."):
+                                try:
+                                    dnc_checker = DNCChecker()
+                                    check_df = leads_df.copy()
+
+                                    # Find ALL phone columns
+                                    phone_cols = []
+                                    for col in ['phone', 'phone_1', 'phone_2', 'phone_3', 'phone_4', 'phone_5', 'phone_6', 'Phone']:
+                                        if col in check_df.columns:
+                                            phone_cols.append(col)
+
+                                    if phone_cols:
+                                        checked = 0
+                                        safe = 0
+                                        total_phones = 0
+
+                                        # Count total phones to check
+                                        for col in phone_cols:
+                                            total_phones += check_df[col].notna().sum()
+
+                                        progress = st.progress(0)
+                                        current = 0
+
+                                        # Check each row, each phone column
+                                        for idx, row in check_df.iterrows():
+                                            row_safe = False
+                                            for col in phone_cols:
+                                                phone = str(row.get(col, ''))
+                                                if phone and phone != 'nan' and phone.strip():
+                                                    result = dnc_checker.check_dnc(phone)
+                                                    # Mark individual phone status
+                                                    check_df.at[idx, f'{col}_dnc'] = result.get('dnc_status', 'unknown')
+                                                    check_df.at[idx, f'{col}_safe'] = result.get('safe_to_call', False)
+                                                    checked += 1
+                                                    if result.get('safe_to_call'):
+                                                        safe += 1
+                                                        row_safe = True
+                                                    current += 1
+                                                    progress.progress(min(current / max(total_phones, 1), 1.0))
+
+                                            # Mark row as safe if ANY phone is safe
+                                            check_df.at[idx, 'safe_to_call'] = row_safe
+
+                                        st.success(f"✅ Checked {checked} phone numbers across {len(phone_cols)} columns. {safe} safe to call.")
+                                        st.info(f"Phone columns found: {', '.join(phone_cols)}")
+                                    else:
+                                        st.warning("No phone columns found in leads")
+                                except Exception as e:
+                                    st.error(f"DNC check error: {e}")
+
+                    # Preview leads before assigning
+                    if st.button("👁️ Preview Leads", use_container_width=True):
+                        preview_df = leads_df.copy()
+
+                        # Apply motivation score filter
+                        if 'motivation_score' in preview_df.columns:
+                            preview_df = preview_df[preview_df['motivation_score'] >= min_score]
+
+                        # Apply DNC filter if checked
+                        if dnc_filter and 'safe_to_call' in preview_df.columns:
+                            preview_df = preview_df[preview_df['safe_to_call'] == True]
+                        elif dnc_filter and 'safe_to_call' not in preview_df.columns:
+                            st.warning("⚠️ Leads haven't been DNC checked yet. Go to DNC Scrub page first.")
+
+                        st.session_state['preview_leads'] = preview_df
+                        st.session_state['preview_va'] = selected_va_id
+                        st.session_state['preview_va_username'] = selected_va_username
+                        st.session_state['preview_va_name'] = selected_va_name
+                        st.session_state['preview_priority'] = priority
+                        st.rerun()
+
+                # Show preview table with selection
+                if 'preview_leads' in st.session_state and len(st.session_state['preview_leads']) > 0:
+                    st.markdown("---")
+                    st.markdown(f"### 📋 Select Leads to Assign to {st.session_state.get('preview_va_name', 'VA')}")
+
+                    preview_df = st.session_state['preview_leads'].copy()
+
+                    # Check which leads are already assigned
+                    try:
+                        import psycopg2
+                        DATABASE_URL = os.environ.get('DATABASE_URL', '')
+                        if DATABASE_URL:
+                            conn = psycopg2.connect(DATABASE_URL)
+                            cursor = conn.cursor()
+                            cursor.execute("SELECT address, assigned_to FROM lead_assignments WHERE status != 'completed'")
+                            assigned_leads = {row[0]: row[1] for row in cursor.fetchall()}
+                            conn.close()
+
+                            # Add assignment status column
+                            def get_assignment_status(address):
+                                if address in assigned_leads:
+                                    return f"✓ {assigned_leads[address]}"
+                                return "—"
+
+                            address_col = 'address' if 'address' in preview_df.columns else 'property_address'
+                            preview_df['Assigned To'] = preview_df[address_col].apply(get_assignment_status)
+                    except Exception as e:
+                        preview_df['Assigned To'] = "—"
+
+                    # Filter option for unassigned only
+                    show_unassigned_only = st.checkbox("Show only unassigned leads", value=False)
+                    if show_unassigned_only:
+                        preview_df = preview_df[preview_df['Assigned To'] == "—"]
+
+                    total_leads = len(preview_df)
+                    assigned_count = len(preview_df[preview_df['Assigned To'] != "—"])
+                    unassigned_count = total_leads - assigned_count
+
+                    col_stat1, col_stat2, col_stat3 = st.columns(3)
+                    with col_stat1:
+                        st.metric("Total Leads", total_leads)
+                    with col_stat2:
+                        st.metric("Already Assigned", assigned_count)
+                    with col_stat3:
+                        st.metric("Unassigned", unassigned_count)
+
+                    # Initialize session state for row selection if not exists
+                    if 'assign_start_row' not in st.session_state:
+                        st.session_state.assign_start_row = 1
+                    if 'assign_end_row' not in st.session_state:
+                        st.session_state.assign_end_row = min(25, total_leads)
+
+                    # Clamp values to current total_leads (in case lead count changed)
+                    start_value = min(st.session_state.assign_start_row, total_leads)
+                    end_value = min(st.session_state.assign_end_row, total_leads)
+
+                    # Row range selection
+                    range_col1, range_col2, range_col3 = st.columns([2, 2, 1])
+                    with range_col1:
+                        start_row = st.number_input("Start from row", min_value=1, max_value=total_leads, value=start_value, key="start_row")
+                    with range_col2:
+                        end_row = st.number_input("End at row", min_value=1, max_value=total_leads, value=end_value, key="end_row")
+                    with range_col3:
+                        selected_count = max(0, end_row - start_row + 1)
+                        st.metric("Selected", selected_count)
+
+                    # Quick select buttons
+                    st.markdown("**Quick Select:**")
+                    quick_col1, quick_col2, quick_col3, quick_col4 = st.columns(4)
+                    with quick_col1:
+                        if st.button("First 25", use_container_width=True):
+                            st.session_state.assign_start_row = 1
+                            st.session_state.assign_end_row = min(25, total_leads)
+                            st.rerun()
+                    with quick_col2:
+                        if st.button("First 50", use_container_width=True):
+                            st.session_state.assign_start_row = 1
+                            st.session_state.assign_end_row = min(50, total_leads)
+                            st.rerun()
+                    with quick_col3:
+                        if st.button("First 100", use_container_width=True):
+                            st.session_state.assign_start_row = 1
+                            st.session_state.assign_end_row = min(100, total_leads)
+                            st.rerun()
+                    with quick_col4:
+                        if st.button("All Leads", use_container_width=True):
+                            st.session_state.assign_start_row = 1
+                            st.session_state.assign_end_row = total_leads
+                            st.rerun()
+
+                    # Show preview of selected range
+                    st.markdown(f"**Preview (rows {start_row} to {end_row}):**")
+
+                    # Get selected slice (convert to 0-indexed)
+                    selected_df = preview_df.iloc[start_row-1:end_row].copy()
+
+                    # Show relevant columns for preview - check multiple possible column names
+                    display_cols = []
+
+                    # Owner name
+                    for col in ['owner_name', 'Owner Name', 'name', 'Name']:
+                        if col in selected_df.columns and col not in display_cols:
+                            display_cols.append(col)
+                            break
+
+                    # Address
+                    for col in ['property_address', 'Property Address', 'address', 'Address']:
+                        if col in selected_df.columns and col not in display_cols:
+                            display_cols.append(col)
+                            break
+
+                    # City
+                    for col in ['city', 'City']:
+                        if col in selected_df.columns and col not in display_cols:
+                            display_cols.append(col)
+                            break
+
+                    # Phone - include ALL phone columns found
+                    for col in ['phone', 'phone_1', 'phone_2', 'phone_3', 'phone_4', 'phone_5', 'phone_6',
+                                'Phone', 'Phone 1', 'Phone 2', 'Cell Phone', 'cell_phone', 'Mobile']:
+                        if col in selected_df.columns and col not in display_cols:
+                            display_cols.append(col)
+
+                    # Email
+                    for col in ['email', 'Email', 'email_1', 'Email 1']:
+                        if col in selected_df.columns and col not in display_cols:
+                            display_cols.append(col)
+                            break
+
+                    # Score
+                    for col in ['motivation_score', 'score', 'Score']:
+                        if col in selected_df.columns and col not in display_cols:
+                            display_cols.append(col)
+                            break
+
+                    # Add Assigned To column (always show if available)
+                    if 'Assigned To' in selected_df.columns:
+                        display_cols.append('Assigned To')
+
+                    if display_cols:
+                        display_df = selected_df[display_cols].head(50).copy()
+                        # Convert to string to avoid type errors
+                        for col in display_df.columns:
+                            if display_df[col].dtype == 'object' or display_df[col].dtype == 'float64':
+                                display_df[col] = display_df[col].fillna('').astype(str)
+
+                        st.dataframe(display_df, hide_index=True, use_container_width=True)
+                        if len(selected_df) > 50:
+                            st.caption(f"Showing first 50 of {len(selected_df)} selected leads...")
+
+                    # Assign button
+                    assign_col1, assign_col2 = st.columns([3, 1])
+                    with assign_col1:
+                        if st.button(f"✅ Assign {selected_count} Leads to {st.session_state['preview_va_name']}", use_container_width=True, type="primary"):
+                            selected_leads = preview_df.iloc[start_row-1:end_row]
+
+                            if len(selected_leads) > 0:
+                                # Save to local CSV
                                 count = va_manager.assign_leads(
-                                    filtered,
-                                    selected_va_id,
+                                    selected_leads,
+                                    st.session_state['preview_va'],
                                     assigned_by=st.session_state.va_user.get('user_id', st.session_state.va_user.get('username', 'admin')),
-                                    priority=priority
+                                    priority=st.session_state['preview_priority']
                                 )
 
-                                # Also save to PostgreSQL for VA Portal access
+                                # Also save to PostgreSQL for VA Portal access (use username, not user_id)
                                 db_count, db_msg = assign_leads_to_db(
-                                    filtered,
-                                    assigned_to=selected_va_id,
+                                    selected_leads,
+                                    assigned_to=st.session_state.get('preview_va_username', st.session_state['preview_va']),
                                     assigned_by=st.session_state.va_user.get('username', 'admin'),
-                                    priority=priority
+                                    priority=st.session_state['preview_priority']
                                 )
 
                                 if db_count > 0:
-                                    st.success(f"✅ Assigned {db_count} leads to {selected_va_name} (synced to VA Portal)")
+                                    st.success(f"✅ Assigned {db_count} leads to {st.session_state['preview_va_name']} (synced to VA Portal)")
                                 else:
                                     st.success(f"✅ Assigned {count} leads locally")
                                     st.warning(f"⚠️ Database sync: {db_msg}")
-                            else:
-                                st.warning("No leads match criteria")
 
-                    with col2:
-                        st.markdown("#### 🔄 Auto-Distribution")
-                        st.info("Automatically distribute leads among all active VAs")
+                                # Clear preview
+                                del st.session_state['preview_leads']
+                                st.rerun()
+                    with assign_col2:
+                        if st.button("❌ Cancel", use_container_width=True):
+                            del st.session_state['preview_leads']
+                            st.rerun()
 
-                        distribution_method = st.radio(
-                            "Distribution Method",
-                            ["equal", "by_quota", "by_performance"],
-                            format_func=lambda x: {
-                                "equal": "📊 Equal Split",
-                                "by_quota": "📈 Based on Daily Quota",
-                                "by_performance": "⭐ Based on Performance"
-                            }[x]
-                        )
+                with col2:
+                    st.markdown("#### 🔄 Auto-Distribution")
+                    st.info("Automatically distribute leads among all active VAs")
 
-                        auto_num_leads = st.slider("Total leads to distribute", 50, 500, 100, key="auto_leads")
-                        auto_min_score = st.slider("Minimum score", 0, 100, 40, key="auto_score")
+                    distribution_method = st.radio(
+                        "Distribution Method",
+                        ["equal", "by_quota", "by_performance"],
+                        format_func=lambda x: {
+                            "equal": "📊 Equal Split",
+                            "by_quota": "📈 Based on Daily Quota",
+                            "by_performance": "⭐ Based on Performance"
+                        }[x]
+                    )
 
-                        if st.button("🔄 Auto-Distribute", use_container_width=True):
+                    auto_num_leads = st.slider("Total leads to distribute", 50, 500, 100, key="auto_leads")
+                    auto_min_score = st.slider("Minimum score", 0, 100, 40, key="auto_score")
+
+                    if st.button("🔄 Auto-Distribute", use_container_width=True):
+                        if 'motivation_score' in leads_df.columns:
                             filtered = leads_df[leads_df['motivation_score'] >= auto_min_score].head(auto_num_leads)
-                            if len(filtered) > 0:
-                                result = va_manager.auto_distribute_leads(filtered, distribution=distribution_method)
-                                st.success("✅ Leads distributed!")
-                                for va_id, count in result.items():
-                                    va_info = vas_df[vas_df['user_id'] == va_id].iloc[0]
-                                    st.write(f"• {va_info['name']}: {count} leads")
-                            else:
-                                st.warning("No leads match criteria")
-            else:
-                st.warning("⚠️ No leads found. Generate leads first!")
+                        else:
+                            filtered = leads_df.head(auto_num_leads)
+
+                        if len(filtered) > 0:
+                            result = va_manager.auto_distribute_leads(filtered, distribution=distribution_method)
+                            st.success(f"✅ Leads distributed from: {lead_sources[lead_source]}")
+                            for va_id, count in result.items():
+                                va_info = vas_df[vas_df['user_id'] == va_id].iloc[0]
+                                st.write(f"• {va_info['name']}: {count} leads")
+                        else:
+                            st.warning("No leads match criteria")
 
         # TAB 3: Performance
         with tab3:
@@ -5233,6 +6151,38 @@ elif page == "📊 View Leads":
             else:
                 violations_only = False
 
+        # Contact Data Filters
+        st.markdown("#### 📞 Contact Data Filters")
+        contact_col1, contact_col2, contact_col3, contact_col4 = st.columns(4)
+
+        with contact_col1:
+            phone_filter = st.selectbox(
+                "Phone Number",
+                ["All Leads", "Has Phone", "No Phone"],
+                help="Filter by phone availability"
+            )
+
+        with contact_col2:
+            email_filter = st.selectbox(
+                "Email",
+                ["All Leads", "Has Email", "No Email"],
+                help="Filter by email availability"
+            )
+
+        with contact_col3:
+            skip_trace_filter = st.selectbox(
+                "Skip Traced",
+                ["All Leads", "Skip Traced", "Not Skip Traced"],
+                help="Filter by skip trace status"
+            )
+
+        with contact_col4:
+            owner_type_filter = st.selectbox(
+                "Owner Type",
+                ["All Owners", "Individuals Only", "Entities Only (LLC/Corp)"],
+                help="Filter by owner type"
+            )
+
         # Owner name search (prominent placement)
         st.markdown("### 🔍 Search by Owner Name")
         col_search1, col_search2 = st.columns([3, 1])
@@ -5301,6 +6251,66 @@ elif page == "📊 View Leads":
             filtered_df = filtered_df[filtered_df['freshness_tier'].isin(freshness_filter)]
         if increasing_only and 'distress_increasing' in filtered_df.columns:
             filtered_df = filtered_df[filtered_df['distress_increasing'] == True]
+
+        # Apply contact data filters
+        # Phone filter
+        if phone_filter == "Has Phone" and 'phone' in filtered_df.columns:
+            filtered_df = filtered_df[
+                filtered_df['phone'].notna() &
+                (filtered_df['phone'].astype(str).str.strip() != '') &
+                (filtered_df['phone'].astype(str).str.lower() != 'nan')
+            ]
+        elif phone_filter == "No Phone" and 'phone' in filtered_df.columns:
+            filtered_df = filtered_df[
+                filtered_df['phone'].isna() |
+                (filtered_df['phone'].astype(str).str.strip() == '') |
+                (filtered_df['phone'].astype(str).str.lower() == 'nan')
+            ]
+
+        # Email filter
+        if email_filter == "Has Email" and 'email' in filtered_df.columns:
+            filtered_df = filtered_df[
+                filtered_df['email'].notna() &
+                (filtered_df['email'].astype(str).str.strip() != '') &
+                (filtered_df['email'].astype(str).str.lower() != 'nan')
+            ]
+        elif email_filter == "No Email" and 'email' in filtered_df.columns:
+            filtered_df = filtered_df[
+                filtered_df['email'].isna() |
+                (filtered_df['email'].astype(str).str.strip() == '') |
+                (filtered_df['email'].astype(str).str.lower() == 'nan')
+            ]
+
+        # Skip trace filter
+        if skip_trace_filter == "Skip Traced" and 'skip_traced' in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df['skip_traced'] == True]
+        elif skip_trace_filter == "Not Skip Traced" and 'skip_traced' in filtered_df.columns:
+            filtered_df = filtered_df[(filtered_df['skip_traced'] != True) | (filtered_df['skip_traced'].isna())]
+
+        # Owner type filter (Individuals vs Entities)
+        if owner_type_filter != "All Owners" and 'owner_name' in filtered_df.columns:
+            ENTITY_KEYWORDS_VIEW = [
+                ' LLC', ' L.L.C', ' INC', ' CORP', ' CO,', ' CO ',
+                ' TRUST', ' TRS', ' TRUSTEE', ' ESTATE',
+                ' LP', ' L.P.', ' LLP', ' L.L.P', ' LTD', ' LIMITED',
+                ' HOLDINGS', ' INVESTMENTS', ' INVESTMENT', ' PROPERTIES', ' PROPERTY',
+                ' PARTNERS', ' PARTNERSHIP', ' GROUP', ' CAPITAL',
+                ' CHURCH', ' MINISTRIES', ' MINISTRY', ' FOUNDATION',
+                ' BANK', ' CREDIT UNION', ' MORTGAGE',
+                ' REALTY', ' REAL ESTATE', ' RENTAL', ' RENTALS',
+                ' MANAGEMENT', ' ASSET', ' ASSETS', ' VENTURES',
+                ' COUNTY', ' STATE OF', ' CITY OF', ' FORFEITURE'
+            ]
+            def is_entity_view(name):
+                if pd.isna(name):
+                    return False
+                name_upper = str(name).upper()
+                return any(kw in name_upper for kw in ENTITY_KEYWORDS_VIEW)
+
+            if owner_type_filter == "Individuals Only":
+                filtered_df = filtered_df[~filtered_df['owner_name'].apply(is_entity_view)]
+            elif owner_type_filter == "Entities Only (LLC/Corp)":
+                filtered_df = filtered_df[filtered_df['owner_name'].apply(is_entity_view)]
 
         if search_address:
             filtered_df = filtered_df[filtered_df['address'].str.contains(search_address, case=False, na=False)]
@@ -6388,7 +7398,7 @@ elif page == "🤝 Buyer Matching":
     st.markdown("---")
 
     # Tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["👥 Buyer List", "➕ Add Buyer", "🎯 Match Deal", "📊 Top Buyers"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["👥 Buyer List", "➕ Add Buyer", "🎯 Match Deal", "📊 Top Buyers", "📥 VA-Added Buyers"])
 
     with tab1:
         st.markdown("### 👥 Active Buyers")
@@ -6621,6 +7631,120 @@ elif page == "🤝 Buyer Matching":
                 st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No buyer data yet. Add buyers and record their purchases to see rankings.")
+
+    with tab5:
+        st.markdown("### 📥 VA-Added Qualified Buyers")
+        st.markdown("Buyers added by IDS VAs during investor outreach calls")
+
+        try:
+            qualified_df = get_qualified_buyers()
+            q_stats = get_qualified_stats()
+
+            # Stats
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Total Qualified", q_stats.get('total', 0))
+            with col2:
+                st.metric("Active", q_stats.get('active', 0))
+            with col3:
+                st.metric("🔥 Hot Leads", q_stats.get('hot', 0))
+            with col4:
+                st.metric("Cash Buyers", q_stats.get('cash_buyers', 0))
+
+            if len(qualified_df) > 0:
+                st.markdown("---")
+
+                # Filter options
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    interest_filter = st.selectbox(
+                        "Interest Level",
+                        ["all", "hot", "warm", "cold"],
+                        format_func=lambda x: "All" if x == "all" else INTEREST_DISPLAY.get(x, x)
+                    )
+                with col2:
+                    status_filter = st.selectbox(
+                        "Status",
+                        ["all", "active", "vip", "inactive"],
+                        format_func=lambda x: "All" if x == "all" else STATUS_DISPLAY.get(x, x)
+                    )
+                with col3:
+                    va_filter = st.selectbox(
+                        "Added By",
+                        ["all"] + list(qualified_df['created_by'].dropna().unique()) if 'created_by' in qualified_df.columns else ["all"]
+                    )
+
+                # Apply filters
+                filtered_q = qualified_df.copy()
+                if interest_filter != "all" and 'interest_level' in filtered_q.columns:
+                    filtered_q = filtered_q[filtered_q['interest_level'] == interest_filter]
+                if status_filter != "all" and 'status' in filtered_q.columns:
+                    filtered_q = filtered_q[filtered_q['status'] == status_filter]
+                if va_filter != "all" and 'created_by' in filtered_q.columns:
+                    filtered_q = filtered_q[filtered_q['created_by'] == va_filter]
+
+                st.markdown(f"**Showing {len(filtered_q)} buyers**")
+
+                # Display buyers
+                for idx, buyer in filtered_q.iterrows():
+                    interest_icon = {'hot': '🔥', 'warm': '👍', 'cold': '❄️'}.get(buyer.get('interest_level', ''), '❓')
+                    status_badge = {'active': '🟢', 'vip': '⭐', 'inactive': '⚪'}.get(buyer.get('status', ''), '⚪')
+
+                    with st.expander(f"{interest_icon} {status_badge} **{buyer['name']}** — ${buyer.get('price_min', 0):,.0f} - ${buyer.get('price_max', 0):,.0f} | Added by: {buyer.get('created_by', 'Unknown')}"):
+                        col1, col2, col3 = st.columns(3)
+
+                        with col1:
+                            st.markdown("**Contact Info**")
+                            st.markdown(f"📞 {buyer.get('phone', 'N/A')}")
+                            if buyer.get('phone_2'):
+                                st.markdown(f"📞 {buyer['phone_2']}")
+                            st.markdown(f"📧 {buyer.get('email', 'N/A')}")
+                            st.markdown(f"🏢 {buyer.get('company', 'Individual')}")
+
+                        with col2:
+                            st.markdown("**Buying Criteria**")
+                            st.markdown(f"**Types:** {buyer.get('property_types', 'Any')}")
+                            st.markdown(f"**Areas:** {buyer.get('areas', 'Any')}")
+                            st.markdown(f"**Condition:** {buyer.get('condition_pref', 'Any')}")
+                            st.markdown(f"**Cash:** {'Yes' if buyer.get('cash_buyer') else 'No'}")
+
+                        with col3:
+                            st.markdown("**Status**")
+                            new_status = st.selectbox(
+                                "Change Status",
+                                BUYER_STATUS,
+                                index=BUYER_STATUS.index(buyer.get('status', 'active')) if buyer.get('status') in BUYER_STATUS else 0,
+                                key=f"q_status_{idx}",
+                                format_func=lambda x: STATUS_DISPLAY.get(x, x)
+                            )
+                            if new_status != buyer.get('status'):
+                                if st.button("Update", key=f"q_update_{idx}"):
+                                    update_qualified_buyer(buyer['id'], {'status': new_status})
+                                    st.success("Updated!")
+                                    st.rerun()
+
+                        if buyer.get('notes'):
+                            st.markdown(f"**Notes:** {buyer['notes']}")
+
+                        st.caption(f"Added: {str(buyer.get('created_at', 'Unknown'))[:10]}")
+
+                # Export option
+                st.markdown("---")
+                if st.button("📥 Export All Qualified Buyers", key="export_qualified"):
+                    csv_data = qualified_df.to_csv(index=False)
+                    st.download_button(
+                        "⬇️ Download CSV",
+                        csv_data,
+                        file_name=f"qualified_buyers_{datetime.now().strftime('%Y%m%d')}.csv",
+                        mime="text/csv"
+                    )
+
+            else:
+                st.info("No qualified buyers added yet. IDS VAs can add buyers through the VA Portal.")
+
+        except Exception as e:
+            st.warning(f"Qualified buyers module not loaded: {e}")
+            st.info("IDS VAs can add qualified buyers through the VA Portal. They will appear here.")
 
 
 # ========================================
@@ -7164,7 +8288,7 @@ elif page == "🔐 User Management":
 # VA RECRUITING PAGE
 # ========================================
 elif page == "📋 VA Recruiting":
-    st.markdown('<h1 class="main-header">📋 VA Recruiting</h1>', unsafe_allow_html=True)
+    st.title("VA Recruiting")
     st.markdown("Manage VA job applications and hiring pipeline")
 
     # Initialize
@@ -7325,7 +8449,7 @@ elif page == "📋 VA Recruiting":
 
                         # Actions
                         st.markdown("**Actions**")
-                        action_cols = st.columns(4)
+                        action_cols = st.columns(5)
 
                         with action_cols[0]:
                             new_status = st.selectbox(
@@ -7336,17 +8460,31 @@ elif page == "📋 VA Recruiting":
                             )
 
                         with action_cols[1]:
-                            notes = st.text_input("Notes", key=f"notes_{app['id']}", placeholder="Optional notes...")
+                            # Show role selector if status is hired
+                            if new_status == 'hired':
+                                hire_role_status = st.selectbox(
+                                    "Assign Role",
+                                    ["PAS", "IDS"],
+                                    key=f"role_status_{app['id']}",
+                                    help="PAS = Sellers, IDS = Investors"
+                                )
+                            else:
+                                hire_role_status = None
+                                notes = st.text_input("Notes", key=f"notes_{app['id']}", placeholder="Optional notes...")
 
                         with action_cols[2]:
+                            if new_status == 'hired':
+                                notes = st.text_input("Notes", key=f"notes_hire_{app['id']}", placeholder="Optional...")
+
+                        with action_cols[3]:
                             if st.button("Update Status", key=f"update_{app['id']}"):
                                 # Use appropriate function based on status to send emails
                                 if new_status == 'rejected':
-                                    success, msg = apps.reject_applicant(app['id'], notes or "Application rejected")
+                                    success, msg = apps.reject_applicant(app['id'], notes if 'notes' in dir() else "Application rejected")
                                 elif new_status == 'hired':
-                                    success, msg = apps.hire_applicant(app['id'])
+                                    success, msg = apps.hire_applicant(app['id'], role=hire_role_status, send_welcome=True)
                                 else:
-                                    success, msg = apps.update_status(app['id'], new_status, notes)
+                                    success, msg = apps.update_status(app['id'], new_status, notes if 'notes' in dir() else '')
 
                                 if success:
                                     st.success(msg)
@@ -7361,17 +8499,43 @@ elif page == "📋 VA Recruiting":
                                     st.success("Ready for personal interview!")
                                     st.rerun()
                             elif app['status'] == 'interview':
-                                hire_cols = st.columns(2)
+                                st.markdown("**Hire this applicant:**")
+                                hire_cols = st.columns([2, 2, 2, 2])
                                 with hire_cols[0]:
-                                    if st.button("✅ Hire", key=f"hire_{app['id']}", type="primary"):
-                                        success, msg = apps.hire_applicant(app['id'])
+                                    hire_role = st.selectbox(
+                                        "Assign to Team",
+                                        ["PAS", "IDS"],
+                                        key=f"hire_role_{app['id']}",
+                                        help="PAS = Property Acquisition (sellers), IDS = Investor Development (buyers)"
+                                    )
+                                with hire_cols[1]:
+                                    portal_username = st.text_input(
+                                        "Portal Username",
+                                        key=f"portal_user_{app['id']}",
+                                        placeholder="e.g. jana"
+                                    )
+                                with hire_cols[2]:
+                                    portal_password = st.text_input(
+                                        "Portal Password",
+                                        key=f"portal_pass_{app['id']}",
+                                        placeholder="e.g. Welcome123"
+                                    )
+                                with hire_cols[3]:
+                                    if st.button(f"Hire as {hire_role}", key=f"hire_{app['id']}", type="primary"):
+                                        success, msg = apps.hire_applicant(
+                                            app['id'],
+                                            role=hire_role,
+                                            send_welcome=True,
+                                            username=portal_username,
+                                            password=portal_password
+                                        )
                                         if success:
                                             st.success(msg)
                                             st.balloons()
                                             st.rerun()
                                         else:
                                             st.error(msg)
-                                with hire_cols[1]:
+                                with hire_cols[2]:
                                     if st.button("❌ Reject", key=f"reject_interview_{app['id']}"):
                                         success, msg = apps.reject_applicant(app['id'], "Did not pass interview")
                                         if success:
