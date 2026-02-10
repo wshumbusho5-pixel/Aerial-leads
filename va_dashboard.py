@@ -692,6 +692,48 @@ def show_login():
 
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
+        # Check if admin is logged in and needs to select a VA
+        if st.session_state.get('admin_logged_in', False):
+            st.markdown("### Admin Mode - Select VA to View")
+            st.info(f"Logged in as admin: {st.session_state.get('admin_username', 'admin')}")
+
+            # Get list of VAs from database
+            va_list = []
+            if DB_AUTH_AVAILABLE:
+                try:
+                    db_auth = DatabaseAuth()
+                    conn = db_auth.get_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT username, full_name, role FROM users WHERE role IN ('va', 'va_ids', 'va_pas') AND status = 'active'")
+                    va_list = cursor.fetchall()
+                    conn.close()
+                except Exception as e:
+                    st.error(f"Error loading VAs: {e}")
+
+            if va_list:
+                va_options = {f"{row[1]} (@{row[0]}) - {row[2]}": row for row in va_list}
+                selected = st.selectbox("Select VA to view as:", list(va_options.keys()))
+
+                if st.button("View as this VA", type="primary", use_container_width=True):
+                    va_data = va_options[selected]
+                    st.session_state.va_logged_in = True
+                    st.session_state.va_name = va_data[1]  # full_name
+                    st.session_state.va_username = va_data[0]  # username
+                    st.session_state.user_role = va_data[2]  # role
+                    st.session_state.va_phone = ''
+                    st.session_state.is_admin_viewing = True  # Flag to show admin is viewing
+                    st.rerun()
+            else:
+                st.warning("No VAs found in the system.")
+
+            st.markdown("---")
+            if st.button("Logout", use_container_width=True):
+                st.session_state.admin_logged_in = False
+                st.session_state.admin_username = None
+                st.rerun()
+
+            return  # Don't show regular login form
+
         st.markdown("### Sign In")
 
         if AUTH_AVAILABLE:
@@ -727,14 +769,23 @@ def show_login():
                             st.error(f"Authentication error: {e}")
 
                     if success and user:
-                        st.session_state.va_logged_in = True
-                        st.session_state.va_name = user.get('full_name', username)
-                        st.session_state.va_username = user.get('username', username)  # Use DB username for correct case
-                        st.session_state.va_phone = user.get('va_phone', '') or ''  # Store VA's phone for calling
-                        st.session_state.session_id = session_id
-                        st.session_state.user_role = user.get('role', 'va')
-                        st.success(message)
-                        st.rerun()
+                        user_role = user.get('role', 'va')
+
+                        # If admin, allow impersonation
+                        if user_role == 'admin':
+                            st.session_state.admin_logged_in = True
+                            st.session_state.admin_username = user.get('username', username)
+                            st.success("Admin login successful. Select a VA to view as.")
+                            st.rerun()
+                        else:
+                            st.session_state.va_logged_in = True
+                            st.session_state.va_name = user.get('full_name', username)
+                            st.session_state.va_username = user.get('username', username)  # Use DB username for correct case
+                            st.session_state.va_phone = user.get('va_phone', '') or ''  # Store VA's phone for calling
+                            st.session_state.session_id = session_id
+                            st.session_state.user_role = user_role
+                            st.success(message)
+                            st.rerun()
                     else:
                         st.error(message)
                 else:
@@ -761,6 +812,24 @@ def show_dashboard():
 
     # Sidebar
     with st.sidebar:
+        # Admin viewing banner
+        if st.session_state.get('is_admin_viewing', False):
+            st.markdown("""
+                <div style="background: #1e3a5f; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    <span style="color: #fbbf24;">👑 ADMIN VIEW</span>
+                </div>
+            """, unsafe_allow_html=True)
+            if st.button("🔄 Switch VA", use_container_width=True):
+                st.session_state.va_logged_in = False
+                st.session_state.is_admin_viewing = False
+                st.rerun()
+            if st.button("🚪 Exit Admin Mode", use_container_width=True):
+                st.session_state.va_logged_in = False
+                st.session_state.admin_logged_in = False
+                st.session_state.is_admin_viewing = False
+                st.rerun()
+            st.markdown("---")
+
         st.markdown(f"### 👤 {va_name}")
         st.markdown("---")
 
