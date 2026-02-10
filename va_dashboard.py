@@ -701,12 +701,14 @@ def show_login():
             va_list = []
             if DB_AUTH_AVAILABLE:
                 try:
-                    db_auth = DatabaseAuth()
-                    conn = db_auth.get_connection()
-                    cursor = conn.cursor()
-                    cursor.execute("SELECT username, full_name, role FROM users WHERE role IN ('va', 'va_ids', 'va_pas') AND status = 'active'")
-                    va_list = cursor.fetchall()
-                    conn.close()
+                    import psycopg2
+                    DATABASE_URL = os.environ.get('DATABASE_URL', '')
+                    if DATABASE_URL:
+                        conn = psycopg2.connect(DATABASE_URL)
+                        cursor = conn.cursor()
+                        cursor.execute("SELECT username, full_name, role FROM users WHERE role IN ('va', 'va_ids', 'va_pas') AND status = 'active'")
+                        va_list = cursor.fetchall()
+                        conn.close()
                 except Exception as e:
                     st.error(f"Error loading VAs: {e}")
 
