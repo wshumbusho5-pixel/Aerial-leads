@@ -1193,18 +1193,57 @@ elif page == "📞 Skip Trace":
     if not all_leads_file.exists():
         all_leads_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
 
-    if not all_leads_file.exists():
-        st.warning("⚠️ No leads found. Generate leads first!")
-    elif not BATCHDATA_API_KEY:
+    if not BATCHDATA_API_KEY:
         st.warning("⚠️ Configure your BatchData API key in .env to enable skip tracing")
     else:
-        df = pd.read_csv(all_leads_file)
-
         # ========================================
         # BULK SKIP TRACE SECTION
         # ========================================
         st.markdown("## 🚀 Bulk Skip Trace")
         st.markdown("Skip trace multiple leads with one click")
+
+        # Lead type selector
+        lead_type = st.radio(
+            "Select Lead Type",
+            ["🏠 Property Leads (Sellers)", "🏢 Investor Leads (Buyers)"],
+            horizontal=True,
+            key="bulk_trace_lead_type"
+        )
+
+        is_investor_leads = "Investor" in lead_type
+
+        # Load appropriate data
+        if is_investor_leads:
+            # Load investor leads
+            INVESTORS_DIR = Path(__file__).parent / "data" / "buyers" / "processed"
+            investor_files = list(INVESTORS_DIR.glob("investor_prospects_*_tier_*.csv"))
+
+            if not investor_files:
+                st.warning("⚠️ No investor leads found. Run Investor Finder first!")
+                st.stop()
+
+            # Let user select investor file
+            file_options = {f.stem: f for f in investor_files}
+            selected_inv_file = st.selectbox(
+                "Select investor list",
+                options=list(file_options.keys()),
+                key="bulk_inv_file"
+            )
+            df = pd.read_csv(file_options[selected_inv_file])
+
+            # Ensure required columns exist
+            if 'phone' not in df.columns:
+                df['phone'] = ''
+            if 'motivation_score' not in df.columns:
+                df['motivation_score'] = df.get('investor_score', 50)
+            if 'tier' not in df.columns:
+                df['tier'] = 1
+        else:
+            # Load property leads
+            if not all_leads_file.exists():
+                st.warning("⚠️ No property leads found. Generate leads first!")
+                st.stop()
+            df = pd.read_csv(all_leads_file)
 
         # Count leads without phones
         leads_without_phone = df[df['phone'].isna() | (df['phone'] == '')]
@@ -1272,8 +1311,13 @@ elif page == "📞 Skip Trace":
 
         # Preview
         with st.expander("Preview leads to be traced"):
-            preview_cols = ['address', 'owner_name', 'motivation_score', 'tier', 'taxes_owed']
-            st.dataframe(bulk_leads[preview_cols], width='stretch', hide_index=True)
+            if is_investor_leads:
+                # Investor lead columns
+                preview_cols = [c for c in ['owner_name', 'owner_address', 'mailing_address', 'portfolio_size', 'investor_score'] if c in bulk_leads.columns]
+            else:
+                # Property lead columns
+                preview_cols = [c for c in ['address', 'owner_name', 'motivation_score', 'tier', 'taxes_owed'] if c in bulk_leads.columns]
+            st.dataframe(bulk_leads[preview_cols] if preview_cols else bulk_leads, use_container_width=True, hide_index=True)
 
         # Bulk trace button
         col1, col2, col3 = st.columns([1, 2, 1])
@@ -1297,11 +1341,12 @@ elif page == "📞 Skip Trace":
                         total = len(bulk_leads)
 
                         for i, (idx, row) in enumerate(bulk_leads.iterrows()):
-                            owner_name = str(row['owner_name'])
-                            address = str(row['address'])
+                            owner_name = str(row.get('owner_name', row.get('business_name', '')))
+                            # Handle both property leads (address) and investor leads (owner_address/mailing_address)
+                            address = str(row.get('address', row.get('mailing_address', row.get('owner_address', ''))))
                             zip_code = str(row.get('zip_code', '')) if pd.notna(row.get('zip_code')) else ''
 
-                            status_text.text(f"Tracing {i+1}/{total}: {address[:35]}...")
+                            status_text.text(f"Tracing {i+1}/{total}: {owner_name[:35]}...")
                             progress_bar.progress((i + 1) / total)
 
                             # Skip trace
