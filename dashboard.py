@@ -2693,7 +2693,7 @@ elif page == "👥 VA Management":
                 st.rerun()
 
         # VA Management Tabs
-        tab1, tab2, tab3, tab4 = st.tabs(["👤 Manage VAs", "📋 Assign Leads", "📊 Performance", "👁️ Team Overview"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["👤 Manage VAs", "📋 Assign Leads", "📊 Performance", "👁️ Team Overview", "📜 Assignment History"])
 
         # TAB 1: Manage VAs
         with tab1:
@@ -3428,6 +3428,100 @@ elif page == "👥 VA Management":
                             st.metric("Completed", len(completed))
             else:
                 st.info("No VAs added yet. Add VAs in the 'Manage VAs' tab.")
+
+        # TAB 5: Assignment History
+        with tab5:
+            st.markdown("### 📜 Lead Assignment History")
+            st.markdown("See all leads you've distributed and to whom.")
+
+            try:
+                import psycopg2
+                DATABASE_URL = os.environ.get('DATABASE_URL', '')
+                if DATABASE_URL:
+                    conn = psycopg2.connect(DATABASE_URL)
+                    cursor = conn.cursor()
+
+                    # Summary by VA
+                    st.markdown("#### 👥 Distribution by VA")
+                    cursor.execute("""
+                        SELECT
+                            assigned_to,
+                            COUNT(*) as total_leads,
+                            COUNT(CASE WHEN status = 'assigned' THEN 1 END) as pending,
+                            COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress,
+                            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+                            DATE(MIN(assigned_at)) as first_assigned,
+                            DATE(MAX(assigned_at)) as last_assigned
+                        FROM lead_assignments
+                        GROUP BY assigned_to
+                        ORDER BY total_leads DESC
+                    """)
+                    va_summary = cursor.fetchall()
+
+                    if va_summary:
+                        for row in va_summary:
+                            va_name, total, pending, in_prog, completed, first_date, last_date = row
+                            with st.expander(f"**{va_name}** - {total} leads total"):
+                                col1, col2, col3, col4 = st.columns(4)
+                                with col1:
+                                    st.metric("Total Assigned", total)
+                                with col2:
+                                    st.metric("Pending", pending)
+                                with col3:
+                                    st.metric("In Progress", in_prog)
+                                with col4:
+                                    st.metric("Completed", completed)
+                                st.caption(f"First assigned: {first_date} | Last assigned: {last_date}")
+
+                    # Assignment timeline
+                    st.markdown("#### 📅 Assignment Timeline")
+                    cursor.execute("""
+                        SELECT
+                            DATE(assigned_at) as date,
+                            assigned_to,
+                            COUNT(*) as cnt
+                        FROM lead_assignments
+                        GROUP BY DATE(assigned_at), assigned_to
+                        ORDER BY DATE(assigned_at) DESC
+                        LIMIT 30
+                    """)
+                    timeline = cursor.fetchall()
+
+                    if timeline:
+                        current_date = None
+                        for row in timeline:
+                            date, va_name, count = row
+                            if date != current_date:
+                                current_date = date
+                                st.markdown(f"**{date}**")
+                            st.markdown(f"  - {va_name}: {count} leads")
+
+                    # Recent assignments detail
+                    st.markdown("#### 🔍 Recent Assignments (Last 50)")
+                    cursor.execute("""
+                        SELECT
+                            assigned_to,
+                            address,
+                            owner_name,
+                            status,
+                            assigned_at
+                        FROM lead_assignments
+                        ORDER BY assigned_at DESC
+                        LIMIT 50
+                    """)
+                    recent = cursor.fetchall()
+
+                    if recent:
+                        import pandas as pd
+                        recent_df = pd.DataFrame(recent, columns=['Assigned To', 'Address', 'Owner', 'Status', 'Assigned At'])
+                        recent_df['Assigned At'] = pd.to_datetime(recent_df['Assigned At']).dt.strftime('%Y-%m-%d %H:%M')
+                        st.dataframe(recent_df, use_container_width=True, hide_index=True)
+
+                    conn.close()
+                else:
+                    st.warning("Database not connected")
+            except Exception as e:
+                st.error(f"Error loading assignment history: {e}")
 
 
 # ========================================
