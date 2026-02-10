@@ -80,9 +80,9 @@ def assign_leads_to_db(leads_df: pd.DataFrame, assigned_to: str, assigned_by: st
             lead_type = lead.get('lead_type', lead.get('source', ''))
             notes = lead.get('notes', '')
 
-            # Check if this lead is already assigned to this VA (avoid duplicates)
+            # Check if this lead is already assigned to this VA (avoid duplicates) - case insensitive
             cursor.execute(
-                "SELECT id FROM lead_assignments WHERE address = %s AND assigned_to = %s AND status != 'completed'",
+                "SELECT id FROM lead_assignments WHERE address = %s AND LOWER(assigned_to) = LOWER(%s) AND status != 'completed'",
                 (address, assigned_to)
             )
             if cursor.fetchone():
@@ -131,14 +131,15 @@ def get_leads_for_va(username: str, status: str = None) -> pd.DataFrame:
     try:
         cursor = conn.cursor()
 
+        # Use LOWER() to make matching case-insensitive
         if status:
             cursor.execute(
-                "SELECT * FROM lead_assignments WHERE assigned_to = %s AND status = %s ORDER BY priority DESC, assigned_at DESC",
+                "SELECT * FROM lead_assignments WHERE LOWER(assigned_to) = LOWER(%s) AND status = %s ORDER BY priority DESC, assigned_at DESC",
                 (username, status)
             )
         else:
             cursor.execute(
-                "SELECT * FROM lead_assignments WHERE assigned_to = %s AND status != 'completed' ORDER BY priority DESC, assigned_at DESC",
+                "SELECT * FROM lead_assignments WHERE LOWER(assigned_to) = LOWER(%s) AND status != 'completed' ORDER BY priority DESC, assigned_at DESC",
                 (username,)
             )
 

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lifeline Home Buyers - Investor Scripts (IDS Team)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 50px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e40af;
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            border-bottom: 3px solid #1e40af;
+            padding-bottom: 20px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+        h2 {
+            color: #1e40af;
+            font-size: 1.5em;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #eff6ff;
+            border-radius: 8px;
+        }
+        h3 {
+            color: #2563eb;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .script-box {
+            background: #1a1a2e;
+            color: #eee;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+        .script-box .you { color: #4ade80; font-weight: bold; }
+        .script-box .them { color: #60a5fa; font-weight: bold; }
+        .script-box .note { color: #fbbf24; font-style: italic; }
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #1e40af;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .response-box {
+            background: #f8f9fa;
+            border-left: 4px solid #1e40af;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .objection {
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 15px 20px;
+            margin: 10px 0;
+            font-weight: bold;
+            border-radius: 0 8px 8px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #1e40af;
+            color: white;
+        }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .tier-box {
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        .tier-1 { background: #dcfce7; border: 2px solid #16a34a; }
+        .tier-2 { background: #fef3c7; border: 2px solid #f59e0b; }
+        .tier-3 { background: #fee2e2; border: 2px solid #dc2626; }
+        .golden-rule {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .red-flag {
+            background: #fee2e2;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .green-flag {
+            background: #dcfce7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        ul { margin-left: 25px; margin-bottom: 15px; }
+        li { margin-bottom: 8px; }
+        hr {
+            border: none;
+            border-top: 2px solid #e0e0e0;
+            margin: 40px 0;
+        }
+        .best-for {
+            background: #dbeafe;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LIFELINE HOME BUYERS</h1>
+        <p class="subtitle">Proprietary Investor/Buyer Scripts<br>IDS Team (Investor Development Specialists)</p>
+
+        <hr>
+
+        <h2>UNDERSTANDING INVESTOR PSYCHOLOGY</h2>
+
+        <div class="info-box">
+            <p><strong>Investors are DIFFERENT from distressed sellers:</strong></p>
+            <ul>
+                <li><strong>They're business-minded</strong> - They want numbers, not emotions</li>
+                <li><strong>They're skeptical</strong> - They've heard every pitch</li>
+                <li><strong>They value time</strong> - Don't waste it with fluff</li>
+                <li><strong>They want deals</strong> - That's the bottom line</li>
+                <li><strong>They have criteria</strong> - Know them or you're wasting everyone's time</li>
+            </ul>
+            <p style="margin-top: 15px;"><strong>Your goal:</strong> Get them on the buyers list, understand their criteria, and build a relationship so when you have a deal - they're the first call.</p>
+        </div>
+
+        <hr>
+
+        <h2>SCRIPT 1: INITIAL INVESTOR OUTREACH</h2>
+        <p class="best-for"><strong>Best for:</strong> First contact with potential buyers from your investor leads list</p>
+
+        <div class="script-box">
+            <span class="them">THEM:</span> Hello?<br><br>
+            <span class="you">YOU:</span> Hey <span class="note">[FIRST NAME]</span>, this is <span class="note">[YOUR NAME]</span> with Lifeline Home Buyers. I'll cut right to it - I see you've been buying properties in <span class="note">[COLUMBUS/CINCINNATI]</span> area. I'm a wholesaler and I'm putting together my serious buyers list. Got 30 seconds?<br><br>
+            <span class="them">THEM:</span> Okay, go ahead.<br><br>
+            <span class="you">YOU:</span> Cool. So here's the deal - we source off-market properties before they hit MLS. Distressed, estate sales, pre-foreclosure situations. Real deals, not retail.<br><br>
+            I'm calling to see two things: one, if you're still actively buying, and two, what your criteria is so I can actually send you deals that make sense. What are you looking for right now?
+        </div>
+
+        <h3>IF THEY GIVE CRITERIA</h3>
+        <div class="script-box">
+            <span class="you">YOU:</span> Got it. So you're looking for <span class="note">[REPEAT CRITERIA - property type, area, price range, ARV requirements]</span>.<br><br>
+            What's your typical purchase range? And do you prefer cash or do you use financing?
+        </div>
+
+        <h3>FOLLOW-UP QUESTIONS TO ASK</h3>
+        <div class="info-box">
+            <ul>
+                <li>"What areas are you focused on? Any zip codes you absolutely won't touch?"</li>
+                <li>"What's your typical rehab budget range?"</li>
+                <li>"Are you looking for flips only, or buy-and-hold too?"</li>
+                <li>"How fast can you typically close when you see a deal you like?"</li>
+                <li>"What does a deal need to look like for you to move on it same-day?"</li>
+            </ul>
+        </div>
+
+        <h3>IF THEY SAY: "Just send me what you have"</h3>
+        <div class="script-box">
+            <span class="you">YOU:</span> I could do that, but honestly - I'd rather send you one deal that actually fits than blast you with ten that don't. Takes 2 minutes. What areas are you buying in right now?
+        </div>
+
+        <h3>CLOSING THE CALL</h3>
+        <div class="script-box">
+            <span class="you">YOU:</span> Perfect. So just to confirm - you're looking for <span class="note">[CRITERIA]</span>, in <span class="note">[AREAS]</span>, <span class="note">[PRICE RANGE]</span>, and you can close <span class="note">[TIMEFRAME]</span>.<br><br>
+            I'll save your info. When I get something that fits, I'll shoot it over. Fair warning though - the good ones go fast, so be ready to move. What's the best email for me to send you deals?
+        </div>
+
+        <hr>
+
+        <h2>SCRIPT 2: DEAL NOTIFICATION CALL</h2>
+        <p class="best-for"><strong>Best for:</strong> When you have an actual deal and need to move it</p>
+
+        <div class="script-box">
+            <span class="them">THEM:</span> Hello?<br><br>
+            <span class="you">YOU:</span> Hey <span class="note">[FIRST NAME]</span>, it's <span class="note">[YOUR NAME]</span> from Lifeline. Got a minute? I just picked up something I think fits your criteria.<br><br>
+            <span class="them">THEM:</span> What do you have?<br><br>
+            <span class="you">YOU:</span> Alright, so it's a <span class="note">[PROPERTY TYPE]</span> over on <span class="note">[STREET/AREA]</span>. <span class="note">[BEDS/BATHS]</span>, about <span class="note">[SQFT]</span> square feet. Needs <span class="note">[BRIEF REHAB DESCRIPTION]</span>.<br><br>
+            Here's the numbers: We're asking <span class="note">[ASKING PRICE]</span>. Comps in the area are running <span class="note">[ARV]</span>. With a <span class="note">[ESTIMATED REHAB]</span> rehab, you're looking at solid margin.<br><br>
+            You want me to send you the details?
+        </div>
+
+        <h3>IF THEY WANT MORE INFO</h3>
+        <div class="script-box">
+            <span class="you">YOU:</span> Cool. What's the best email? I'll send you the address, pictures, and a full breakdown. Just a heads up - I've got a couple other buyers looking at this, so if you're interested, let me know today.
+        </div>
+
+        <h3>IF THEY WANT TO NEGOTIATE</h3>
+        <div class="script-box">
+            <span class="you">YOU:</span> Look, I hear you. Here's the thing - this is already priced for a quick close. There's margin in there for you. If the numbers work, they work. If they don't, no hard feelings.<br><br>
+            What would you need the number to be for you to move on it today?
+        </div>
+
+        <hr>
+
+        <h2>SCRIPT 3: CASH BUYER QUALIFICATION</h2>
+        <p class="best-for"><strong>Best for:</strong> Thoroughly vetting a potential buyer</p>
+
+        <div class="info-box">
+            <p><strong>Questions to ask:</strong></p>
+            <ol>
+                <li>"How long have you been investing? How many deals have you done in the last year?" <em>(Tells you experience level)</em></li>
+                <li>"When you find a deal you like, how quickly can you actually close?" <em>(Tells you if they're serious)</em></li>
+                <li>"Are you buying with cash, or do you have financing lined up?" <em>(Cash buyers move faster)</em></li>
+                <li>"Do you have proof of funds you can send over? I usually ask for this before I send addresses." <em>(Separates real buyers from tire-kickers)</em></li>
+                <li>"What's the last deal you closed? What was the address?" <em>(Verify they're legit)</em></li>
+                <li>"If I sent you a deal right now that fit your criteria, could you get me an answer by end of day?" <em>(Tests responsiveness)</em></li>
+            </ol>
+        </div>
+
+        <h3>RED FLAGS TO WATCH FOR</h3>
+        <div class="red-flag">
+            <ul>
+                <li>They can't provide proof of funds</li>
+                <li>They've never actually closed a deal</li>
+                <li>They want to "partner" or "bring in other people"</li>
+                <li>They take days to respond</li>
+                <li>They want deep discounts on already-discounted deals</li>
+            </ul>
+        </div>
+
+        <h3>GREEN FLAGS</h3>
+        <div class="green-flag">
+            <ul>
+                <li>Quick responses</li>
+                <li>Clear criteria with specific numbers</li>
+                <li>Proof of funds readily available</li>
+                <li>History of closed deals</li>
+                <li>They ask smart questions about the property</li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <h2>SCRIPT 4: FOLLOW-UP / RELATIONSHIP BUILDER</h2>
+        <p class="best-for"><strong>Best for:</strong> Staying top of mind with your buyer pool</p>
+
+        <div class="script-box">
+            <span class="them">THEM:</span> Hello?<br><br>
+            <span class="you">YOU:</span> Hey <span class="note">[FIRST NAME]</span>, it's <span class="note">[YOUR NAME]</span> with Lifeline. Just checking in - wanted to see how things are going on your end.<br><br>
+            <span class="them">THEM:</span> Good, just busy.<br><br>
+            <span class="you">YOU:</span> I hear you. Real quick - are you still buying? I'm getting ready to bring some new inventory soon and I want to make sure I've got my A-list updated.<br><br>
+            <span class="them">THEM:</span> Yeah, still looking.<br><br>
+            <span class="you">YOU:</span> Cool. Any changes to what you're looking for? Same areas, same price range?<br><br>
+            <span class="note">(Get updated criteria if anything changed)</span><br><br>
+            <span class="you">YOU:</span> Perfect. I'll keep you posted. When a deal comes through that fits, you'll be one of my first calls. Talk soon.
+        </div>
+
+        <hr>
+
+        <h2>SCRIPT 5: NETWORKING / REIA EVENTS</h2>
+        <p class="best-for"><strong>Best for:</strong> Meeting investors in person</p>
+
+        <div class="script-box">
+            <span class="you">YOU:</span> Hey, I'm <span class="note">[YOUR NAME]</span> with Lifeline Home Buyers. You're an investor, right?<br><br>
+            <span class="them">THEM:</span> Yeah.<br><br>
+            <span class="you">YOU:</span> Cool. We wholesale off-market deals in Columbus and Cincinnati. What kind of properties are you typically looking for?<br><br>
+            <span class="note">(Get their criteria)</span><br><br>
+            <span class="you">YOU:</span> Got it. What's the best way to send you deals when we get something that fits? Email or text?<br><br>
+            <span class="note">(Get contact info)</span><br><br>
+            <span class="you">YOU:</span> Perfect. I'll add you to my list. When I get something in your wheelhouse, I'll shoot it over. If it works, great. If not, no worries. Sound good?
+        </div>
+
+        <hr>
+
+        <h2>SCRIPT 6: VOICEMAILS FOR INVESTORS</h2>
+        <p class="best-for"><strong>Max 15-20 seconds - Investors are busy, respect their time</strong></p>
+
+        <h3>VERSION 1 - NEW INVESTOR</h3>
+        <div class="script-box">
+            "Hey <span class="note">[FIRST NAME]</span>, it's <span class="note">[YOUR NAME]</span> with Lifeline Home Buyers. I'm a wholesaler in <span class="note">[COLUMBUS/CINCINNATI]</span> and I'm putting together my buyers list. Looking for serious investors. If that's you, call me back - <span class="note">[NUMBER]</span>. Again, <span class="note">[YOUR NAME]</span>, <span class="note">[NUMBER]</span>."
+        </div>
+
+        <h3>VERSION 2 - HAVE A DEAL</h3>
+        <div class="script-box">
+            "Hey <span class="note">[FIRST NAME]</span>, <span class="note">[YOUR NAME]</span> here. Got a property I think fits your criteria - <span class="note">[AREA]</span>, <span class="note">[PROPERTY TYPE]</span>, priced to move. Call me back if you want details. <span class="note">[NUMBER]</span>."
+        </div>
+
+        <h3>VERSION 3 - FOLLOW UP</h3>
+        <div class="script-box">
+            "<span class="note">[FIRST NAME]</span>, it's <span class="note">[YOUR NAME]</span> from Lifeline. Following up on the deal I sent over. Let me know if you're interested - I've got other buyers looking at it. <span class="note">[NUMBER]</span>."
+        </div>
+
+        <hr>
+
+        <h2>INVESTOR OBJECTION RESPONSES</h2>
+
+        <div class="objection">"Just email me the deal."</div>
+        <div class="response-box">
+            <strong>Response:</strong> "I can, but I'd rather give you a heads up when something hot comes in - email can get buried. What's the best number to text you? I'll only hit you up when I have something that actually fits what you're looking for."
+        </div>
+
+        <div class="objection">"Your price is too high."</div>
+        <div class="response-box">
+            <strong>Response:</strong> "I hear you. Where would you need to be for this to make sense? Let me see if there's any room."<br><br>
+            <em>Note: Don't give away margin too easily. Know your floor.</em>
+        </div>
+
+        <div class="objection">"I need to run the numbers."</div>
+        <div class="response-box">
+            <strong>Response:</strong> "Totally get it. Just know - this one's going to move fast. I've got a few other buyers looking. Can you get me an answer by [SPECIFIC TIME]?"
+        </div>
+
+        <div class="objection">"I want to see it first."</div>
+        <div class="response-box">
+            <strong>Response:</strong> "Absolutely. When can you get there? I can get you access [TODAY/TOMORROW]. And just to be clear - if the numbers work for you, can you make a decision same-day?"
+        </div>
+
+        <div class="objection">"Can you send me the address?"</div>
+        <div class="response-box">
+            <strong>Response:</strong> "I'll send you the full package - address, photos, numbers. Just need your email. And do you have proof of funds on file with me yet? I usually need that before sharing addresses."
+        </div>
+
+        <div class="objection">"I only buy at X% ARV."</div>
+        <div class="response-box">
+            <strong>Response:</strong> "Got it. I'll note that in your profile. This one might not fit, but when something does hit that number, I'll send it straight to you."
+        </div>
+
+        <hr>
+
+        <h2>BUILDING YOUR BUYERS LIST</h2>
+
+        <h3>TIER YOUR BUYERS</h3>
+
+        <div class="tier-box tier-1">
+            <h4 style="color: #16a34a; margin-top: 0;">TIER 1 - A-List (The Closers)</h4>
+            <ul>
+                <li>They've bought from you before</li>
+                <li>They close fast with cash</li>
+                <li>They're responsive</li>
+                <li>They don't haggle on already-discounted deals</li>
+            </ul>
+        </div>
+
+        <div class="tier-box tier-2">
+            <h4 style="color: #f59e0b; margin-top: 0;">TIER 2 - B-List (The Potentials)</h4>
+            <ul>
+                <li>They have proof of funds</li>
+                <li>They're active but haven't bought from you yet</li>
+                <li>They have clear criteria</li>
+                <li>They take a bit longer to respond</li>
+            </ul>
+        </div>
+
+        <div class="tier-box tier-3">
+            <h4 style="color: #dc2626; margin-top: 0;">TIER 3 - C-List (The Maybe)</h4>
+            <ul>
+                <li>They're interested but no deals closed</li>
+                <li>They don't have proof of funds yet</li>
+                <li>They're new to investing</li>
+                <li>They're "looking" but not moving</li>
+            </ul>
+        </div>
+
+        <p><strong>Priority:</strong> Always call Tier 1 first. Then Tier 2. Tier 3 gets email blasts.</p>
+
+        <h3>WHAT TO TRACK FOR EACH BUYER</h3>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Information to Track</th>
+            </tr>
+            <tr><td>1</td><td>Name & contact info</td></tr>
+            <tr><td>2</td><td>Areas they buy in (specific zip codes)</td></tr>
+            <tr><td>3</td><td>Property types (SFH, multi, land)</td></tr>
+            <tr><td>4</td><td>Price range (min and max)</td></tr>
+            <tr><td>5</td><td>Rehab level they can handle (light, medium, heavy)</td></tr>
+            <tr><td>6</td><td>Closing speed (days or weeks)</td></tr>
+            <tr><td>7</td><td>Cash or financing</td></tr>
+            <tr><td>8</td><td>Last deal they closed (verify they're real)</td></tr>
+            <tr><td>9</td><td>Responsiveness rating (how fast they reply)</td></tr>
+            <tr><td>10</td><td>Notes from conversations</td></tr>
+        </table>
+
+        <hr>
+
+        <h2>GOLDEN RULES FOR INVESTOR CALLS</h2>
+        <div class="golden-rule">
+            <ol>
+                <li><strong>Respect their time</strong> - Get to the point fast</li>
+                <li><strong>Know your numbers</strong> - They will ask</li>
+                <li><strong>Create urgency (honestly)</strong> - Good deals do go fast</li>
+                <li><strong>Qualify hard</strong> - Better 10 real buyers than 100 flakes</li>
+                <li><strong>Follow up</strong> - Relationships are built over time</li>
+                <li><strong>Deliver on promises</strong> - If you say you'll send the deal, send it immediately</li>
+                <li><strong>Don't oversell</strong> - If it's a deal, the numbers speak for themselves</li>
+                <li><strong>Build the list every day</strong> - Your buyers list is your distribution network</li>
+                <li><strong>Move fast</strong> - When you have a deal, call within hours, not days</li>
+                <li><strong>Know when to walk away</strong> - If a buyer is difficult, focus on others</li>
+            </ol>
+        </div>
+
+        <hr>
+        <p style="text-align: center; color: #666; font-size: 0.9em;">
+            <em>Lifeline Home Buyers - Proprietary Training Material</em><br>
+            <em>Do Not Distribute Outside Organization</em>
+        </p>
+    </div>
+</body>
+</html>

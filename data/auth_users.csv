@@ -1,4 +1,6 @@
 user_id,username,password_hash,salt,full_name,email,role,created_at,last_login,is_active,created_by
-USER-20260118035629-EE0D,admin,9d9b3a24d40e06ff9a8486a6b6c98cf61dd8cfe3df17500907094a8112c4c57f,bdf2a70209cb259ac333eaa9aff44daa,System Admin,,admin,2026-01-18T03:56:29.952296,2026-01-19T14:30:05.364540,True,system
-USER-20260119002104-B16D,kisha,58f9317645e3aeccb7dbfefc8501f8cb33a7e4ad25bdc3e6edd379e2d38a232b,1aea96029e0aa9f8d6a695e76101b0cf,KISHA UWASE,wshumbusho5@gmail.com,va,2026-01-19T00:21:04.260727,,True,admin
-USER-20260119094139-1464,kezza,3109abbe8fe8dc4f08d4af6cfcb7506ef0ade5b1db8ad8490480a4df7b563fda,95fd2d5e2749b3f7d4686d0e69e69a67,keza naomi,wshumbusho5@gmail.com,va,2026-01-19T09:41:39.507561,,True,admin
+USER-20260118035629-EE0D,admin,9d9b3a24d40e06ff9a8486a6b6c98cf61dd8cfe3df17500907094a8112c4c57f,bdf2a70209cb259ac333eaa9aff44daa,System Admin,,admin,2026-01-18T03:56:29.952296,2026-01-29T19:57:48.649143,True,system
+USER-20260129195130-9345,brent ,bf463f17ffbce6054a916eaf2824b17c116bdf6a2676e08b1a8ec552709d77fc,ab3458bcec8b60629a4d75bfa3cffcb4,Willy miles,wshumbusho5@gmail.com,va,2026-01-29T19:51:30.142383,,True,admin
+USER-20260205190240-7F34,jana,8b7c35389bdc8bd25ea7f7fcdfdd0572940b139273ecd5bb4a98265ac8d74735,3cc20d5693d88057702b0b5d9a621007,jana lynn black,janalynnblack@gmail.com,va,2026-02-05T19:02:40.240966,,True,admin
+USER-20260205190356-BC8A,Shantal,132a40c81a992d039415affe879bbd115118c0b2ed832bef201559532f56d2fc,100e10e9bc2bcd514f1b21d28d2580a4,Shantal Nandutu,shanienandutu@gmail.com,va,2026-02-05T19:03:56.586878,,True,admin
+USER-20260205190706-C9CA,Cyrus,00f0e88e0d688a50d5ab714f3a50b91d0d26f4512a136ed75b53231183ab35a2,4f588c4effd25722ea1dc245a5cbd1f4,Cyrus Muwanguzi,muwanguzicyrus7@gmail.com,va,2026-02-05T19:07:06.199976,,True,admin

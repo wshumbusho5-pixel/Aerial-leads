@@ -260,11 +260,13 @@ class VAManager:
         }
 
     def get_all_vas(self) -> pd.DataFrame:
-        """Get all VA users."""
+        """Get all VA users (includes va, va_ids, va_pas roles)."""
         # Always sync from User Management first to get latest users
         self._sync_from_auth_users()
         users_df = pd.read_csv(self.users_file)
-        return users_df[users_df['role'] == 'va']
+        # Include all VA role types
+        va_roles = ['va', 'va_ids', 'va_pas']
+        return users_df[users_df['role'].isin(va_roles)]
 
     def get_all_users(self) -> pd.DataFrame:
         """Get all users."""

@@ -1,3 +1,8 @@
 user_id,username,password_hash,name,email,role,daily_quota,is_active,created_at,last_login
 USER-F333D90E,admin,240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9,Administrator,admin@aerial-leads.com,admin,50,True,2026-01-14T17:02:50.871284,2026-01-15T08:55:24.720928
-USER-20853B62,kisha-wholesale,3a0e5b93cd8cce0fdf4b64cbd36404f28bd91e3e5748fe0b109848e2fcd486dc,Kisha Uwase,wshumbusho5@gmail.com,va,60,True,2026-01-14T23:05:48.774370,2026-01-15T00:44:36.696329
+VA-BRENT -1850,brent ,bf463f17ffbce6054a916eaf2824b17c116bdf6a2676e08b1a8ec552709d77fc,Willy miles,wshumbusho5@gmail.com,va,50,True,2026-02-05T18:50:43.435031,
+VA-JANA-1902,jana,8b7c35389bdc8bd25ea7f7fcdfdd0572940b139273ecd5bb4a98265ac8d74735,jana lynn black,janalynnblack@gmail.com,va,50,True,2026-02-05T19:02:40.243166,
+VA-SHANTAL-1903,shantal,132a40c81a992d039415affe879bbd115118c0b2ed832bef201559532f56d2fc,Shantal Nandutu,shanienandutu@gmail.com,va,50,True,2026-02-05T19:03:56.591597,
+VA-CYRUS-1907,cyrus,a583ec8f109ba125e974b896a350e6f171491628a103aa4eaa05e1bb2978df13,Cyrus Muwanguzi,muwanguzicyrus7@gmail.com,va,50,True,2026-02-05T19:07:06.206787,
+VA-SHANTAL-1834,Shantal,132a40c81a992d039415affe879bbd115118c0b2ed832bef201559532f56d2fc,Shantal Nandutu,shanienandutu@gmail.com,va,50,True,2026-02-09T18:34:36.207783,
+VA-CYRUS-1834,Cyrus,00f0e88e0d688a50d5ab714f3a50b91d0d26f4512a136ed75b53231183ab35a2,Cyrus Muwanguzi,muwanguzicyrus7@gmail.com,va,50,True,2026-02-09T18:34:36.209860,

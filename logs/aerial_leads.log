@@ -6,3 +6,184 @@
 2026-01-15 00:50:52 - VAManager - INFO - Assigned 0 leads to USER-20853B62
 2026-01-15 00:51:26 - VAManager - INFO - Assigned 0 leads to USER-20853B62
 2026-01-15 08:57:27 - VAManager - INFO - Assigned 0 leads to USER-20853B62
+2026-01-22 14:52:49 - VAManager - INFO - Synced user from User Management: kisha
+2026-01-22 14:52:49 - VAManager - INFO - Synced user from User Management: kezza
+2026-01-23 01:14:55 - SheriffSaleScraper - INFO - Starting sheriff sale scrape for franklin county
+2026-01-23 01:14:57 - SheriffSaleScraper - INFO - Found 3 sheriff sale listings
+2026-01-23 01:14:57 - SheriffSaleScraper - INFO - Total sheriff sale properties: 3
+2026-01-23 01:17:47 - ProbateScraper - INFO - Starting probate scrape (last 7 days)
+2026-01-23 01:17:47 - ProbateScraper - INFO - Setting up Firefox WebDriver...
+2026-01-23 01:18:20 - ProbateScraper - INFO - WebDriver initialized successfully
+2026-01-23 01:18:21 - ProbateScraper - INFO - Searching case type: EST
+2026-01-23 01:18:40 - ProbateScraper - INFO - Current URL after submit: https://probatesearch.franklincountyohio.gov/netdata/PBCTypeInx.ndm/input?string=E%20
+2026-01-23 01:18:40 - ProbateScraper - INFO - Got page source: 39079 chars
+2026-01-23 01:18:40 - ProbateScraper - INFO - Parsed 1 cases from results
+2026-01-23 01:18:40 - ProbateScraper - INFO - Found 1 EST cases
+2026-01-23 01:18:40 - ProbateScraper - INFO - Searching case type: REL
+2026-01-23 01:18:57 - ProbateScraper - INFO - Current URL after submit: https://probatesearch.franklincountyohio.gov/netdata/PBCTypeInx.ndm/input?string=E%20
+2026-01-23 01:18:57 - ProbateScraper - INFO - Got page source: 39079 chars
+2026-01-23 01:18:57 - ProbateScraper - INFO - Parsed 1 cases from results
+2026-01-23 01:18:57 - ProbateScraper - INFO - Found 1 REL cases
+2026-01-23 01:18:57 - ProbateScraper - INFO - Searching case type: SUM
+2026-01-23 01:19:14 - ProbateScraper - INFO - Current URL after submit: https://probatesearch.franklincountyohio.gov/netdata/PBCTypeInx.ndm/input?string=E%20
+2026-01-23 01:19:14 - ProbateScraper - INFO - Got page source: 39079 chars
+2026-01-23 01:19:14 - ProbateScraper - INFO - Parsed 1 cases from results
+2026-01-23 01:19:14 - ProbateScraper - INFO - Found 1 SUM cases
+2026-01-23 01:19:19 - ProbateScraper - INFO - Total probate cases found: 1
+2026-01-23 01:22:56 - MarketLoader - INFO - Loading market config: columbus_oh
+2026-01-23 09:51:52 - CallTracker - INFO - Logged call: CALL-20260123095151 - Interested
+2026-01-23 10:16:43 - SlybroadcastClient - WARNING - Slybroadcast credentials not configured
+2026-01-23 10:16:43 - SlybroadcastClient - WARNING - Slybroadcast credentials not configured
+2026-01-24 10:10:56 - VAManager - INFO - Added user: wshumbusho (va)
+2026-01-24 11:28:16 - VAManager - INFO - Added user: ortega (va)
+2026-01-24 12:47:31 - VAManager - INFO - Removed user: USER-670C5CE7
+2026-01-24 12:48:24 - VAManager - INFO - Added user: Ortega (va)
+2026-01-24 13:05:17 - VAAuth - INFO - Created user: ortegaw (va)
+2026-01-24 13:05:43 - VAManager - INFO - Synced user from User Management: ortegaw
+2026-01-24 13:16:29 - VAManager - INFO - Assigned 25 leads to VA-ORTEGAW-1305
+2026-01-24 13:21:20 - VAManager - INFO - Removed user: VA-ORTEGAW-1305
+2026-01-24 13:21:21 - VAManager - INFO - Synced user from User Management: ortegaw
+2026-01-24 13:21:34 - VAManager - INFO - Removed user: VA-ORTEGAW-1321
+2026-01-24 13:21:35 - VAManager - INFO - Synced user from User Management: ortegaw
+2026-01-24 13:21:51 - VAManager - INFO - Removed user: USER-8E68A5CF
+2026-01-24 13:22:01 - VAManager - INFO - Removed user: VA-ORTEGAW-1321
+2026-01-24 13:22:02 - VAManager - INFO - Synced user from User Management: ortegaw
+2026-01-24 13:22:06 - VAManager - INFO - Removed user: VA-ORTEGAW-1322
+2026-01-24 13:22:07 - VAManager - INFO - Synced user from User Management: ortegaw
+2026-01-24 13:23:13 - VAAuth - INFO - Created user: Naomi (va)
+2026-01-24 13:23:30 - VAManager - INFO - Synced user from User Management: naomi
+2026-01-24 14:33:10 - VAManager - INFO - Assigned 25 leads to VA-ORTEGAW-1322
+2026-01-28 11:21:21 - VAManager - INFO - Assigned 0 leads to VA-ORTEGAW-1322
+2026-01-28 14:36:15 - VAAuth - INFO - Created user: KEOMI (admin)
+2026-01-28 14:48:34 - VAManager - INFO - Synced user from User Management: keomi
+2026-01-28 14:54:22 - VAManager - INFO - Removed user: USER-20853B62
+2026-01-28 14:54:24 - VAManager - INFO - Removed user: VA-KISHA-1452
+2026-01-28 14:54:25 - VAManager - INFO - Synced user from User Management: kisha
+2026-01-28 14:54:27 - VAManager - INFO - Removed user: VA-ORTEGAW-1322
+2026-01-28 14:54:28 - VAManager - INFO - Synced user from User Management: ortegaw
+2026-01-28 14:54:36 - VAManager - INFO - Removed user: USER-35DF6ADD
+2026-01-28 14:54:40 - VAManager - INFO - Removed user: VA-NAOMI-1323
+2026-01-28 14:54:41 - VAManager - INFO - Synced user from User Management: naomi
+2026-01-28 14:54:47 - VAManager - INFO - Removed user: VA-KISHA-1454
+2026-01-28 14:54:48 - VAManager - INFO - Synced user from User Management: kisha
+2026-01-28 14:54:55 - VAManager - INFO - Removed user: VA-KEZZA-1452
+2026-01-28 14:54:56 - VAManager - INFO - Synced user from User Management: kezza
+2026-01-28 14:55:05 - VAManager - INFO - Removed user: VA-KEZZA-1454
+2026-01-28 14:55:05 - VAManager - INFO - Synced user from User Management: kezza
+2026-01-28 14:55:12 - VAManager - INFO - Removed user: VA-KISHA-1454
+2026-01-28 14:55:13 - VAManager - INFO - Synced user from User Management: kisha
+2026-01-28 14:55:21 - VAManager - INFO - Removed user: VA-KEZZA-1455
+2026-01-28 14:55:22 - VAManager - INFO - Synced user from User Management: kezza
+2026-01-28 14:55:38 - VAManager - INFO - Removed user: VA-KEZZA-1455
+2026-01-28 14:55:39 - VAManager - INFO - Synced user from User Management: kezza
+2026-01-28 14:55:53 - VAManager - INFO - Removed user: VA-KISHA-1455
+2026-01-28 14:55:54 - VAManager - INFO - Synced user from User Management: kisha
+2026-01-28 14:56:00 - VAManager - INFO - Removed user: VA-NAOMI-1454
+2026-01-28 14:56:01 - VAManager - INFO - Synced user from User Management: naomi
+2026-01-28 14:56:13 - VAManager - INFO - Removed user: VA-NAOMI-1456
+2026-01-28 14:56:14 - VAManager - INFO - Synced user from User Management: naomi
+2026-01-28 15:17:24 - VAAuth - WARNING - Username already exists: keomi
+2026-01-28 15:18:13 - VAAuth - INFO - Synced user to VA Management: monalisa
+2026-01-28 15:18:13 - VAAuth - INFO - Created user: monalisa (va)
+2026-01-28 15:58:11 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-01-28 15:58:11 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-01-29 19:49:37 - VAAuth - INFO - Password reset for ortegaw by admin
+2026-01-29 19:51:30 - VAAuth - INFO - Synced user to VA Management: brent 
+2026-01-29 19:51:30 - VAAuth - INFO - Created user: Brent  (va)
+2026-01-29 19:57:48 - VAAuth - INFO - User logged in: admin
+2026-01-29 20:01:08 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-01-30 23:49:58 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-01-31 17:15:38 - VAAuth - INFO - Synced user to VA Management: jana l 
+2026-01-31 17:15:39 - VAAuth - INFO - Created user: JANA L  (va)
+2026-01-31 17:31:34 - VAAuth - INFO - Synced user to VA Management: shantal
+2026-01-31 17:31:34 - VAAuth - INFO - Created user: Shantal (va)
+2026-02-03 16:45:57 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-03 16:46:15 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-03 16:46:20 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-05 18:40:53 - VAManager - INFO - Removed user: VA-ORTEGAW-1454
+2026-02-05 18:40:53 - VAManager - INFO - Synced user from User Management: ortegaw
+2026-02-05 18:40:57 - VAManager - INFO - Removed user: VA-KEZZA-1455
+2026-02-05 18:40:57 - VAManager - INFO - Synced user from User Management: kezza
+2026-02-05 18:40:59 - VAManager - INFO - Removed user: VA-KISHA-1455
+2026-02-05 18:40:59 - VAManager - INFO - Synced user from User Management: kisha
+2026-02-05 18:41:01 - VAManager - INFO - Removed user: VA-NAOMI-1456
+2026-02-05 18:41:01 - VAManager - INFO - Synced user from User Management: naomi
+2026-02-05 18:50:13 - VAManager - INFO - Removed user: VA-MONALISA-1518
+2026-02-05 18:50:13 - VAManager - INFO - Synced user from User Management: monalisa
+2026-02-05 18:50:15 - VAManager - INFO - Removed user: VA-BRENT -1951
+2026-02-05 18:50:15 - VAManager - INFO - Synced user from User Management: brent 
+2026-02-05 18:50:18 - VAManager - INFO - Removed user: VA-JANA L -1715
+2026-02-05 18:50:18 - VAManager - INFO - Synced user from User Management: jana l 
+2026-02-05 18:50:21 - VAManager - INFO - Removed user: VA-BRENT -1850
+2026-02-05 18:50:21 - VAManager - INFO - Synced user from User Management: brent 
+2026-02-05 18:50:24 - VAManager - INFO - Removed user: VA-BRENT -1850
+2026-02-05 18:50:24 - VAManager - INFO - Synced user from User Management: brent 
+2026-02-05 18:50:26 - VAManager - INFO - Removed user: VA-BRENT -1850
+2026-02-05 18:50:27 - VAManager - INFO - Synced user from User Management: brent 
+2026-02-05 18:50:28 - VAManager - INFO - Removed user: VA-MONALISA-1850
+2026-02-05 18:50:28 - VAManager - INFO - Synced user from User Management: monalisa
+2026-02-05 18:50:31 - VAManager - INFO - Removed user: VA-SHANTAL-1731
+2026-02-05 18:50:31 - VAManager - INFO - Synced user from User Management: shantal
+2026-02-05 18:50:32 - VAManager - INFO - Removed user: VA-ORTEGAW-1840
+2026-02-05 18:50:32 - VAManager - INFO - Synced user from User Management: ortegaw
+2026-02-05 18:50:33 - VAManager - INFO - Removed user: VA-KEZZA-1840
+2026-02-05 18:50:33 - VAManager - INFO - Synced user from User Management: kezza
+2026-02-05 18:50:34 - VAManager - INFO - Removed user: VA-KISHA-1840
+2026-02-05 18:50:34 - VAManager - INFO - Synced user from User Management: kisha
+2026-02-05 18:50:35 - VAManager - INFO - Removed user: VA-NAOMI-1841
+2026-02-05 18:50:35 - VAManager - INFO - Synced user from User Management: naomi
+2026-02-05 18:50:36 - VAManager - INFO - Removed user: VA-BRENT -1850
+2026-02-05 18:50:36 - VAManager - INFO - Synced user from User Management: brent 
+2026-02-05 18:50:37 - VAManager - INFO - Removed user: VA-MONALISA-1850
+2026-02-05 18:50:37 - VAManager - INFO - Synced user from User Management: monalisa
+2026-02-05 18:50:38 - VAManager - INFO - Removed user: VA-SHANTAL-1850
+2026-02-05 18:50:38 - VAManager - INFO - Synced user from User Management: shantal
+2026-02-05 18:50:39 - VAManager - INFO - Removed user: VA-ORTEGAW-1850
+2026-02-05 18:50:39 - VAManager - INFO - Synced user from User Management: ortegaw
+2026-02-05 18:50:40 - VAManager - INFO - Removed user: VA-KEZZA-1850
+2026-02-05 18:50:40 - VAManager - INFO - Synced user from User Management: kezza
+2026-02-05 18:50:41 - VAManager - INFO - Removed user: VA-KISHA-1850
+2026-02-05 18:50:41 - VAManager - INFO - Synced user from User Management: kisha
+2026-02-05 18:50:42 - VAManager - INFO - Removed user: VA-NAOMI-1850
+2026-02-05 18:50:42 - VAManager - INFO - Synced user from User Management: naomi
+2026-02-05 18:50:43 - VAManager - INFO - Removed user: VA-BRENT -1850
+2026-02-05 18:50:43 - VAManager - INFO - Synced user from User Management: brent 
+2026-02-05 18:50:44 - VAManager - INFO - Removed user: VA-MONALISA-1850
+2026-02-05 18:50:44 - VAManager - INFO - Synced user from User Management: monalisa
+2026-02-05 18:51:08 - VAManager - INFO - Removed user: VA-SHANTAL-1850
+2026-02-05 18:51:08 - VAManager - INFO - Synced user from User Management: shantal
+2026-02-05 18:55:58 - VAManager - INFO - Removed user: VA-ORTEGAW-1850
+2026-02-05 18:55:58 - VAManager - INFO - Synced user from User Management: ortegaw
+2026-02-05 18:56:00 - VAManager - INFO - Removed user: VA-KEZZA-1850
+2026-02-05 18:56:00 - VAManager - INFO - Synced user from User Management: kezza
+2026-02-05 18:56:01 - VAManager - INFO - Removed user: VA-KISHA-1850
+2026-02-05 18:56:01 - VAManager - INFO - Synced user from User Management: kisha
+2026-02-05 19:02:40 - VAAuth - INFO - Synced user to VA Management: jana
+2026-02-05 19:02:40 - VAAuth - INFO - Created user: jana (va)
+2026-02-05 19:03:56 - VAAuth - INFO - Synced user to VA Management: shantal
+2026-02-05 19:03:56 - VAAuth - INFO - Created user: Shantal (va)
+2026-02-05 19:07:06 - VAAuth - INFO - Synced user to VA Management: cyrus
+2026-02-05 19:07:06 - VAAuth - INFO - Created user: Cyrus (va)
+2026-02-05 19:23:18 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-05 19:23:32 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-05 19:23:52 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-06 16:18:21 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-06 16:30:42 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-06 16:39:14 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-06 16:41:15 - VAManager - INFO - Assigned 4 leads to VA-BRENT -1850
+2026-02-06 16:58:53 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-06 16:59:17 - VAManager - INFO - Assigned 6 leads to VA-BRENT -1850
+2026-02-06 17:37:22 - VAManager - INFO - Assigned 5 leads to VA-BRENT -1850
+2026-02-08 22:19:37 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-08 22:19:47 - VAManager - INFO - Assigned 50 leads to VA-JANA-1902
+2026-02-08 22:25:15 - VAManager - INFO - Assigned 16 leads to VA-SHANTAL-1903
+2026-02-08 22:28:45 - VAManager - INFO - Assigned 25 leads to VA-CYRUS-1907
+2026-02-08 22:55:21 - VAAuth - INFO - Password reset for cyrus by admin
+2026-02-08 23:01:31 - VAManager - INFO - Assigned 9 leads to VA-CYRUS-1907
+2026-02-08 23:16:40 - VAManager - INFO - Assigned 0 leads to VA-CYRUS-1907
+2026-02-09 18:34:36 - VAManager - INFO - Synced user from User Management: Shantal
+2026-02-09 18:34:36 - VAManager - INFO - Synced user from User Management: Cyrus
+2026-02-09 19:01:00 - VAManager - INFO - Assigned 50 leads to VA-JANA-1902
+2026-02-09 19:10:53 - VAManager - INFO - Assigned 50 leads to VA-JANA-1902
+2026-02-09 19:11:45 - VAManager - INFO - Assigned 50 leads to VA-SHANTAL-1903
+2026-02-09 19:20:08 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0

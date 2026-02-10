@@ -24,6 +24,8 @@ try:
         send_hired_email,
         send_rejected_email,
         send_interview_scheduled_email,
+        send_welcome_pas_email,
+        send_welcome_ids_email,
         is_sendgrid_available
     )
     EMAIL_FUNCTIONS_AVAILABLE = True
@@ -36,6 +38,8 @@ except ImportError:
             send_hired_email,
             send_rejected_email,
             send_interview_scheduled_email,
+            send_welcome_pas_email,
+            send_welcome_ids_email,
             is_sendgrid_available
         )
         EMAIL_FUNCTIONS_AVAILABLE = True
@@ -565,35 +569,84 @@ class VAApplications:
             conn.close()
             return False, str(e)
 
-    def hire_applicant(self, app_id: int) -> Tuple[bool, str]:
-        """Mark applicant as hired and send congratulations email."""
+    def hire_applicant(self, app_id: int, role: str = None, send_welcome: bool = True, username: str = "", password: str = "") -> Tuple[bool, str]:
+        """
+        Mark applicant as hired and send congratulations/welcome email.
+
+        Args:
+            app_id: Application ID
+            role: 'PAS' or 'IDS' - determines which welcome email to send
+            send_welcome: Whether to send the role-specific welcome email
+            username: Portal username to include in welcome email
+            password: Portal password to include in welcome email
+        """
         app = self.get_application(app_id)
         if not app:
             return False, "Application not found"
 
-        # Update status to hired
-        success, msg = self.update_status(app_id, 'hired', 'Applicant hired')
+        # Update status to hired with role info
+        notes = f'Applicant hired as {role}' if role else 'Applicant hired'
+        success, msg = self.update_status(app_id, 'hired', notes)
         if not success:
             return False, msg
 
-        # Send hired email
+        # Save role to database if provided
+        if role:
+            try:
+                conn = self._get_connection()
+                if conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        UPDATE va_applications
+                        SET notes = COALESCE(notes, '') || %s
+                        WHERE id = %s
+                    """, (f'\n[ROLE: {role}]', app_id))
+                    conn.commit()
+                    conn.close()
+            except Exception as e:
+                logger.warning(f"Could not save role to database: {e}")
+
+        # Send appropriate email based on role
         email_sent = False
+        email_type = "Congratulations"
         if is_email_available():
             try:
-                email_sent, email_msg = send_hired_email(
-                    applicant_name=app['full_name'],
-                    applicant_email=app['email']
-                )
-                if email_sent:
-                    logger.info(f"Hired email sent to {app['email']}")
+                if role == 'PAS' and send_welcome:
+                    email_sent, email_msg = send_welcome_pas_email(
+                        applicant_name=app['full_name'],
+                        applicant_email=app['email'],
+                        username=username,
+                        password=password
+                    )
+                    email_type = "PAS Welcome"
+                elif role == 'IDS' and send_welcome:
+                    email_sent, email_msg = send_welcome_ids_email(
+                        applicant_name=app['full_name'],
+                        applicant_email=app['email'],
+                        username=username,
+                        password=password
+                    )
+                    email_type = "IDS Welcome"
                 else:
-                    logger.warning(f"Failed to send hired email: {email_msg}")
-            except Exception as e:
-                logger.error(f"Error sending hired email: {e}")
+                    # Default hired email
+                    email_sent, email_msg = send_hired_email(
+                        applicant_name=app['full_name'],
+                        applicant_email=app['email']
+                    )
 
-        result_msg = f"Applicant {app['full_name']} marked as hired!"
+                if email_sent:
+                    logger.info(f"{email_type} email sent to {app['email']}")
+                else:
+                    logger.warning(f"Failed to send {email_type} email: {email_msg}")
+            except Exception as e:
+                logger.error(f"Error sending {email_type} email: {e}")
+
+        result_msg = f"Applicant {app['full_name']} marked as hired"
+        if role:
+            result_msg += f" as {role}"
+        result_msg += "!"
         if email_sent:
-            result_msg += " Congratulations email sent."
+            result_msg += f" {email_type} email sent."
         return True, result_msg
 
     def get_stats(self) -> Dict:

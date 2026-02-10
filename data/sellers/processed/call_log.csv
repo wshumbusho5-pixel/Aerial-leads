@@ -1,1 +1,2 @@
 call_id,lead_id,address,owner_name,phone,call_date,call_time,outcome,notes,follow_up_date,follow_up_notes,duration_seconds,created_at
+CALL-20260123095151,LEAD-20260123095151,38 pheasant ln,willy shumbusho,7175378893,2026-01-23,09:51:51,Interested,"Inbound lead from website: we gat this, you know that",,,0,2026-01-23T09:51:51.661831

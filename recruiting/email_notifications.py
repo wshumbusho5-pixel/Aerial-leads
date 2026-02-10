@@ -269,7 +269,7 @@ def send_hired_email(
     """
     Send email notification when applicant is hired.
     """
-    subject = "🎉 Welcome to the Team! - Lifeline Home Buyers"
+    subject = "Welcome to the Team - Lifeline Home Buyers"
 
     html_content = f"""
     <!DOCTYPE html>
@@ -287,10 +287,10 @@ def send_hired_email(
     <body>
         <div class="container">
             <div class="header">
-                <h1>🎉 Congratulations!</h1>
+                <h1>Congratulations!</h1>
             </div>
             <div class="content">
-                <h2>Hello {applicant_name}!</h2>
+                <h2>Hello {applicant_name},</h2>
                 <div class="celebration">
                     <h2 style="color: #065f46; margin: 0;">You're Hired!</h2>
                     <p style="color: #047857;">Welcome to the Lifeline Home Buyers team!</p>
@@ -359,7 +359,7 @@ def send_interview_scheduled_email(
     """
     Send email with interview scheduling link.
     """
-    subject = "📅 Schedule Your Interview - Lifeline Home Buyers"
+    subject = "Schedule Your Interview - Lifeline Home Buyers"
 
     html_content = f"""
     <!DOCTYPE html>
@@ -377,20 +377,258 @@ def send_interview_scheduled_email(
     <body>
         <div class="container">
             <div class="header">
-                <h1>🎉 Video Approved!</h1>
+                <h1>Video Approved!</h1>
                 <p>Time to Schedule Your Interview</p>
             </div>
             <div class="content">
-                <h2>Hello {applicant_name}!</h2>
+                <h2>Hello {applicant_name},</h2>
                 <p>Great news! Your video interview has been approved. The next step is a live interview with our team.</p>
                 <p style="text-align: center;">
-                    <a href="{interview_link}" class="button">📅 Schedule Your Interview</a>
+                    <a href="{interview_link}" class="button">Schedule Your Interview</a>
                 </p>
                 <p>Please select a time that works best for you. The interview will be approximately 15-20 minutes.</p>
                 <p>Best regards,<br><strong>The Lifeline Home Buyers Team</strong></p>
             </div>
             <div class="footer">
                 <p>Orteza Groups | Lifeline Home Buyers</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return send_email(applicant_email, subject, html_content)
+
+
+def send_welcome_pas_email(
+    applicant_name: str,
+    applicant_email: str,
+    start_date: str = "TBD",
+    portal_url: str = "",
+    username: str = "",
+    password: str = ""
+) -> Tuple[bool, str]:
+    """
+    Send welcome email to newly hired PAS (Property Acquisition Specialist) team member.
+    """
+    subject = "Welcome to PAS Team - Lifeline Home Buyers"
+
+    # Build credentials section if provided
+    credentials_html = ""
+    if username and password:
+        credentials_html = f"""
+                <div class="info-box" style="background: #d1fae5; border: 2px solid #10b981;">
+                    <h3 style="margin-top: 0;">Your VA Portal Credentials:</h3>
+                    <p><strong>Portal URL:</strong> {portal_url if portal_url else 'Will be provided'}</p>
+                    <p><strong>Username:</strong> {username}</p>
+                    <p><strong>Password:</strong> {password}</p>
+                    <p style="font-size: 12px; color: #666;">Please change your password after first login.</p>
+                </div>
+        """
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+            .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+            .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 12px; }}
+            .role-box {{ background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 20px; border-radius: 10px; margin: 20px 0; }}
+            .info-box {{ background: #e0f2fe; padding: 15px; border-radius: 8px; margin: 15px 0; }}
+            .metrics-table {{ width: 100%; border-collapse: collapse; margin: 15px 0; }}
+            .metrics-table th, .metrics-table td {{ border: 1px solid #ddd; padding: 10px; text-align: left; }}
+            .metrics-table th {{ background: #1e3a5f; color: white; }}
+            ul {{ padding-left: 20px; }}
+            li {{ margin: 8px 0; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Welcome to the PAS Team!</h1>
+                <p>Property Acquisition Specialist</p>
+            </div>
+            <div class="content">
+                <h2>Hello {applicant_name},</h2>
+
+                <div class="role-box">
+                    <h3 style="margin-top: 0;">Your Role: Property Acquisition Specialist (PAS)</h3>
+                    <p>You'll be the first point of contact with motivated sellers who may want to sell their properties.</p>
+                </div>
+
+                {credentials_html}
+
+                <h3>Your Responsibilities:</h3>
+                <ul>
+                    <li>Call motivated property owners (distressed sellers, probate, tax delinquent, etc.)</li>
+                    <li>Build rapport and identify their motivation to sell</li>
+                    <li>Gather property information</li>
+                    <li>Set appointments for property walkthroughs</li>
+                    <li>Follow up with leads who need more time</li>
+                </ul>
+
+                <h3>Daily Expectations:</h3>
+                <table class="metrics-table">
+                    <tr><th>Metric</th><th>Daily Target</th></tr>
+                    <tr><td>Calls Made</td><td>100+</td></tr>
+                    <tr><td>Conversations</td><td>20+</td></tr>
+                    <tr><td>Leads Qualified</td><td>5+</td></tr>
+                    <tr><td>Appointments Set</td><td>1-2</td></tr>
+                </table>
+
+                <div class="info-box">
+                    <h3 style="margin-top: 0;">Compensation:</h3>
+                    <p><strong>Base:</strong> UGX 500,000/month</p>
+                    <p><strong>Bonuses:</strong> Top 2 performers each month receive performance bonuses</p>
+                </div>
+
+                <h3>Work Schedule:</h3>
+                <p>9:00 AM - 5:00 PM Eastern Time (US), 5 days per week<br>
+                Sunday is compulsory off + one additional day of your choice (approved by company)</p>
+
+                <h3>Important Reminders:</h3>
+                <ul>
+                    <li>Always be professional and respectful on calls</li>
+                    <li>Never promise anything we can't deliver</li>
+                    <li>Log every call in the system - no exceptions</li>
+                    <li>If you're unsure about something, ask before acting</li>
+                </ul>
+
+                <p>We're excited to have you on board. Let's find some deals!</p>
+
+                <p>Best regards,<br>
+                <strong>The Lifeline Home Buyers Team</strong><br>
+                An Orteza Groups Company</p>
+            </div>
+            <div class="footer">
+                <p>Orteza Groups | Lifeline Home Buyers<br>
+                Columbus, Ohio</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return send_email(applicant_email, subject, html_content)
+
+
+def send_welcome_ids_email(
+    applicant_name: str,
+    applicant_email: str,
+    start_date: str = "TBD",
+    portal_url: str = "",
+    username: str = "",
+    password: str = ""
+) -> Tuple[bool, str]:
+    """
+    Send welcome email to newly hired IDS (Investor Development Specialist) team member.
+    """
+    subject = "Welcome to IDS Team - Lifeline Home Buyers"
+
+    # Build credentials section if provided
+    credentials_html = ""
+    if username and password:
+        credentials_html = f"""
+                <div class="info-box" style="background: #ede9fe; border: 2px solid #7c3aed;">
+                    <h3 style="margin-top: 0;">Your VA Portal Credentials:</h3>
+                    <p><strong>Portal URL:</strong> {portal_url if portal_url else 'Will be provided'}</p>
+                    <p><strong>Username:</strong> {username}</p>
+                    <p><strong>Password:</strong> {password}</p>
+                    <p style="font-size: 12px; color: #666;">Please change your password after first login.</p>
+                </div>
+        """
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+            .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+            .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 12px; }}
+            .role-box {{ background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; padding: 20px; border-radius: 10px; margin: 20px 0; }}
+            .info-box {{ background: #f3e8ff; padding: 15px; border-radius: 8px; margin: 15px 0; }}
+            .metrics-table {{ width: 100%; border-collapse: collapse; margin: 15px 0; }}
+            .metrics-table th, .metrics-table td {{ border: 1px solid #ddd; padding: 10px; text-align: left; }}
+            .metrics-table th {{ background: #7c3aed; color: white; }}
+            ul {{ padding-left: 20px; }}
+            li {{ margin: 8px 0; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Welcome to the IDS Team!</h1>
+                <p>Investor Development Specialist</p>
+            </div>
+            <div class="content">
+                <h2>Hello {applicant_name},</h2>
+
+                <div class="role-box">
+                    <h3 style="margin-top: 0;">Your Role: Investor Development Specialist (IDS)</h3>
+                    <p>You'll be building relationships with real estate investors who buy properties. When we find deals, we need buyers ready to purchase!</p>
+                </div>
+
+                {credentials_html}
+
+                <h3>Your Responsibilities:</h3>
+                <ul>
+                    <li>Call and qualify real estate investors</li>
+                    <li>Build our buyers list with serious, active investors</li>
+                    <li>Understand what types of properties they buy (location, price range, condition)</li>
+                    <li>Maintain relationships with existing buyers</li>
+                    <li>Match buyers to our available deals</li>
+                </ul>
+
+                <h3>Daily Expectations:</h3>
+                <table class="metrics-table">
+                    <tr><th>Metric</th><th>Daily Target</th></tr>
+                    <tr><td>Calls Made</td><td>80+</td></tr>
+                    <tr><td>Conversations</td><td>15+</td></tr>
+                    <tr><td>Investors Qualified</td><td>3+</td></tr>
+                    <tr><td>Buyers Added to List</td><td>2+</td></tr>
+                </table>
+
+                <div class="info-box">
+                    <h3 style="margin-top: 0;">What Makes a Qualified Buyer:</h3>
+                    <ul style="margin-bottom: 0;">
+                        <li>Has purchased investment property before (or has funds ready)</li>
+                        <li>Can close within 14-30 days</li>
+                        <li>Has specific buying criteria (area, price, property type)</li>
+                        <li>Is actively looking for deals</li>
+                    </ul>
+                </div>
+
+                <div class="info-box">
+                    <h3 style="margin-top: 0;">Compensation:</h3>
+                    <p><strong>Base:</strong> UGX 500,000/month</p>
+                    <p><strong>Bonuses:</strong> Top 2 performers each month receive performance bonuses</p>
+                </div>
+
+                <h3>Work Schedule:</h3>
+                <p>9:00 AM - 5:00 PM Eastern Time (US), 5 days per week<br>
+                Sunday is compulsory off + one additional day of your choice (approved by company)</p>
+
+                <h3>Important Reminders:</h3>
+                <ul>
+                    <li>Investors are busy people - be respectful of their time</li>
+                    <li>Get specific criteria: What areas? What price range? What condition?</li>
+                    <li>Always log qualified buyers in the system immediately</li>
+                    <li>Follow up is key - investors who aren't ready today may be ready next month</li>
+                </ul>
+
+                <p>We're excited to have you on board. Let's build a powerful buyers list!</p>
+
+                <p>Best regards,<br>
+                <strong>The Lifeline Home Buyers Team</strong><br>
+                An Orteza Groups Company</p>
+            </div>
+            <div class="footer">
+                <p>Orteza Groups | Lifeline Home Buyers<br>
+                Columbus, Ohio</p>
             </div>
         </div>
     </body>

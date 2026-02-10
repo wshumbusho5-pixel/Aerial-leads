@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lifeline Home Buyers - PAS Training Manual</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 50px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .cover-page {
+            text-align: center;
+            padding: 60px 0;
+            border-bottom: 3px solid #1a5f2a;
+            margin-bottom: 40px;
+        }
+        .cover-page h1 {
+            color: #1a5f2a;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .cover-page .subtitle {
+            font-size: 1.4em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .cover-page .role {
+            background: #1a5f2a;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 30px;
+            display: inline-block;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .cover-page .confidential {
+            margin-top: 40px;
+            color: #dc2626;
+            font-weight: bold;
+        }
+        h2 {
+            color: #1a5f2a;
+            font-size: 1.6em;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        h3 {
+            color: #2d7a3e;
+            font-size: 1.3em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        h4 {
+            color: #333;
+            font-size: 1.1em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        p { margin-bottom: 15px; }
+        .intro-box {
+            background: linear-gradient(135deg, #1a5f2a 0%, #2d7a3e 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        .intro-box h3 { color: white; margin-top: 0; }
+        .principle-box {
+            background: #f8f9fa;
+            border-left: 4px solid #1a5f2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .principle-box h4 {
+            color: #1a5f2a;
+            margin-top: 0;
+        }
+        .script-box {
+            background: #1a1a2e;
+            color: #eee;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+        .script-box .you { color: #4ade80; font-weight: bold; }
+        .script-box .them { color: #60a5fa; font-weight: bold; }
+        .script-box .note { color: #fbbf24; font-style: italic; }
+        .warning-box {
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .tip-box {
+            background: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #1a5f2a;
+            color: white;
+        }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        li { margin-bottom: 8px; }
+        hr {
+            border: none;
+            border-top: 2px solid #e0e0e0;
+            margin: 40px 0;
+        }
+        .golden-rule {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .quick-ref {
+            background: #1a5f2a;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        .quick-ref h3 { color: white; margin-top: 0; }
+        .quick-ref ul { list-style: none; margin-left: 0; }
+        .quick-ref li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 700px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+        .metric-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1a5f2a;
+        }
+        .metric-card .label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        @media print {
+            body { background: white; }
+            .container { box-shadow: none; padding: 20px; }
+            .page-break { page-break-before: always; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- COVER PAGE -->
+        <div class="cover-page">
+            <h1>LIFELINE HOME BUYERS</h1>
+            <p class="subtitle">An ORTEZA GROUPS Company</p>
+            <div class="role">PROPERTY ACQUISITION SPECIALIST (PAS)</div>
+            <p style="margin-top: 30px; font-size: 1.1em;">Training Manual<br>Acquisitions Team</p>
+            <p class="confidential">CONFIDENTIAL</p>
+        </div>
+
+        <!-- WELCOME -->
+        <div class="intro-box">
+            <h3>Welcome to the Team</h3>
+            <p>Lifeline Home Buyers is a real estate investment company specializing in off-market acquisitions. We buy distressed properties directly from motivated sellers across Ohio.</p>
+            <p>You are joining as a <strong>Property Acquisition Specialist (PAS)</strong>. This is a core role that directly drives revenue.</p>
+            <p><strong>Top performers grow into senior roles and management.</strong> The opportunity is here - what you do with it is up to you.</p>
+        </div>
+
+        <!-- PART 1: THE COMPANY -->
+        <h2>PART 1: THE COMPANY</h2>
+
+        <h3>What We Do</h3>
+        <p>We acquire distressed properties directly from motivated sellers. These are homeowners facing tax problems, inherited properties, code violations, or other situations that create urgency to sell. We provide fair cash offers and fast closings.</p>
+
+        <h3>Our Teams</h3>
+        <ul>
+            <li><strong>Leadership</strong> - Directors, Managers</li>
+            <li><strong>Acquisitions Team (PAS)</strong> - You. Finding motivated sellers.</li>
+            <li><strong>Investor Relations (IDS)</strong> - Finding buyers for our deals</li>
+            <li><strong>Data & Research</strong> - Lead generation and analysis</li>
+        </ul>
+
+        <h3>Our Technology: AERIAL</h3>
+        <p>AERIAL is our proprietary lead generation platform. It automatically scrapes public records, scores leads by motivation level (0-100), and routes them to your queue for outreach.</p>
+
+        <h3>Lead Scoring</h3>
+        <table>
+            <tr>
+                <th>Tier</th>
+                <th>Score</th>
+                <th>Priority</th>
+                <th>Action</th>
+            </tr>
+            <tr>
+                <td>TIER 1</td>
+                <td>80-100</td>
+                <td>Highest</td>
+                <td>Call immediately</td>
+            </tr>
+            <tr>
+                <td>TIER 2</td>
+                <td>60-79</td>
+                <td>High</td>
+                <td>Call within 24 hours</td>
+            </tr>
+            <tr>
+                <td>TIER 3</td>
+                <td>40-59</td>
+                <td>Medium</td>
+                <td>Call within 48 hours</td>
+            </tr>
+            <tr>
+                <td>TIER 4</td>
+                <td>0-39</td>
+                <td>Low</td>
+                <td>Call when higher tiers done</td>
+            </tr>
+        </table>
+
+        <hr>
+
+        <!-- PART 2: YOUR ROLE -->
+        <h2>PART 2: YOUR ROLE AS A PAS</h2>
+
+        <p>You are the first point of contact with property owners. Your job is to have conversations, identify motivated sellers, and set virtual appointments for our senior team.</p>
+
+        <h3>Your Three Lead Sources</h3>
+        <div class="two-col">
+            <div class="metric-card">
+                <div class="number">1</div>
+                <div class="label"><strong>INBOUND</strong><br>Website leads - HOT<br>Call within 5 minutes</div>
+            </div>
+            <div class="metric-card">
+                <div class="number">2</div>
+                <div class="label"><strong>CALLBACKS</strong><br>Returned voicemails - WARM<br>Call immediately</div>
+            </div>
+        </div>
+        <div class="metric-card" style="margin-top: 20px;">
+            <div class="number">3</div>
+            <div class="label"><strong>OUTBOUND</strong><br>AERIAL leads - Call proactively (Tier 1 & 2 first)</div>
+        </div>
+
+        <h3>Daily Targets</h3>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Minimum</th>
+                <th>Target</th>
+                <th>Excellent</th>
+            </tr>
+            <tr>
+                <td>Total Calls</td>
+                <td>80</td>
+                <td>100</td>
+                <td>120+</td>
+            </tr>
+            <tr>
+                <td>Conversations</td>
+                <td>15</td>
+                <td>20</td>
+                <td>30+</td>
+            </tr>
+            <tr>
+                <td>Qualified Leads</td>
+                <td>3</td>
+                <td>5</td>
+                <td>8+</td>
+            </tr>
+            <tr>
+                <td>Appointments Set</td>
+                <td>1</td>
+                <td>2-3</td>
+                <td>5+</td>
+            </tr>
+        </table>
+
+        <hr>
+
+        <!-- PART 3: THE PSYCHOLOGY -->
+        <h2>PART 3: THE PSYCHOLOGY OF COLD CALLING</h2>
+        <p><strong>Before you learn the scripts, you must understand WHY they work.</strong> Memorizing words without understanding the psychology will make you sound robotic. Understanding the psychology will make you sound natural.</p>
+
+        <div class="principle-box">
+            <h4>PRINCIPLE 1: THE 7-SECOND RULE</h4>
+            <p><strong>What it is:</strong> People decide if you're worth listening to within 7 seconds of answering.</p>
+            <p><strong>What this means:</strong> Your opening line is EVERYTHING. Sound like a typical salesperson = they hang up mentally.</p>
+            <p><strong>How to apply:</strong> Sound casual, not corporate. Create curiosity immediately. Never start with a pitch.</p>
+        </div>
+
+        <div class="principle-box">
+            <h4>PRINCIPLE 2: CURIOSITY IS AN ITCH</h4>
+            <p><strong>What it is:</strong> When there's a gap between what someone knows and what they WANT to know, they feel an uncomfortable itch that must be scratched.</p>
+            <p><strong>How to apply:</strong> Don't give information freely. Create gaps. Make them WANT to ask you questions.</p>
+            <ul>
+                <li><span class="highlight">BAD:</span> "I want to buy your house for cash"</li>
+                <li><span class="highlight">GOOD:</span> "Your property came up for a specific reason..."</li>
+            </ul>
+        </div>
+
+        <div class="principle-box">
+            <h4>PRINCIPLE 3: "HEY [NAME]" NOT "IS THIS [NAME]?"</h4>
+            <p><strong>What it is:</strong> Friends don't ask "Is this John?" - they just start talking. Asking signals you're a stranger.</p>
+            <table>
+                <tr>
+                    <th>DON'T SAY</th>
+                    <th>DO SAY</th>
+                </tr>
+                <tr>
+                    <td>"Hello, is this John Smith?"</td>
+                    <td>"Hey John, this is Mike with Lifeline..."</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="principle-box">
+            <h4>PRINCIPLE 4: QUESTIONS BEAT STATEMENTS</h4>
+            <p><strong>What it is:</strong> Statements trigger skepticism. Questions trigger imagination.</p>
+            <ul>
+                <li><span class="highlight">STATEMENT:</span> "We buy houses fast for cash" → They think "Yeah, sure"</li>
+                <li><span class="highlight">QUESTION:</span> "What would it be like if you could skip all the traditional stuff - no repairs, no showings, no waiting months?" → They imagine it</li>
+            </ul>
+        </div>
+
+        <div class="principle-box">
+            <h4>PRINCIPLE 5: NO-ORIENTED QUESTIONS</h4>
+            <p><strong>What it is:</strong> People find it easier to say "No" than "Yes." Use this to your advantage.</p>
+            <table>
+                <tr>
+                    <th>Format</th>
+                    <th>Example</th>
+                    <th>Why It Works</th>
+                </tr>
+                <tr>
+                    <td><strong>"Would it be crazy to..."</strong></td>
+                    <td>"Would it be crazy to explore your options?"</td>
+                    <td>"No, not crazy" = They're open</td>
+                </tr>
+                <tr>
+                    <td><strong>"I'm guessing you probably haven't..."</strong></td>
+                    <td>"I'm guessing you probably haven't thought about selling... or have you?"</td>
+                    <td>"No, actually I have" = They open up</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="principle-box">
+            <h4>PRINCIPLE 6: NEVER MENTION SHAME DIRECTLY</h4>
+            <p><strong>What it is:</strong> Tax delinquency, foreclosure, code violations carry shame. Calling it out = they shut down.</p>
+            <p><strong>DON'T:</strong> "I see you're behind on property taxes..."</p>
+            <p><strong>DO:</strong> "Your property came up in some research I was doing on properties that might need some attention..."</p>
+        </div>
+
+        <div class="principle-box">
+            <h4>PRINCIPLE 7: VOICE TONE MATTERS MORE THAN WORDS</h4>
+            <p>Research shows 38% of communication is tone, only 7% is words.</p>
+            <table>
+                <tr>
+                    <th>Tone</th>
+                    <th>When to Use</th>
+                    <th>How It Sounds</th>
+                </tr>
+                <tr>
+                    <td>Positive/Playful</td>
+                    <td>Opening the call</td>
+                    <td>Light, warm, casual</td>
+                </tr>
+                <tr>
+                    <td>Late Night FM DJ</td>
+                    <td>Handling objections</td>
+                    <td>Slow, calm, deep</td>
+                </tr>
+                <tr>
+                    <td>Direct/Assertive</td>
+                    <td>Important points</td>
+                    <td>Neutral, matter-of-fact</td>
+                </tr>
+            </table>
+            <p><strong>Rules:</strong> Slow down. Smile while talking. Pause after important points.</p>
+        </div>
+
+        <div class="principle-box">
+            <h4>PRINCIPLE 8: MIRROR THEIR WORDS</h4>
+            <p>Repeat the last 1-3 words as a question. They elaborate and feel heard.</p>
+            <div class="script-box">
+                <span class="them">THEM:</span> "I'm not really interested right now."<br>
+                <span class="you">YOU:</span> "Not interested right now?" <span class="note">(curious tone)</span><br>
+                <span class="them">THEM:</span> "Well, I mean... we've thought about it, but the timing isn't right..."
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- PART 4: THE SCRIPTS -->
+        <h2>PART 4: THE SCRIPTS</h2>
+
+        <h3>MAIN OPENER - THE CURIOSITY APPROACH</h3>
+        <p class="info-box"><strong>Use for:</strong> Outbound calls to AERIAL leads</p>
+
+        <div class="script-box">
+            <span class="them">THEM:</span> Hello?<br><br>
+            <span class="you">YOU:</span> Hey <span class="note">[FIRST NAME]</span>, this is <span class="note">[YOUR NAME]</span> with Lifeline - I hope I caught you at an okay time.<br><br>
+            <span class="note">[PAUSE - wait for response]</span><br><br>
+            <span class="you">YOU:</span> I've got kind of an unusual question for you...<br><br>
+            <span class="note">[PAUSE - let curiosity build]</span><br><br>
+            <span class="them">THEM:</span> Okay...?<br><br>
+            <span class="you">YOU:</span> So I was looking through some properties in <span class="note">[AREA]</span>, and yours came up for a specific reason - and honestly, I'm not even sure if I can help you, but I had to at least call and find out.<br><br>
+            <span class="them">THEM:</span> What do you mean? / Help with what?<br><br>
+            <span class="you">YOU:</span> I work with homeowners who are looking at their options - people who might be thinking about moving on from a property but don't want to deal with the traditional process.<br><br>
+            <span class="note">[PAUSE - let them respond]</span>
+        </div>
+
+        <h3>WHEN THEY ENGAGE: "What kind of help?"</h3>
+        <div class="script-box">
+            <span class="you">YOU:</span> So let me ask you something - and just think about this for a second...<br><br>
+            What would it be like for you if you could skip all the traditional stuff? No having to list it, no spending money on repairs, no strangers walking through your home judging everything, no waiting months wondering if it's actually going to close...<br><br>
+            <span class="note">[PAUSE - let them imagine]</span><br><br>
+            What would that kind of simplicity mean for your situation right now?
+        </div>
+
+        <h3>NO-ORIENTED QUESTIONS TO USE</h3>
+        <div class="tip-box">
+            <p><strong>Format 1:</strong> "Would it be crazy to at least explore what your options might be - even if you decide it's not for you?"</p>
+            <p><strong>Format 2:</strong> "I'm guessing you probably haven't thought about doing anything with the property... or have you?"</p>
+        </div>
+
+        <h3>SETTING THE APPOINTMENT (VIRTUAL FIRST)</h3>
+        <div class="script-box">
+            <span class="you">YOU:</span> Here's what I'm thinking - and you can totally say no -<br><br>
+            Would it be crazy if we hopped on a quick call to chat more about your situation? Just 10-15 minutes, no pressure, no commitment. I just want to learn a bit more and see if we might be able to help.<br><br>
+            What works better for you - sometime this week or next?<br><br>
+            <span class="them">THEM:</span> <span class="note">[Picks a timeframe]</span><br><br>
+            <span class="you">YOU:</span> Perfect. Morning or afternoon?<br><br>
+            <span class="them">THEM:</span> <span class="note">[Picks a time]</span><br><br>
+            <span class="you">YOU:</span> Great. What's the best email to send you a calendar invite? That way you'll have all the details and a reminder.
+        </div>
+        <div class="info-box">
+            <strong>Why Virtual First?</strong> Lower commitment = easier "yes." Qualifies the lead and builds rapport before anyone visits in person.
+        </div>
+
+        <hr>
+
+        <h3>INBOUND WEBSITE LEADS</h3>
+        <p class="warning-box"><strong>Call within 5 minutes.</strong> These are HOT. Speed matters.</p>
+        <div class="script-box">
+            <span class="you">YOU:</span> Hey <span class="note">[FIRST NAME]</span>, this is <span class="note">[YOUR NAME]</span> with Lifeline Home Buyers. I saw you submitted an inquiry about <span class="note">[ADDRESS]</span>.<br><br>
+            Tell me about your situation - what made you reach out?<br><br>
+            <span class="note">[Let them talk. Mirror. Label emotions. Take notes.]</span>
+        </div>
+
+        <h3>CALLBACK QUEUE</h3>
+        <div class="script-box">
+            <span class="you">YOU:</span> Hey <span class="note">[FIRST NAME]</span>, this is <span class="note">[YOUR NAME]</span> with Lifeline Home Buyers. Thanks for calling us back.<br><br>
+            You received a message about your property on <span class="note">[ADDRESS]</span>. I'm guessing you probably wouldn't have called back if you weren't at least a little curious... what's going on with the property?
+        </div>
+
+        <hr>
+
+        <!-- OBJECTION HANDLING -->
+        <h2>PART 5: HANDLING OBJECTIONS</h2>
+
+        <div class="warning-box">
+            <strong>THE RULE:</strong> Never argue. Never pressure. Validate first, then ask a question.
+        </div>
+
+        <h4>"I'm not interested."</h4>
+        <div class="script-box">
+            <span class="you">YOU:</span> Totally understand.<br><br>
+            <span class="note">[PAUSE]</span><br><br>
+            Can I ask you one quick thing? Just so I know whether to follow up later or take you off my list completely - is it more that you love the property and can't see yourself leaving? Or is it more about timing right now?
+        </div>
+
+        <h4>"How did you get my number?"</h4>
+        <div class="script-box">
+            <span class="you">YOU:</span> Fair question. Your property came up in some research I was doing on <span class="note">[AREA]</span> - I work with a local company called Lifeline Home Buyers, and we reach out to homeowners to see if we might be able to help. Most people tell me no, and that's completely fine. I just didn't want to miss someone who might actually be looking for a simpler way forward.
+        </div>
+
+        <h4>"How much will you offer?"</h4>
+        <div class="script-box">
+            <span class="you">YOU:</span> Fair question. I can't throw out a number without knowing more about the place - that wouldn't be fair to either of us. But what I can tell you is we're fair, we're fast, and we don't play games.<br><br>
+            Let me ask you - what would you need to get out of it for a sale to make sense?
+        </div>
+
+        <h4>"I've talked to investors before - they're all lowballers."</h4>
+        <div class="script-box">
+            <span class="you">YOU:</span> I hear that a lot, and honestly, some of them are.<br><br>
+            <span class="note">[PAUSE]</span><br><br>
+            Here's the difference with us - we're not looking to steal anything. We're looking for situations where cash and speed have real value. If you need top retail dollar, we're probably not the right fit. But if you need simple and certain... that's exactly what we do.
+        </div>
+
+        <h4>"Take me off your list."</h4>
+        <div class="script-box">
+            <span class="you">YOU:</span> Done. You're removed. Have a good day, <span class="note">[NAME]</span>.
+        </div>
+
+        <hr>
+
+        <!-- SPECIAL SITUATIONS -->
+        <h2>PART 6: SPECIAL SITUATIONS</h2>
+
+        <h3>1. GATEKEEPER (LLCs / Companies)</h3>
+        <div class="script-box">
+            <span class="them">THEM:</span> "[COMPANY NAME], how can I help you?"<br><br>
+            <span class="you">YOU:</span> Hey, this is <span class="note">[YOUR NAME]</span> - I had a quick question about the property on <span class="note">[ADDRESS]</span>. Who handles those decisions?<br><br>
+            <span class="them">THEM:</span> What's this regarding?<br><br>
+            <span class="you">YOU:</span> We've been looking at a few properties in that area and that one came up. Just wanted to have a quick conversation with whoever manages it - is that something you handle, or is there someone else I should talk to?
+        </div>
+
+        <h3>2. WRONG PERSON (But Might Know Owner)</h3>
+        <div class="script-box">
+            <span class="you">YOU:</span> Hey, I'm trying to reach <span class="note">[OWNER NAME]</span> about a property on <span class="note">[ADDRESS]</span>. I don't suppose you'd know how I could get in touch with them?<br><br>
+            <span class="note">[If they know the owner]</span><br><br>
+            <span class="you">YOU:</span> Oh perfect. Would you mind passing along my info? Just tell them <span class="note">[YOUR NAME]</span> from Lifeline called about the property - they can reach me at <span class="note">[NUMBER]</span>. I really appreciate you helping me out.
+        </div>
+
+        <h3>3. ANGRY ANSWER</h3>
+        <div class="script-box">
+            <span class="them">THEM:</span> "WHAT DO YOU WANT?!" <span class="note">[Hostile tone]</span><br><br>
+            <span class="you">YOU:</span> <span class="note">(Slow down. Late Night FM DJ voice. Stay completely calm.)</span><br><br>
+            Hey... sounds like I caught you at a rough time. I can call back - would another day work better?<br><br>
+            <span class="note">[If they stay hostile:]</span><br><br>
+            <span class="you">YOU:</span> No problem at all. I'll let you go. Take care.
+        </div>
+        <div class="warning-box">
+            <strong>NEVER argue. NEVER explain. NEVER match their energy.</strong> Your calm is your power.
+        </div>
+
+        <h3>4. CLOSING CONFIRMATION</h3>
+        <div class="script-box">
+            <span class="you">YOU:</span> Perfect. So just to confirm - we'll give you a call <span class="note">[DAY]</span> around <span class="note">[TIME]</span> to chat more about your situation. I'll send you a calendar invite so you have it.<br><br>
+            If anything changes on your end, just give us a call. Otherwise, we'll talk to you <span class="note">[DAY]</span>.<br><br>
+            Appreciate your time, <span class="note">[NAME]</span>.
+        </div>
+
+        <h3>5. SOFT EXIT (Dead Lead)</h3>
+        <div class="script-box">
+            <span class="you">YOU:</span> I hear you - totally understand.<br><br>
+            I'll take you off our list. If anything ever changes down the road, you've got our number.<br><br>
+            Take care, <span class="note">[NAME]</span>.
+        </div>
+
+        <hr>
+
+        <!-- PART 7: LOGGING & REPORTING -->
+        <h2>PART 7: LOGGING & REPORTING</h2>
+
+        <h3>Call Dispositions</h3>
+        <table>
+            <tr>
+                <th>Disposition</th>
+                <th>When to Use</th>
+            </tr>
+            <tr><td>No Answer</td><td>Rang, no pickup</td></tr>
+            <tr><td>Voicemail</td><td>Left message</td></tr>
+            <tr><td>Wrong Number</td><td>Disconnected or wrong person</td></tr>
+            <tr><td>Not Interested</td><td>Owner said no</td></tr>
+            <tr><td>Callback Requested</td><td>Wants callback at specific time</td></tr>
+            <tr><td>Qualified Lead</td><td>Interested - details collected</td></tr>
+            <tr><td>Appointment Set</td><td>Virtual meeting scheduled</td></tr>
+            <tr><td>DNC - Remove</td><td>Asked to be removed</td></tr>
+        </table>
+
+        <h3>Daily Report</h3>
+        <p>Submit at end of every shift.</p>
+        <div class="info-box">
+            <pre style="font-family: monospace; white-space: pre-wrap;">
+DAILY REPORT
+Date: [DATE]
+Name: [NAME]
+Position: PAS
+
+METRICS:
+- Total Calls: ___
+- Conversations: ___
+- Qualified Leads: ___
+- Appointments Set: ___
+
+APPOINTMENTS:
+1. [Address] | [Owner] | [Phone] | [Time]
+
+HOT LEADS:
+1. [Address] | [Owner] | [Phone] | [Notes]
+
+CALLBACKS:
+1. [Address] | [Owner] | [Time]
+
+ISSUES:
+[Anything needing attention]
+            </pre>
+        </div>
+
+        <hr>
+
+        <!-- QUICK REFERENCE -->
+        <h2>QUICK REFERENCE CARD</h2>
+        <p><em>Print this and keep at your desk</em></p>
+
+        <div class="quick-ref">
+            <h3>OPENER</h3>
+            <p>"Hey [NAME], this is [YOU] with Lifeline - I hope I caught you at an okay time. I've got kind of an unusual question for you..."</p>
+
+            <h3>KEY PHRASES</h3>
+            <ul>
+                <li>"Your property came up for a specific reason..."</li>
+                <li>"I'm honestly not sure if I can help you..."</li>
+                <li>"Most people tell me no, and that's completely fine..."</li>
+                <li>"It sounds like..." / "It seems like..."</li>
+            </ul>
+
+            <h3>NO-ORIENTED QUESTIONS</h3>
+            <ul>
+                <li>"Would it be crazy to at least explore your options?"</li>
+                <li>"I'm guessing you probably haven't thought about doing anything with the property... or have you?"</li>
+            </ul>
+
+            <h3>WHEN THEY OBJECT</h3>
+            <ul>
+                <li>1. Validate: "That makes sense" / "I hear you"</li>
+                <li>2. Pause: Let them feel heard</li>
+                <li>3. Ask: Mirror their words or ask a question</li>
+            </ul>
+
+            <h3>REMEMBER</h3>
+            <ul>
+                <li>Slow down - fast = salesy</li>
+                <li>Smile while talking</li>
+                <li>Pause after questions</li>
+                <li>One goal: Get the virtual appointment</li>
+                <li>Questions > Statements</li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <!-- STANDARDS -->
+        <h2>STANDARDS OF CONDUCT</h2>
+
+        <div class="two-col">
+            <div class="tip-box">
+                <h4 style="color: #16a34a; margin-top: 0;">ALWAYS</h4>
+                <ul>
+                    <li>Be professional and respectful</li>
+                    <li>Follow the psychology principles</li>
+                    <li>Log every call accurately</li>
+                    <li>Prioritize inbound and callbacks</li>
+                    <li>Submit daily report on time</li>
+                    <li>Ask questions if unclear</li>
+                </ul>
+            </div>
+            <div class="warning-box">
+                <h4 style="color: #dc2626; margin-top: 0;">NEVER</h4>
+                <ul>
+                    <li>Argue with an owner</li>
+                    <li>Make promises about price</li>
+                    <li>Give legal, tax, or financial advice</li>
+                    <li>Pressure anyone</li>
+                    <li>Call outside 9 AM - 7 PM Eastern</li>
+                    <li>Falsify logs or reports</li>
+                </ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- CLOSING -->
+        <div class="intro-box">
+            <h3>EXECUTE</h3>
+            <p>You have everything you need.</p>
+            <p>AERIAL finds the leads. AERIAL scores them. AERIAL routes them to you. Your job is to pick up the phone, follow the psychology, and identify sellers who are ready to move.</p>
+            <p>Every conversation is an opportunity. Every appointment set is potential revenue.</p>
+            <p><strong>Welcome to Lifeline Home Buyers. Now show us what you can do.</strong></p>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; color: #666;">
+            <em>The opportunity is here. Execute.</em>
+        </p>
+
+        <hr>
+        <p style="text-align: center; color: #999; font-size: 0.9em;">
+            LIFELINE HOME BUYERS | An ORTEZA GROUPS Company<br>
+            Property Acquisition Specialist (PAS) Training Manual<br>
+            CONFIDENTIAL - Do Not Distribute
+        </p>
+    </div>
+</body>
+</html>

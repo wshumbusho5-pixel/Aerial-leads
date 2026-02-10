@@ -1104,53 +1104,29 @@ def show_leads_page(leads_df, va_name):
     if search:
         filtered = filtered[filtered['address'].str.contains(search, case=False, na=False)]
 
-    # Display leads
-    st.markdown(f"**{len(filtered)}** leads to work")
+    # Separate leads into New (never worked) vs Worked (has call_count > 0)
+    if 'call_count' not in filtered.columns:
+        filtered['call_count'] = 0
+    filtered['call_count'] = pd.to_numeric(filtered['call_count'], errors='coerce').fillna(0).astype(int)
+    new_leads = filtered[filtered['call_count'] == 0]
+    worked_leads = filtered[filtered['call_count'] > 0]
+
+    # Display counts
+    st.markdown(f"**{len(filtered)}** total leads | 🆕 **{len(new_leads)}** new | 📋 **{len(worked_leads)}** worked")
     st.markdown("---")
 
-    # Group leads by assignment date
-    current_date_group = None
-    today = datetime.now().date()
-    yesterday = today - timedelta(days=1)
-
-    for idx, lead in filtered.head(50).iterrows():
-        # Get assignment date and show date separator
-        assigned_at = lead.get('assigned_at', None)
-        if assigned_at:
-            try:
-                if isinstance(assigned_at, str):
-                    lead_date = datetime.fromisoformat(assigned_at.replace('Z', '+00:00')).date()
-                else:
-                    lead_date = assigned_at.date() if hasattr(assigned_at, 'date') else None
-
-                if lead_date and lead_date != current_date_group:
-                    current_date_group = lead_date
-                    if lead_date == today:
-                        date_label = "📅 Today (New Leads)"
-                        bg_color = "#10b981"
-                    elif lead_date == yesterday:
-                        date_label = "📅 Yesterday"
-                        bg_color = "#3b82f6"
-                    else:
-                        date_label = f"📅 {lead_date.strftime('%B %d, %Y')}"
-                        bg_color = "#6b7280"
-
-                    st.markdown(f"""
-                        <div style="background: {bg_color}; padding: 8px 15px; border-radius: 5px; margin: 15px 0 10px 0;">
-                            <strong style="color: white;">{date_label}</strong>
-                        </div>
-                    """, unsafe_allow_html=True)
-            except:
-                pass  # If date parsing fails, just skip the separator
+    # Helper function to display a single lead
+    def display_lead(lead, lead_idx, section):
+        """Display a single lead card"""
         address = lead.get('address', lead.get('property_address', 'Unknown Address'))
         city = lead.get('city', '')
         owner = lead.get('owner_name', lead.get('owner', 'Unknown Owner'))
+        call_count = int(lead.get('call_count', 0) or 0)
 
         # Get ALL phone numbers with their types
-        all_phones = []  # List of (phone, type, priority) tuples
+        all_phones = []
         seen_phones = set()
 
-        # Phone column mappings - check both naming conventions
         phone_columns = [
             ('phone', 'phone_type'),
             ('phone_1', 'phone_1_type'),
@@ -1161,17 +1137,16 @@ def show_leads_page(leads_df, va_name):
             ('phone_6', 'phone_6_type'),
         ]
 
-        # Priority: Mobile=1 (direct to owner), Landline=2, VOIP=3, Unknown=4
         def get_phone_priority(phone_type):
             if not phone_type:
                 return 4
             phone_type_lower = str(phone_type).lower()
             if 'mobile' in phone_type_lower or 'wireless' in phone_type_lower or 'cell' in phone_type_lower:
-                return 1  # BEST - direct line to the decision maker
+                return 1
             elif 'land' in phone_type_lower:
-                return 2  # OK - anyone in house might answer
+                return 2
             elif 'voip' in phone_type_lower:
-                return 3  # LAST - often burner/inactive numbers
+                return 3
             return 4
 
         for phone_col, type_col in phone_columns:
@@ -1186,11 +1161,11 @@ def show_leads_page(leads_df, va_name):
                     priority = get_phone_priority(phone_type)
                     all_phones.append((clean_phone, str(phone_type), priority))
 
-        # Sort by priority (Mobile first, then Landline, then VOIP, then Unknown)
         all_phones.sort(key=lambda x: x[2])
 
-        with st.expander(f"**{address}** - {owner} ({len(all_phones)} phones)", expanded=False):
-            # Lead info
+        # Show call count badge for worked leads
+        call_badge = f" | 📞 {call_count} calls" if call_count > 0 else ""
+        with st.expander(f"**{address}** - {owner} ({len(all_phones)} phones{call_badge})", expanded=False):
             col_info, col_score = st.columns([3, 1])
             with col_info:
                 st.caption(f"Owner: {owner}")
@@ -1205,7 +1180,6 @@ def show_leads_page(leads_df, va_name):
                 else:
                     st.markdown("❄️ Cold Lead")
 
-            # Display ALL phone numbers with call buttons (sorted: Landline > Mobile > VOIP)
             if all_phones:
                 st.markdown("**📞 Phone Numbers** *(sorted by quality)*:")
                 calling_mode = st.session_state.get('calling_mode', 'phone')
@@ -1216,12 +1190,11 @@ def show_leads_page(leads_df, va_name):
                 for phone_idx, phone_data in enumerate(all_phones):
                     phone_num, phone_type, priority = phone_data
 
-                    # Type indicator with color
-                    if priority == 1:  # Mobile - BEST
+                    if priority == 1:
                         type_badge = "📱 Mobile"
-                    elif priority == 2:  # Landline
+                    elif priority == 2:
                         type_badge = "🏠 Landline"
-                    elif priority == 3:  # VOIP
+                    elif priority == 3:
                         type_badge = "🌐 VOIP"
                     else:
                         type_badge = f"❓ {phone_type}"
@@ -1243,7 +1216,7 @@ def show_leads_page(leads_df, va_name):
                             dialer_url = f"{public_site_url}/dialer?{params}"
                             st.link_button("📞 Call", dialer_url, use_container_width=True)
                         elif calling_mode == 'phone' and va_phone and TWILIO_AVAILABLE:
-                            if st.button("📱 Call", key=f"phone_call_{idx}_{phone_idx}", use_container_width=True):
+                            if st.button("📱 Call", key=f"phone_call_{section}_{lead_idx}_{phone_idx}", use_container_width=True):
                                 with st.spinner("Calling..."):
                                     success, message, call_sid = initiate_two_leg_call(
                                         va_phone=va_phone,
@@ -1256,20 +1229,45 @@ def show_leads_page(leads_df, va_name):
                                     else:
                                         st.error(message)
                         else:
-                            st.button("📞 Call", key=f"no_call_{idx}_{phone_idx}", disabled=True, use_container_width=True)
+                            st.button("📞 Call", key=f"no_call_{section}_{lead_idx}_{phone_idx}", disabled=True, use_container_width=True)
 
                     with phone_col3:
-                        if st.button("📝 Log", key=f"log_{idx}_{phone_idx}", use_container_width=True):
+                        if st.button("📝 Log", key=f"log_{section}_{lead_idx}_{phone_idx}", use_container_width=True):
                             st.session_state.last_called_lead = {
                                 'address': address,
                                 'phone': phone_num,
                                 'owner_name': owner,
+                                'lead_id': lead.get('id', None),
                                 'called_at': datetime.now().isoformat()
                             }
                             st.session_state.va_page = "📞 Call Tracker"
                             st.rerun()
             else:
                 st.warning("No phone numbers available for this lead")
+
+    # Display NEW LEADS section (never worked on)
+    if not new_leads.empty:
+        st.markdown("""
+            <div style="background: #10b981; padding: 10px 15px; border-radius: 5px; margin: 10px 0;">
+                <strong style="color: white;">🆕 NEW LEADS</strong>
+                <span style="color: white; opacity: 0.9;"> - Never contacted yet</span>
+            </div>
+        """, unsafe_allow_html=True)
+        for idx, lead in new_leads.head(50).iterrows():
+            display_lead(lead, idx, 'new')
+    else:
+        st.info("No new leads - all leads have been worked on!")
+
+    # Display WORKED LEADS section (already contacted)
+    if not worked_leads.empty:
+        st.markdown("""
+            <div style="background: #6b7280; padding: 10px 15px; border-radius: 5px; margin: 20px 0 10px 0;">
+                <strong style="color: white;">📋 WORKED LEADS</strong>
+                <span style="color: white; opacity: 0.9;"> - Already contacted</span>
+            </div>
+        """, unsafe_allow_html=True)
+        for idx, lead in worked_leads.head(50).iterrows():
+            display_lead(lead, idx, 'worked')
 
 def show_call_tracker(leads_df, va_name):
     st.markdown("## 📞 Call Tracker")
@@ -1388,6 +1386,14 @@ def show_call_tracker(leads_df, va_name):
                 save_appointment(appointment_data, va_name)
 
             save_call(call_data)
+
+            # Also update call_count in lead_assignments table
+            lead_id = st.session_state.get('last_called_lead', {}).get('lead_id')
+            if lead_id and LEAD_ASSIGNMENTS_AVAILABLE:
+                try:
+                    log_call(lead_id, result, notes, callback)
+                except Exception as e:
+                    pass  # Don't fail if this update fails
 
             # Clear pre-filled data
             st.session_state.last_called_lead = {}

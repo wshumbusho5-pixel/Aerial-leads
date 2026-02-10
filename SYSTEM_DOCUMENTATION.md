@@ -225,6 +225,95 @@ python3 -m streamlit run dashboard.py --server.port 8501
 
 ---
 
+## 11. VA RECRUITING SYSTEM (spectacular-reverence)
+
+**Location:** `recruiting/application_page.py`
+**URL:** https://spectacular-reverence-production.up.railway.app
+
+### Purpose
+Public job application portal for hiring Virtual Assistants from multiple countries.
+
+### How It Works
+
+```
+1. Applicant visits careers page
+2. Selects their country → sees salary in local currency
+3. Fills out application form
+4. Submits → saved to PostgreSQL
+5. Confirmation email sent via SendGrid
+6. Admin reviews in Recording Page
+7. Admin assigns cold call script
+8. Applicant records video practicing the script
+9. Admin reviews video
+10. If approved → personal interview
+11. Decision: hired or rejected
+```
+
+### Supported Countries & Salaries
+
+| Country | Currency | Monthly Salary |
+|---------|----------|----------------|
+| Rwanda | RWF | 210,000 |
+| Uganda | UGX | 500,000 |
+| Kenya | KES | 20,000 |
+| Tanzania | TZS | 375,000 |
+| Burundi | BIF | 450,000 |
+| Philippines | PHP | 10,000 |
+| India | INR | 12,500 |
+| Pakistan | PKR | 42,000 |
+| Bangladesh | BDT | 18,000 |
+| Nepal | NPR | 20,000 |
+| Sri Lanka | LKR | 48,000 |
+| South Africa | ZAR | 2,800 |
+| Ghana | GHS | 2,400 |
+| Nigeria | NGN | 230,000 |
+
+### Application Statuses
+
+| Status | Meaning |
+|--------|---------|
+| `applied` | Just submitted |
+| `reviewing` | Under review |
+| `script_sent` | Cold call script assigned |
+| `video_submitted` | Video received |
+| `video_approved` | Ready for interview |
+| `interview` | Interview scheduled |
+| `hired` | Accepted |
+| `rejected` | Not accepted |
+| `withdrawn` | Applicant withdrew |
+
+### Cold Call Scripts
+
+1. **Tax Delinquent** - For calling property owners behind on taxes
+2. **Probate** - For calling inherited property owners
+3. **Tired Landlord** - For calling overwhelmed landlords
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `recruiting/application_page.py` | Public application form |
+| `recruiting/va_applications.py` | Backend logic & database |
+| `recruiting/email_notifications.py` | SendGrid email functions |
+| `recruiting/recording_page.py` | Admin review interface |
+| `va_app_runner.py` | Railway entry point |
+
+### Environment Variables (spectacular-reverence)
+
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | PostgreSQL connection (use `${{Postgres.DATABASE_URL}}`) |
+| `SENDGRID_API_KEY` | SendGrid API key |
+| `SENDGRID_FROM_EMAIL` | Sender email (admin@areliga.com) |
+| `SENDGRID_FROM_NAME` | Sender name (Orteza Groups) |
+
+### Start Command
+```
+python va_app_runner.py
+```
+
+---
+
 ## Summary
 
 This is a **full wholesaling operation system**:

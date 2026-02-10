@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lifeline Home Buyers - IDS Training Manual v2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* Cover Page */
+        .cover {
+            background: linear-gradient(135deg, #1a5276 0%, #2980b9 100%);
+            color: white;
+            padding: 80px 40px;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .cover h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .cover .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+
+        .cover .role-title {
+            font-size: 2.5em;
+            font-weight: 600;
+            margin: 30px 0;
+            padding: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            display: inline-block;
+        }
+
+        .cover .manual-type {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+
+        .cover .confidential {
+            margin-top: 60px;
+            padding: 15px 30px;
+            background: rgba(255,255,255,0.1);
+            display: inline-block;
+            font-weight: 600;
+            letter-spacing: 3px;
+        }
+
+        .cover .version {
+            margin-top: 20px;
+            opacity: 0.7;
+        }
+
+        /* Section styling */
+        .section {
+            padding: 50px 40px;
+            border-bottom: 1px solid #eee;
+            page-break-inside: avoid;
+        }
+
+        .section:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .section-number {
+            font-size: 0.9em;
+            color: #2980b9;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .section h2 {
+            font-size: 2em;
+            color: #1a5276;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #2980b9;
+        }
+
+        .section h3 {
+            font-size: 1.4em;
+            color: #2980b9;
+            margin: 30px 0 15px 0;
+        }
+
+        .section h4 {
+            font-size: 1.1em;
+            color: #1a5276;
+            margin: 20px 0 10px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 25px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* Welcome section */
+        .welcome-box {
+            background: linear-gradient(135deg, #e8f4f8 0%, #d4e9f7 100%);
+            padding: 30px;
+            border-radius: 10px;
+            border-left: 5px solid #2980b9;
+            margin: 20px 0;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background: #1a5276;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tr:hover {
+            background: #e8f4f8;
+        }
+
+        /* Highlight boxes */
+        .highlight-box {
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .highlight-box.blue {
+            background: #e8f4f8;
+            border-left: 4px solid #2980b9;
+        }
+
+        .highlight-box.green {
+            background: #e8f8e8;
+            border-left: 4px solid #27ae60;
+        }
+
+        .highlight-box.orange {
+            background: #fef5e7;
+            border-left: 4px solid #f39c12;
+        }
+
+        .highlight-box.red {
+            background: #fdeaea;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .highlight-box.purple {
+            background: #f3e8f8;
+            border-left: 4px solid #9b59b6;
+        }
+
+        /* Psychology principles */
+        .principle-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .principle-card h4 {
+            color: #2980b9;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .principle-number {
+            background: #2980b9;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        /* Script boxes */
+        .script-box {
+            background: #1a1a2e;
+            color: #eee;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .script-box .label {
+            color: #f39c12;
+            font-weight: 600;
+        }
+
+        .script-box .you {
+            color: #3498db;
+        }
+
+        .script-box .them {
+            color: #e74c3c;
+        }
+
+        .script-box .direction {
+            color: #888;
+            font-style: italic;
+        }
+
+        .script-box .psychology-note {
+            background: rgba(52, 152, 219, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.9em;
+            color: #87ceeb;
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #2980b9 0%, #1a5276 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .stat-card .label {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        /* Priority badges */
+        .priority-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .priority-a {
+            background: #27ae60;
+            color: white;
+        }
+
+        .priority-b {
+            background: #f39c12;
+            color: white;
+        }
+
+        .priority-c {
+            background: #95a5a6;
+            color: white;
+        }
+
+        /* Quick reference card */
+        .quick-ref {
+            background: linear-gradient(135deg, #1a5276 0%, #2980b9 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .quick-ref h3 {
+            color: white;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-ref-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .quick-ref-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .quick-ref-item h4 {
+            color: #f39c12;
+            margin-bottom: 8px;
+        }
+
+        /* Objection table */
+        .objection-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            padding: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .objection-row .objection {
+            background: #fdeaea;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: 600;
+            color: #e74c3c;
+        }
+
+        .objection-row .response {
+            background: #e8f8e8;
+            padding: 15px;
+            border-radius: 5px;
+            color: #27ae60;
+        }
+
+        /* Checklist */
+        .checklist {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .checklist li {
+            padding: 10px 0 10px 35px;
+            position: relative;
+            border-bottom: 1px solid #eee;
+        }
+
+        .checklist li:before {
+            content: "[ ]";
+            position: absolute;
+            left: 0;
+            color: #2980b9;
+            font-weight: 600;
+        }
+
+        /* Warning box */
+        .warning {
+            background: #fdeaea;
+            border: 2px solid #e74c3c;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .warning:before {
+            content: "WARNING";
+            display: block;
+            color: #e74c3c;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        /* Pro tip */
+        .pro-tip {
+            background: #e8f8e8;
+            border-left: 4px solid #27ae60;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .pro-tip:before {
+            content: "PRO TIP:";
+            display: block;
+            color: #27ae60;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        /* Print styles */
+        @media print {
+            .cover {
+                min-height: auto;
+                padding: 60px 40px;
+            }
+
+            .section {
+                page-break-inside: avoid;
+            }
+
+            .script-box {
+                background: #f5f5f5 !important;
+                color: #333 !important;
+                border: 1px solid #ddd;
+            }
+
+            .script-box .you { color: #2980b9 !important; }
+            .script-box .them { color: #e74c3c !important; }
+            .script-box .direction { color: #666 !important; }
+        }
+
+        /* Final section */
+        .execute-section {
+            background: linear-gradient(135deg, #1a5276 0%, #2980b9 100%);
+            color: white;
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .execute-section h2 {
+            color: white;
+            border-bottom: none;
+            font-size: 3em;
+        }
+
+        .execute-section p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Cover Page -->
+        <div class="cover">
+            <h1>LIFELINE HOME BUYERS</h1>
+            <div class="subtitle">An ORTEZA GROUPS Company</div>
+
+            <div class="role-title">INVESTOR DEVELOPMENT<br>SPECIALIST (IDS)</div>
+
+            <div class="manual-type">Training Manual</div>
+            <div>Investor Relations Team</div>
+
+            <div class="confidential">CONFIDENTIAL</div>
+            <div class="version">Version 2.0 - Psychology-Enhanced Edition</div>
+        </div>
+
+        <!-- Welcome Section -->
+        <div class="section">
+            <div class="section-number">INTRODUCTION</div>
+            <h2>Welcome to Lifeline Home Buyers</h2>
+
+            <div class="welcome-box">
+                <p><strong>Welcome to the team.</strong></p>
+                <p>Lifeline Home Buyers is a real estate investment company specializing in off-market acquisitions. We buy distressed properties directly from motivated sellers across Ohio.</p>
+                <p>To close deals, we need investors ready to buy. <strong>Your job is to build and manage our buyer network</strong> - one of the most valuable assets of this company.</p>
+                <p>You are joining as an <strong>Investor Development Specialist (IDS)</strong>. This is a core role that directly drives revenue.</p>
+            </div>
+
+            <p>We invest in people who deliver. Top performers grow into senior roles and management. The opportunity is here - what you do with it is up to you.</p>
+
+            <p>This manual contains everything you need to succeed. Study it. Follow it. Execute.</p>
+        </div>
+
+        <!-- Section 1: The Company -->
+        <div class="section">
+            <div class="section-number">SECTION 1</div>
+            <h2>The Company</h2>
+
+            <h3>What We Do</h3>
+            <p>We acquire distressed properties from motivated sellers. Once we have a property under contract, we either renovate and sell it, hold it as a rental, or assign the contract to another investor. <strong>This is where buyers come in.</strong></p>
+
+            <h3>Our Teams</h3>
+            <ul>
+                <li><strong>Leadership</strong> - Directors, Managers</li>
+                <li><strong>Acquisitions Team</strong> - Property Acquisition Specialists (PAS)</li>
+                <li><strong>Investor Relations Team</strong> - Investor Development Specialists (IDS) - <em>That's you</em></li>
+                <li><strong>Data & Research Team</strong></li>
+                <li><strong>HR & People Operations</strong></li>
+            </ul>
+
+            <h3>Our Technology</h3>
+            <p><strong>AERIAL</strong> is our proprietary lead generation platform. It identifies motivated sellers and routes them to our Acquisitions Team. Your job is to ensure we have buyers ready when deals come through.</p>
+
+            <h3>Growth</h3>
+            <p>Top performers grow into senior roles and management. We promote from within.</p>
+        </div>
+
+        <!-- Section 2: Why Buyers Matter -->
+        <div class="section">
+            <div class="section-number">SECTION 2</div>
+            <h2>Why Buyers Matter</h2>
+
+            <div class="highlight-box red">
+                <strong>The Business Reality:</strong> Without buyers, deals do not close. Your role directly affects revenue. Every serious buyer you add to our network is another potential deal closed.
+            </div>
+
+            <h3>The Buyer Profile</h3>
+            <p>We work with:</p>
+            <ul>
+                <li><strong>Flippers</strong> - Buy, renovate, sell for profit</li>
+                <li><strong>Landlords</strong> - Buy and hold for rental income</li>
+                <li><strong>BRRRR Investors</strong> - Buy, Rehab, Rent, Refinance, Repeat</li>
+                <li><strong>Wholesalers</strong> - May assign to their own buyers</li>
+                <li><strong>Funds and Institutions</strong> - Buy at volume</li>
+            </ul>
+
+            <h3>The Best Buyers</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number">Active</div>
+                    <div class="label">Buying regularly</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">Funded</div>
+                    <div class="label">Cash or hard money ready</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">Fast</div>
+                    <div class="label">Can close quickly</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">Clear</div>
+                    <div class="label">Know exactly what they want</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Your Role -->
+        <div class="section">
+            <div class="section-number">SECTION 3</div>
+            <h2>Your Role as an IDS</h2>
+
+            <p><strong>Position: Investor Development Specialist (IDS)</strong></p>
+            <p>Your job is to find investors who buy properties, understand their criteria, and add them to our buyer database. When we have deals, we send them to buyers who match.</p>
+
+            <h3>What Success Looks Like</h3>
+            <ul>
+                <li>A constantly growing list of qualified buyers</li>
+                <li>Accurate information on what each buyer wants</li>
+                <li>Buyers who respond when we send deals</li>
+                <li>Relationships that turn into repeat transactions</li>
+            </ul>
+
+            <h3>Daily Expectations</h3>
+            <table>
+                <tr>
+                    <th>Expectation</th>
+                    <th>Standard</th>
+                </tr>
+                <tr>
+                    <td>Daily outreach emails</td>
+                    <td>50 minimum</td>
+                </tr>
+                <tr>
+                    <td>Daily outreach calls</td>
+                    <td>40 minimum</td>
+                </tr>
+                <tr>
+                    <td>New buyers added</td>
+                    <td>3-5 per day</td>
+                </tr>
+                <tr>
+                    <td>Data accuracy</td>
+                    <td>100%</td>
+                </tr>
+                <tr>
+                    <td>Daily report</td>
+                    <td>Submitted on time</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Section 4: Where to Find Buyers -->
+        <div class="section">
+            <div class="section-number">SECTION 4</div>
+            <h2>Where to Find Buyers</h2>
+
+            <h3>Primary Sources</h3>
+
+            <div class="principle-card">
+                <h4><span class="principle-number">1</span> BiggerPockets</h4>
+                <p>The largest real estate investing community online.</p>
+                <ul>
+                    <li>Search for members investing in Columbus, Ohio</li>
+                    <li>Look at forum posts about Ohio / Midwest investing</li>
+                    <li>Find people asking about buying properties</li>
+                </ul>
+            </div>
+
+            <div class="principle-card">
+                <h4><span class="principle-number">2</span> LinkedIn</h4>
+                <p>Many investors have professional profiles.</p>
+                <ul>
+                    <li>Search: "Real Estate Investor Columbus Ohio"</li>
+                    <li>Search: "House Flipper Ohio"</li>
+                    <li>Search: "Rental Property Investor Ohio"</li>
+                </ul>
+            </div>
+
+            <div class="principle-card">
+                <h4><span class="principle-number">3</span> Facebook Groups</h4>
+                <p>Active real estate investing communities.</p>
+                <ul>
+                    <li>Columbus Real Estate Investors</li>
+                    <li>Ohio Wholesaling and Flipping</li>
+                    <li>Central Ohio REI</li>
+                </ul>
+            </div>
+
+            <div class="principle-card">
+                <h4><span class="principle-number">4</span> Public Records</h4>
+                <p>Multi-property owners from our database - proven buyers.</p>
+            </div>
+        </div>
+
+        <!-- Section 5: Psychology Principles -->
+        <div class="section">
+            <div class="section-number">SECTION 5</div>
+            <h2>Psychology Principles for IDS</h2>
+
+            <p>Investors are different from sellers. They're business-minded, time-conscious, and looking for opportunity. But psychology still matters.</p>
+
+            <div class="principle-card">
+                <h4><span class="principle-number">1</span> Lead with Value</h4>
+                <p>Investors get pitched constantly. Open with what you can offer them, not what you want from them.</p>
+                <p class="highlight-box green"><strong>Example:</strong> "We source off-market distressed properties in Columbus" tells them immediately what's in it for them.</p>
+            </div>
+
+            <div class="principle-card">
+                <h4><span class="principle-number">2</span> Be Direct</h4>
+                <p>Investors respect directness. Unlike sellers who need emotional connection, investors want you to get to the point.</p>
+                <p class="highlight-box blue"><strong>Example:</strong> "Are you actively buying investment properties in Ohio?" - Clean, simple, respectful of their time.</p>
+            </div>
+
+            <div class="principle-card">
+                <h4><span class="principle-number">3</span> Speak Their Language</h4>
+                <p>Use investor terminology: ARV, cash flow, cap rate, BRRRR, buy box. It signals you're legitimate.</p>
+            </div>
+
+            <div class="principle-card">
+                <h4><span class="principle-number">4</span> No-Oriented Questions</h4>
+                <p>People find it easier to say "no" than "yes." Frame questions where "no" works in your favor.</p>
+                <ul>
+                    <li><strong>"Would it be crazy to..."</strong> - "No" means they'll do it</li>
+                    <li><strong>"Would you be opposed to..."</strong> - "No" means yes</li>
+                    <li><strong>"Is there any reason you wouldn't..."</strong> - "No" means proceed</li>
+                </ul>
+            </div>
+
+            <div class="principle-card">
+                <h4><span class="principle-number">5</span> Reciprocity</h4>
+                <p>Give before you ask. Offer value first (market insights, deal examples) before asking for their criteria.</p>
+            </div>
+
+            <div class="principle-card">
+                <h4><span class="principle-number">6</span> Social Proof</h4>
+                <p>Mention you work with other active investors in the area. Nobody wants to miss what others are getting.</p>
+            </div>
+        </div>
+
+        <!-- Section 6: Daily Workflow -->
+        <div class="section">
+            <div class="section-number">SECTION 6</div>
+            <h2>Daily Workflow</h2>
+
+            <table>
+                <tr>
+                    <th>Time</th>
+                    <th>Activity</th>
+                    <th>Target</th>
+                </tr>
+                <tr>
+                    <td>Hour 1</td>
+                    <td>Research - identify new investors</td>
+                    <td>20 contacts found</td>
+                </tr>
+                <tr>
+                    <td>Hours 2-3</td>
+                    <td>Email outreach</td>
+                    <td>50 emails sent</td>
+                </tr>
+                <tr>
+                    <td>Hour 4</td>
+                    <td>Follow up on responses</td>
+                    <td>All replies handled</td>
+                </tr>
+                <tr>
+                    <td>Hour 5</td>
+                    <td>Update database</td>
+                    <td>All contacts logged</td>
+                </tr>
+                <tr>
+                    <td>Hours 6-7</td>
+                    <td>Phone outreach</td>
+                    <td>40 calls made</td>
+                </tr>
+                <tr>
+                    <td>Hour 8</td>
+                    <td>Final follow-ups, submit report</td>
+                    <td>Report delivered</td>
+                </tr>
+            </table>
+
+            <h3>Daily Targets</h3>
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>Minimum</th>
+                    <th>Target</th>
+                    <th>Excellent</th>
+                </tr>
+                <tr>
+                    <td>Emails Sent</td>
+                    <td>40</td>
+                    <td>50</td>
+                    <td>60+</td>
+                </tr>
+                <tr>
+                    <td>Calls Made</td>
+                    <td>30</td>
+                    <td>40</td>
+                    <td>50+</td>
+                </tr>
+                <tr>
+                    <td>Responses</td>
+                    <td>3</td>
+                    <td>5-10</td>
+                    <td>15+</td>
+                </tr>
+                <tr>
+                    <td>New Buyers Added</td>
+                    <td>2</td>
+                    <td>3-5</td>
+                    <td>7+</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Section 7: Email Outreach -->
+        <div class="section">
+            <div class="section-number">SECTION 7</div>
+            <h2>Email Outreach</h2>
+
+            <div class="warning">
+                <strong>Personalization matters.</strong> Generic emails get ignored. Always customize with their name, location, or something you noticed about them.
+            </div>
+
+            <h3>Template 1: Introduction</h3>
+            <div class="script-box">
+                <p><span class="label">Subject:</span> Off-Market Properties in Columbus</p>
+                <br>
+                <p>Hi <span class="you">[FIRST NAME]</span>,</p>
+                <br>
+                <p>Lifeline Home Buyers specializes in off-market acquisitions in Columbus - tax delinquent, probate, and distressed properties.</p>
+                <br>
+                <p>Are you actively buying in this market?</p>
+                <br>
+                <p>If so, let me know your criteria and I'll send you deals that fit.</p>
+                <br>
+                <p><span class="you">[YOUR NAME]</span><br>
+                Lifeline Home Buyers</p>
+            </div>
+
+            <h3>Template 2: Follow Up</h3>
+            <div class="script-box">
+                <p><span class="label">Subject:</span> Re: Off-Market Properties in Columbus</p>
+                <br>
+                <p>Hi <span class="you">[FIRST NAME]</span>,</p>
+                <br>
+                <p>Following up on my note. Are you buying in Ohio?</p>
+                <br>
+                <p><span class="you">[YOUR NAME]</span></p>
+            </div>
+
+            <h3>Template 3: BiggerPockets Reference</h3>
+            <div class="script-box">
+                <p><span class="label">Subject:</span> Saw your post on BiggerPockets</p>
+                <br>
+                <p>Hi <span class="you">[FIRST NAME]</span>,</p>
+                <br>
+                <p>I saw your posts about investing in Ohio.</p>
+                <br>
+                <p>We source off-market distressed properties in Columbus. Would you be opposed to me sending you deals that match your criteria?</p>
+                <br>
+                <p><span class="you">[YOUR NAME]</span><br>
+                Lifeline Home Buyers</p>
+
+                <div class="psychology-note">
+                    <strong>Psychology Note:</strong> "Would you be opposed to..." is a No-Oriented question. "No" = yes, send me deals.
+                </div>
+            </div>
+
+            <h3>Template 4: LinkedIn Connection</h3>
+            <div class="script-box">
+                <p><span class="label">Subject:</span> Columbus Investment Opportunities</p>
+                <br>
+                <p>Hi <span class="you">[FIRST NAME]</span>,</p>
+                <br>
+                <p>I noticed your background in real estate investing. We work with investors buying off-market properties in the Columbus area.</p>
+                <br>
+                <p>Would it be crazy to have a quick call to see if we can help each other out?</p>
+                <br>
+                <p><span class="you">[YOUR NAME]</span><br>
+                Lifeline Home Buyers</p>
+
+                <div class="psychology-note">
+                    <strong>Psychology Note:</strong> "Would it be crazy to..." - saying "No" means they'll do the call.
+                </div>
+            </div>
+
+            <div class="pro-tip">
+                Keep emails short. Investors are busy. Get to the point in 3-4 sentences max.
+            </div>
+        </div>
+
+        <!-- Section 8: Phone Scripts -->
+        <div class="section">
+            <div class="section-number">SECTION 8</div>
+            <h2>Phone Outreach Scripts</h2>
+
+            <h3>Script 1: The Direct Opener</h3>
+            <p><em>Best for: Cold calls to investors you've researched</em></p>
+
+            <div class="script-box">
+                <p><span class="them">[RING]</span></p>
+                <br>
+                <p><span class="them">THEM:</span> Hello?</p>
+                <br>
+                <p><span class="you">YOU:</span> Hey <span class="you">[FIRST NAME]</span>, this is <span class="you">[YOUR NAME]</span> with Lifeline Home Buyers.</p>
+                <br>
+                <p>We're a real estate investment company specializing in off-market properties in Columbus.</p>
+                <br>
+                <p>Are you currently buying investment properties in Ohio?</p>
+                <br>
+                <p><span class="direction">(Wait for response)</span></p>
+            </div>
+
+            <h3>If YES (Actively Buying)</h3>
+            <div class="script-box">
+                <p><span class="you">YOU:</span> Great. Let me get your criteria so I can send you deals that match.</p>
+                <br>
+                <p class="direction">Ask these questions:</p>
+                <ul style="color: #87ceeb; margin-left: 20px;">
+                    <li>What areas do you focus on?</li>
+                    <li>What's your price range?</li>
+                    <li>Single family, multifamily, or both?</li>
+                    <li>Rehabs or stabilized?</li>
+                    <li>How many deals are you trying to do this year?</li>
+                </ul>
+                <br>
+                <p><span class="you">YOU:</span> Perfect. What's the best email to send deals to?</p>
+
+                <div class="psychology-note">
+                    <strong>Psychology Note:</strong> Get specific criteria. This qualifies them AND shows you're professional.
+                </div>
+            </div>
+
+            <h3>If NO (Not Buying)</h3>
+            <div class="script-box">
+                <p><span class="you">YOU:</span> Got it. If that changes, feel free to reach out. Have a good day.</p>
+
+                <div class="psychology-note">
+                    <strong>Psychology Note:</strong> Don't push. Investors respect when you respect their time. They'll remember you.
+                </div>
+            </div>
+
+            <h3>If MAYBE (Interested But Not Active)</h3>
+            <div class="script-box">
+                <p><span class="you">YOU:</span> Would it be crazy if I sent you a few examples of deals we've done?</p>
+                <br>
+                <p>That way you can see if it makes sense for when you're ready.</p>
+                <br>
+                <p>What's your email?</p>
+
+                <div class="psychology-note">
+                    <strong>Psychology Note:</strong> "Would it be crazy if..." - No-Oriented question. Low commitment, high conversion.
+                </div>
+            </div>
+
+            <h3>Script 2: The Referral Ask</h3>
+            <p><em>Best for: When someone says no but might know buyers</em></p>
+
+            <div class="script-box">
+                <p><span class="you">YOU:</span> No problem at all. Actually, let me ask you something...</p>
+                <br>
+                <p>You wouldn't happen to know any other investors in the Columbus area who are actively buying, would you?</p>
+                <br>
+                <p><span class="direction">(This is another No-Oriented question. "No" is easy, but often they'll think of someone.)</span></p>
+                <br>
+                <p><span class="them">THEM:</span> Actually, I know a few people...</p>
+                <br>
+                <p><span class="you">YOU:</span> That would be huge. Would you mind sharing their info or passing mine along?</p>
+            </div>
+
+            <h3>Script 3: The Follow-Up Call</h3>
+            <p><em>Best for: Following up on emails or previous conversations</em></p>
+
+            <div class="script-box">
+                <p><span class="them">[RING]</span></p>
+                <br>
+                <p><span class="them">THEM:</span> Hello?</p>
+                <br>
+                <p><span class="you">YOU:</span> Hey <span class="you">[FIRST NAME]</span>, this is <span class="you">[YOUR NAME]</span> from Lifeline Home Buyers. I sent you an email about off-market deals in Columbus.</p>
+                <br>
+                <p>Just wanted to quickly follow up - are you looking for investment properties right now?</p>
+                <br>
+                <p><span class="direction">(Keep it brief. They either are or aren't.)</span></p>
+            </div>
+        </div>
+
+        <!-- Section 9: Qualifying Buyers -->
+        <div class="section">
+            <div class="section-number">SECTION 9</div>
+            <h2>Qualifying Buyers</h2>
+
+            <p>Focus your energy on the best buyers. Not all contacts are equal.</p>
+
+            <h3>A-LIST <span class="priority-badge priority-a">Highest Priority</span></h3>
+            <ul>
+                <li>Actively buying now</li>
+                <li>Closed deals in past 6 months</li>
+                <li>Funding ready (cash or hard money)</li>
+                <li>Clear, specific criteria</li>
+                <li>Responds quickly to deals</li>
+            </ul>
+
+            <h3>B-LIST <span class="priority-badge priority-b">Solid</span></h3>
+            <ul>
+                <li>Interested with experience</li>
+                <li>Looking but hasn't bought recently</li>
+                <li>General criteria (needs refining)</li>
+                <li>Responds within a few days</li>
+            </ul>
+
+            <h3>C-LIST <span class="priority-badge priority-c">Low Priority</span></h3>
+            <ul>
+                <li>Just exploring / "thinking about it"</li>
+                <li>No funding or unclear funding</li>
+                <li>Unrealistic expectations</li>
+                <li>Slow or unresponsive</li>
+            </ul>
+
+            <h3>Data to Collect for Every Buyer</h3>
+            <table>
+                <tr>
+                    <th>Field</th>
+                    <th>Example</th>
+                </tr>
+                <tr>
+                    <td>Name</td>
+                    <td>John Smith</td>
+                </tr>
+                <tr>
+                    <td>Email</td>
+                    <td>john@email.com</td>
+                </tr>
+                <tr>
+                    <td>Phone</td>
+                    <td>(614) 555-1234</td>
+                </tr>
+                <tr>
+                    <td>Areas</td>
+                    <td>Hilltop, Franklinton, Linden</td>
+                </tr>
+                <tr>
+                    <td>Property Types</td>
+                    <td>SFH, Duplex</td>
+                </tr>
+                <tr>
+                    <td>Price Range</td>
+                    <td>$50K - $150K</td>
+                </tr>
+                <tr>
+                    <td>Strategy</td>
+                    <td>BRRRR, Flip, Buy & Hold</td>
+                </tr>
+                <tr>
+                    <td>Deals/Year</td>
+                    <td>5-10</td>
+                </tr>
+                <tr>
+                    <td>Funding</td>
+                    <td>Cash / Hard Money</td>
+                </tr>
+                <tr>
+                    <td>Priority</td>
+                    <td>A / B / C</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Section 10: Handling Objections -->
+        <div class="section">
+            <div class="section-number">SECTION 10</div>
+            <h2>Handling Objections</h2>
+
+            <div class="objection-row">
+                <div class="objection">"How did you find me?"</div>
+                <div class="response">"I was doing some research on active investors in the Columbus market and came across your profile/posts. We work with a lot of buyers in the area."</div>
+            </div>
+
+            <div class="objection-row">
+                <div class="objection">"I get calls like this all the time."</div>
+                <div class="response">"I'm sure you do - that's what happens when you're an active buyer. Here's the difference with us: we actually bring deals. Would it be worth seeing one example before you decide?"</div>
+            </div>
+
+            <div class="objection-row">
+                <div class="objection">"I already have wholesalers I work with."</div>
+                <div class="response">"That's great - most serious buyers do. We're not looking to replace anyone. But having more deal flow never hurts, right? Would you be opposed to us sending you deals that match your criteria?"</div>
+            </div>
+
+            <div class="objection-row">
+                <div class="objection">"What kind of deals do you have?"</div>
+                <div class="response">"Off-market distressed properties - tax delinquent, probate, code violations. Properties where sellers need to move fast. What's your buy box? I'll tell you if we have anything that fits."</div>
+            </div>
+
+            <div class="objection-row">
+                <div class="objection">"I'm not buying right now."</div>
+                <div class="response">"No problem. Would it be crazy if I kept you in our system for when you're ready? I can send you a market update now and then - no pressure."</div>
+            </div>
+
+            <div class="objection-row">
+                <div class="objection">"Take me off your list."</div>
+                <div class="response">"Done. You're removed. Appreciate your time."</div>
+            </div>
+
+            <div class="warning">
+                <strong>Never argue.</strong> Never push. Investors respect professionalism. Exit gracefully and leave the door open.
+            </div>
+        </div>
+
+        <!-- Section 11: Database Management -->
+        <div class="section">
+            <div class="section-number">SECTION 11</div>
+            <h2>Database Management</h2>
+
+            <div class="highlight-box purple">
+                <strong>The buyer database is one of our most valuable assets.</strong> Your accuracy directly impacts the company's ability to close deals.
+            </div>
+
+            <h3>When Adding a Buyer</h3>
+            <ul class="checklist">
+                <li>Fill in ALL fields</li>
+                <li>Double-check email and phone</li>
+                <li>Assign priority (A, B, C)</li>
+                <li>Add notes about conversation</li>
+            </ul>
+
+            <h3>Keep Records Updated</h3>
+            <ul>
+                <li>Update criteria if it changes</li>
+                <li>Mark invalid contacts</li>
+                <li>Adjust priority based on responsiveness</li>
+                <li>Note when deals were sent and response</li>
+            </ul>
+
+            <div class="warning">
+                <strong>Bad data costs time and money.</strong> Take ownership of quality.
+            </div>
+        </div>
+
+        <!-- Section 12: Daily Report -->
+        <div class="section">
+            <div class="section-number">SECTION 12</div>
+            <h2>Daily Report</h2>
+
+            <p>Submit at end of every shift.</p>
+
+            <div class="script-box" style="background: #2d2d44;">
+                <p style="color: #f39c12; font-size: 1.2em; margin-bottom: 15px;">DAILY REPORT</p>
+                <p>Date: [DATE]</p>
+                <p>Name: [NAME]</p>
+                <p>Position: IDS</p>
+                <br>
+                <p style="color: #87ceeb;">ACTIVITY:</p>
+                <p>- Emails Sent: ___</p>
+                <p>- Calls Made: ___</p>
+                <p>- Responses: ___</p>
+                <p>- New Buyers Added: ___</p>
+                <br>
+                <p style="color: #87ceeb;">NEW BUYERS:</p>
+                <p>1. [Name] | [Email] | [Phone] | [Buy Box] | [Priority]</p>
+                <p>2. [Name] | [Email] | [Phone] | [Buy Box] | [Priority]</p>
+                <br>
+                <p style="color: #87ceeb;">A-LIST BUYERS:</p>
+                <p>1. [Name] | [Notes]</p>
+                <br>
+                <p style="color: #87ceeb;">FOLLOW-UPS:</p>
+                <p>1. [Name] | [Reason]</p>
+                <br>
+                <p style="color: #87ceeb;">ISSUES:</p>
+                <p>[Anything needing attention]</p>
+            </div>
+        </div>
+
+        <!-- Section 13: Performance Standards -->
+        <div class="section">
+            <div class="section-number">SECTION 13</div>
+            <h2>Performance Standards</h2>
+
+            <h3>Weekly Targets</h3>
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>Target</th>
+                </tr>
+                <tr>
+                    <td>Emails Sent</td>
+                    <td>250+</td>
+                </tr>
+                <tr>
+                    <td>Calls Made</td>
+                    <td>200+</td>
+                </tr>
+                <tr>
+                    <td>New Buyers Added</td>
+                    <td>15-25</td>
+                </tr>
+                <tr>
+                    <td>A-List Buyers Found</td>
+                    <td>5-10</td>
+                </tr>
+            </table>
+
+            <h3>What We Measure</h3>
+            <ul>
+                <li>Outreach volume</li>
+                <li>Response rate</li>
+                <li>Buyers added</li>
+                <li>Quality distribution (A/B/C)</li>
+                <li>Data accuracy</li>
+                <li>Buyer engagement when deals sent</li>
+            </ul>
+
+            <p><strong>Consistent performers grow into senior roles and management. Your results speak for themselves.</strong></p>
+        </div>
+
+        <!-- Section 14: Standards of Conduct -->
+        <div class="section">
+            <div class="section-number">SECTION 14</div>
+            <h2>Standards of Conduct</h2>
+
+            <div class="highlight-box green">
+                <h4>Always</h4>
+                <ul>
+                    <li>Personalize outreach</li>
+                    <li>Be professional and respectful</li>
+                    <li>Follow up appropriately (2-3 times max)</li>
+                    <li>Log every contact</li>
+                    <li>Flag A-List buyers immediately</li>
+                    <li>Submit daily report on time</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box red">
+                <h4>Never</h4>
+                <ul>
+                    <li>Send mass unpersonalized emails</li>
+                    <li>Be pushy or aggressive</li>
+                    <li>Promise deals we don't have</li>
+                    <li>Share company info externally</li>
+                    <li>Add fake contacts</li>
+                    <li>Falsify reports</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Section 15: Communication -->
+        <div class="section">
+            <div class="section-number">SECTION 15</div>
+            <h2>Communication</h2>
+
+            <h3>Daily</h3>
+            <ul>
+                <li>Submit report on time</li>
+                <li>Flag A-List buyers immediately</li>
+                <li>Notify if you cannot work</li>
+            </ul>
+
+            <h3>Questions</h3>
+            <ul>
+                <li>Day-to-day: WhatsApp</li>
+                <li>System issues: Daily report</li>
+                <li>Urgent: Call directly</li>
+            </ul>
+
+            <h3>Weekly Call</h3>
+            <p>Team call to review performance. <strong>Attendance required.</strong></p>
+        </div>
+
+        <!-- Quick Reference Card -->
+        <div class="section">
+            <div class="section-number">QUICK REFERENCE</div>
+            <h2>IDS Quick Reference Card</h2>
+
+            <div class="quick-ref">
+                <div class="quick-ref-grid">
+                    <div class="quick-ref-item">
+                        <h4>Opening Line</h4>
+                        <p>"Hey [NAME], this is [YOU] with Lifeline Home Buyers. We specialize in off-market properties in Columbus. Are you currently buying?"</p>
+                    </div>
+
+                    <div class="quick-ref-item">
+                        <h4>Key Questions</h4>
+                        <ul>
+                            <li>What areas?</li>
+                            <li>Price range?</li>
+                            <li>Property types?</li>
+                            <li>Rehab or stabilized?</li>
+                            <li>Deals per year?</li>
+                        </ul>
+                    </div>
+
+                    <div class="quick-ref-item">
+                        <h4>No-Oriented Phrases</h4>
+                        <ul>
+                            <li>"Would it be crazy to..."</li>
+                            <li>"Would you be opposed to..."</li>
+                            <li>"You wouldn't happen to..."</li>
+                        </ul>
+                    </div>
+
+                    <div class="quick-ref-item">
+                        <h4>Daily Targets</h4>
+                        <ul>
+                            <li>50 emails</li>
+                            <li>40 calls</li>
+                            <li>3-5 new buyers</li>
+                        </ul>
+                    </div>
+
+                    <div class="quick-ref-item">
+                        <h4>Buyer Priorities</h4>
+                        <p><span class="priority-badge priority-a">A</span> Active, funded, fast</p>
+                        <p><span class="priority-badge priority-b">B</span> Interested, experienced</p>
+                        <p><span class="priority-badge priority-c">C</span> Exploring, unclear</p>
+                    </div>
+
+                    <div class="quick-ref-item">
+                        <h4>Collect Every Time</h4>
+                        <ul>
+                            <li>Name, Email, Phone</li>
+                            <li>Areas & Price Range</li>
+                            <li>Strategy (Flip/BRRRR/Hold)</li>
+                            <li>Funding source</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Execute Section -->
+        <div class="execute-section">
+            <h2>EXECUTE</h2>
+            <p>You have everything you need.</p>
+            <p>The deals are coming in. The sellers are being contacted. Your job is to make sure we have buyers ready when those deals close.</p>
+            <p><strong>Every buyer you add is potential revenue.<br>Every relationship you build is an asset.</strong></p>
+            <p style="margin-top: 40px; font-size: 1.5em;">Welcome to Lifeline Home Buyers.<br>Now show us what you can do.</p>
+            <p style="margin-top: 40px; font-size: 2em; font-weight: 600;">The opportunity is here.<br>Execute.</p>
+            <div style="margin-top: 60px; opacity: 0.8;">
+                <p>LIFELINE HOME BUYERS</p>
+                <p>An ORTEZA GROUPS Company</p>
+                <p>Investor Development Specialist (IDS)</p>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

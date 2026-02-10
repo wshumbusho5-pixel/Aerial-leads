@@ -527,6 +527,10 @@ class DatabaseAuth:
             conn.close()
             return False, f"Error changing password: {str(e)}"
 
+    def list_users(self, role: str = None) -> List[Dict]:
+        """Alias for get_all_users for backwards compatibility."""
+        return self.get_all_users(role)
+
     def get_all_users(self, role: str = None) -> List[Dict]:
         """Get all users, optionally filtered by role."""
         conn = self._get_connection()
