@@ -1108,7 +1108,40 @@ def show_leads_page(leads_df, va_name):
     st.markdown(f"**{len(filtered)}** leads to work")
     st.markdown("---")
 
+    # Group leads by assignment date
+    current_date_group = None
+    today = datetime.now().date()
+    yesterday = today - timedelta(days=1)
+
     for idx, lead in filtered.head(50).iterrows():
+        # Get assignment date and show date separator
+        assigned_at = lead.get('assigned_at', None)
+        if assigned_at:
+            try:
+                if isinstance(assigned_at, str):
+                    lead_date = datetime.fromisoformat(assigned_at.replace('Z', '+00:00')).date()
+                else:
+                    lead_date = assigned_at.date() if hasattr(assigned_at, 'date') else None
+
+                if lead_date and lead_date != current_date_group:
+                    current_date_group = lead_date
+                    if lead_date == today:
+                        date_label = "📅 Today (New Leads)"
+                        bg_color = "#10b981"
+                    elif lead_date == yesterday:
+                        date_label = "📅 Yesterday"
+                        bg_color = "#3b82f6"
+                    else:
+                        date_label = f"📅 {lead_date.strftime('%B %d, %Y')}"
+                        bg_color = "#6b7280"
+
+                    st.markdown(f"""
+                        <div style="background: {bg_color}; padding: 8px 15px; border-radius: 5px; margin: 15px 0 10px 0;">
+                            <strong style="color: white;">{date_label}</strong>
+                        </div>
+                    """, unsafe_allow_html=True)
+            except:
+                pass  # If date parsing fails, just skip the separator
         address = lead.get('address', lead.get('property_address', 'Unknown Address'))
         city = lead.get('city', '')
         owner = lead.get('owner_name', lead.get('owner', 'Unknown Owner'))
