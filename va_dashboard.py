@@ -420,11 +420,52 @@ def save_appointment(appt_data, va_name):
     except:
         pass
 
-# Daily Reports file
+# Daily Reports file (fallback)
 REPORTS_FILE = DATA_DIR / "va_daily_reports.csv"
 
 def load_reports():
-    """Load daily reports"""
+    """Load daily reports from database (primary) or CSV (fallback)"""
+    # Try PostgreSQL first
+    if DB_AUTH_AVAILABLE:
+        try:
+            db_auth = DatabaseAuth()
+            conn = db_auth._get_connection()
+            cursor = conn.cursor()
+
+            # Create table if not exists
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS va_daily_reports (
+                    id SERIAL PRIMARY KEY,
+                    date VARCHAR(20),
+                    va_name VARCHAR(100),
+                    submitted_at TIMESTAMP,
+                    total_calls INTEGER DEFAULT 0,
+                    contacts INTEGER DEFAULT 0,
+                    appointments INTEGER DEFAULT 0,
+                    interested INTEGER DEFAULT 0,
+                    not_interested INTEGER DEFAULT 0,
+                    no_answer INTEGER DEFAULT 0,
+                    voicemails INTEGER DEFAULT 0,
+                    hot_leads TEXT,
+                    challenges TEXT,
+                    wins TEXT,
+                    tomorrow_plan TEXT,
+                    day_rating VARCHAR(50)
+                )
+            """)
+            conn.commit()
+
+            cursor.execute("SELECT * FROM va_daily_reports ORDER BY submitted_at DESC")
+            rows = cursor.fetchall()
+            conn.close()
+
+            if rows:
+                return pd.DataFrame([dict(row) for row in rows])
+            return pd.DataFrame()
+        except Exception as e:
+            print(f"Database error in load_reports: {e}")
+
+    # Fallback to CSV
     if REPORTS_FILE.exists():
         try:
             return pd.read_csv(REPORTS_FILE)
@@ -433,11 +474,52 @@ def load_reports():
     return pd.DataFrame()
 
 def save_daily_report(report_data):
-    """Save a daily report"""
+    """Save a daily report to database (primary) and CSV (fallback)"""
+    # Save to PostgreSQL first
+    if DB_AUTH_AVAILABLE:
+        try:
+            db_auth = DatabaseAuth()
+            conn = db_auth._get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                INSERT INTO va_daily_reports
+                (date, va_name, submitted_at, total_calls, contacts, appointments,
+                 interested, not_interested, no_answer, voicemails,
+                 hot_leads, challenges, wins, tomorrow_plan, day_rating)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                report_data.get('date'),
+                report_data.get('va_name'),
+                report_data.get('submitted_at'),
+                report_data.get('total_calls', 0),
+                report_data.get('contacts', 0),
+                report_data.get('appointments', 0),
+                report_data.get('interested', 0),
+                report_data.get('not_interested', 0),
+                report_data.get('no_answer', 0),
+                report_data.get('voicemails', 0),
+                report_data.get('hot_leads', ''),
+                report_data.get('challenges', ''),
+                report_data.get('wins', ''),
+                report_data.get('tomorrow_plan', ''),
+                report_data.get('day_rating', '')
+            ))
+            conn.commit()
+            conn.close()
+            print(f"Daily report saved to database for {report_data.get('va_name')}")
+            return
+        except Exception as e:
+            print(f"Database error in save_daily_report: {e}")
+
+    # Fallback to CSV
     reports_df = load_reports()
     new_report = pd.DataFrame([report_data])
     reports_df = pd.concat([reports_df, new_report], ignore_index=True)
-    reports_df.to_csv(REPORTS_FILE, index=False)
+    try:
+        reports_df.to_csv(REPORTS_FILE, index=False)
+    except:
+        pass
 
 def get_today_stats(va_name, calls_df):
     """Get detailed stats for today"""
