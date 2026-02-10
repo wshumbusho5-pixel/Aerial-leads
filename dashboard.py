@@ -3157,6 +3157,9 @@ elif page == "👥 VA Management":
                                             row_safe = False
                                             for col in phone_cols:
                                                 phone = str(row.get(col, ''))
+                                                # Clean phone number - remove .0 from floats and non-digits
+                                                phone = phone.replace('.0', '').split('.')[0]
+                                                phone = ''.join(c for c in phone if c.isdigit())
                                                 if phone and phone != 'nan' and phone.strip():
                                                     result = dnc_checker.check_dnc(phone)
                                                     # Mark individual phone status

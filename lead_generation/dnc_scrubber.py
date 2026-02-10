@@ -194,7 +194,8 @@ class DNCChecker:
         # Use phonenumbers library for detailed validation
         if PHONENUMBERS_AVAILABLE:
             try:
-                parsed = phonenumbers.parse(phone, 'US')
+                # Use normalized phone (digits only) for parsing to handle floats like "6145316158.0"
+                parsed = phonenumbers.parse(normalized, 'US')
 
                 if not phonenumbers.is_valid_number(parsed):
                     result['error'] = 'Invalid phone number'
