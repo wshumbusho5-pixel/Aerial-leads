@@ -2052,13 +2052,24 @@ elif page == "📞 Skip Trace":
                         st.session_state['skip_traced_leads'] = matched_df
                         st.session_state['skip_traced_type'] = lead_type
 
+                        # AUTO-SAVE skip traced results
+                        try:
+                            if lead_type == 'property':
+                                output_path = PROCESSED_DATA_DIR / f'skip_traced_leads_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+                            else:
+                                output_path = Path(__file__).parent / "data" / "buyers" / "processed" / f'skip_traced_investors_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+                            matched_df.to_csv(output_path, index=False)
+                            st.success(f"💾 Auto-saved to: {output_path.name}")
+                        except Exception as save_err:
+                            st.warning(f"Could not auto-save: {save_err}")
+
                         # Preview matched data
                         st.markdown("### Matched Data Preview")
                         display_cols = ['owner_name', 'address', 'phone', 'phone_2', 'email']
                         display_cols = [c for c in display_cols if c in matched_df.columns]
                         st.dataframe(matched_df[display_cols].head(10), use_container_width=True)
 
-                        st.info("Go to **Assign to VAs** tab to assign these leads")
+                        st.info("Go to **Assign to VAs** tab to assign these leads. ✅ Data already saved!")
 
         # TAB 3: Assign to VAs
         with ext_tab3:
@@ -2896,17 +2907,22 @@ elif page == "👥 VA Management":
                         except:
                             pass
 
-            # Add INVESTOR LEADS from Investor Finder
+            # Add INVESTOR LEADS from Investor Finder (including skip traced ones)
             investors_dir = Path(__file__).parent / "data" / "buyers" / "processed"
             if investors_dir.exists():
-                investor_files = sorted(investors_dir.glob('investor_prospects_*.csv'), reverse=True)
-                for inv_file in investor_files[:10]:  # Last 10 files
+                # Get both investor_prospects and skip_traced_investors files
+                investor_files = list(investors_dir.glob('investor_prospects_*.csv'))
+                investor_files.extend(investors_dir.glob('skip_traced_investors_*.csv'))
+                investor_files = sorted(investor_files, key=lambda x: x.stat().st_mtime, reverse=True)
+
+                for inv_file in investor_files[:15]:  # Last 15 files
                     try:
                         inv_df = pd.read_csv(inv_file, nrows=5)
                         row_count = len(pd.read_csv(inv_file))
                         inv_name = inv_file.stem.replace('_', ' ').title()
                         # Check if it has phone numbers (skip traced)
-                        has_phones = 'phone' in inv_df.columns and inv_df['phone'].notna().any()
+                        phone_cols = [c for c in inv_df.columns if 'phone' in c.lower()]
+                        has_phones = any(inv_df[col].notna().any() for col in phone_cols) if phone_cols else False
                         phone_indicator = "📞" if has_phones else "🏢"
                         lead_sources[f"investor:{inv_file.name}"] = f"{phone_indicator} INVESTOR: {inv_name} ({row_count:,} leads)"
                     except:
