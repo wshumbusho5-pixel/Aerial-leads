@@ -1082,11 +1082,11 @@ def show_leads_page(leads_df, va_name):
     va_username = st.session_state.get('va_username', '')
     va_phone = st.session_state.get('va_phone', '')
 
-    # Phone setup section - Simple click-to-call is default
+    # Phone setup section - Browser Dialer is default
     with st.expander("📱 Call Settings", expanded=True):
         # Initialize calling mode in session state
         if 'calling_mode' not in st.session_state:
-            st.session_state.calling_mode = 'simple'  # Default to simple tel: links
+            st.session_state.calling_mode = 'browser'  # Default to browser dialer
 
         st.markdown("### Calling Method")
 
