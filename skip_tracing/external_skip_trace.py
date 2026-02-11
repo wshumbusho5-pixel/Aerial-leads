@@ -176,8 +176,8 @@ def import_skip_traced_data(imported_df: pd.DataFrame, lead_type: str = 'propert
             mapping_df = pd.read_csv(mapping_path)
             logger.info(f"Found mapping file: {mapping_path}")
 
-    # Clean phone numbers in imported data
-    phone_cols = ['phone', 'phone_1', 'phone_2', 'phone_3', 'mobile', 'landline']
+    # Clean phone numbers in imported data - support up to 6 phone numbers
+    phone_cols = ['phone', 'phone_1', 'phone_2', 'phone_3', 'phone_4', 'phone_5', 'phone_6', 'mobile', 'landline']
     for col in phone_cols:
         if col in imported_df.columns:
             imported_df[col] = imported_df[col].astype(str).str.replace(r'[^\d]', '', regex=True)
@@ -191,24 +191,35 @@ def import_skip_traced_data(imported_df: pd.DataFrame, lead_type: str = 'propert
         'phone_2': 'phone_2',
         'phone2': 'phone_2',
         'secondary_phone': 'phone_2',
+        'phone3': 'phone_3',
+        'phone4': 'phone_4',
+        'phone5': 'phone_5',
+        'phone6': 'phone_6',
         'email_1': 'email',
         'email1': 'email',
-        'primary_email': 'email'
+        'primary_email': 'email',
+        'email_2': 'email_2',
+        'email2': 'email_2',
+        'secondary_email': 'email_2'
     }
     imported_df = imported_df.rename(columns={k: v for k, v in col_mapping.items() if k in imported_df.columns})
+
+    # All contact columns to carry over
+    contact_cols = ['phone', 'phone_2', 'phone_3', 'phone_4', 'phone_5', 'phone_6', 'email', 'email_2']
 
     # Match records
     if mapping_df is not None and 'skip_trace_id' in imported_df.columns:
         # Match by skip_trace_id (most accurate)
+        merge_cols = ['skip_trace_id'] + [c for c in contact_cols if c in imported_df.columns]
         matched_df = mapping_df.merge(
-            imported_df[['skip_trace_id'] + [c for c in ['phone', 'phone_2', 'email'] if c in imported_df.columns]],
+            imported_df[merge_cols],
             on='skip_trace_id',
             how='left',
             suffixes=('_orig', '')
         )
 
         # Update phone/email columns
-        for col in ['phone', 'phone_2', 'email']:
+        for col in contact_cols:
             if col in matched_df.columns:
                 orig_col = f'{col}_orig'
                 if orig_col in matched_df.columns:
