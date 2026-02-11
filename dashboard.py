@@ -330,6 +330,26 @@ elif page == "🚀 Generate Leads":
             help="Match sheriff sale properties to boost scores (+35 pts)"
         )
 
+    # List Stacking Options
+    st.markdown("#### 🎯 List Stacking (Find ULTRA Motivated Sellers)")
+    st.info("**List Stacking** finds leads with MULTIPLE distress signals. More signals = more motivated = higher conversion rates!")
+
+    stack_col1, stack_col2 = st.columns(2)
+    with stack_col1:
+        include_violations = st.checkbox(
+            "Include Code Violations",
+            value=True,
+            help="Match properties with city code violations for extra stacking signal"
+        )
+    with stack_col2:
+        min_stack_count = st.select_slider(
+            "Minimum Stack Count",
+            options=[1, 2, 3, 4],
+            value=1,
+            format_func=lambda x: {1: "1 (All leads)", 2: "2+ (Hot)", 3: "3+ (Very Hot)", 4: "4+ (Ultra Hot)"}[x],
+            help="Filter to only keep leads with this many distress signals"
+        )
+
     st.markdown("---")
 
     if st.button("🚀 Generate Leads Now", type="primary"):
@@ -511,6 +531,108 @@ elif page == "🚀 Generate Leads":
 
             df = pd.DataFrame(scored_properties)
             progress_bar.progress(50)
+
+            # Step 3.5: LIST STACKING - Count distress signals per property
+            status_text.text("🎯 Calculating list stack scores...")
+
+            def calculate_stack_score(row):
+                """Count how many distress lists this property appears on"""
+                signals = []
+                stack_count = 0
+
+                # Tax Delinquent (always true since we're pulling from tax list)
+                if row.get('taxes_owed', 0) > 0:
+                    signals.append('💰 Tax Delinquent')
+                    stack_count += 1
+
+                # High Tax Debt (2+ years or $5000+)
+                if row.get('years_delinquent', 0) >= 2 or row.get('taxes_owed', 0) >= 5000:
+                    signals.append('🔥 High Tax Debt')
+                    stack_count += 1
+
+                # Probate
+                if row.get('is_probate', False):
+                    signals.append('⚖️ Probate')
+                    stack_count += 1
+
+                # Pre-Foreclosure / Sheriff Sale
+                if row.get('is_sheriff_sale', False) or row.get('is_pre_foreclosure', False):
+                    signals.append('🏚️ Pre-Foreclosure')
+                    stack_count += 1
+
+                # Code Violations
+                if row.get('total_violations', 0) > 0:
+                    signals.append('🚨 Code Violations')
+                    stack_count += 1
+
+                # Critical Code Violations (extra signal)
+                if row.get('critical_violations', 0) > 0:
+                    signals.append('⚠️ CRITICAL Violations')
+                    stack_count += 1
+
+                # Absentee Owner
+                if row.get('is_absentee', False):
+                    signals.append('🏠 Absentee Owner')
+                    stack_count += 1
+
+                # High Equity (if calculated)
+                if row.get('equity_percent', 0) >= 40:
+                    signals.append('💎 High Equity')
+                    stack_count += 1
+
+                # Long Ownership (if available)
+                if row.get('years_owned', 0) >= 15:
+                    signals.append('📅 Long-term Owner')
+                    stack_count += 1
+
+                return stack_count, ' | '.join(signals)
+
+            # Apply stacking calculation
+            stack_results = df.apply(calculate_stack_score, axis=1)
+            df['stack_count'] = stack_results.apply(lambda x: x[0])
+            df['stack_signals'] = stack_results.apply(lambda x: x[1])
+
+            # Stack tier classification
+            def get_stack_tier(count):
+                if count >= 4:
+                    return '🔥🔥🔥 ULTRA HOT (4+ signals)'
+                elif count >= 3:
+                    return '🔥🔥 VERY HOT (3 signals)'
+                elif count >= 2:
+                    return '🔥 HOT (2 signals)'
+                else:
+                    return '📊 Standard (1 signal)'
+
+            df['stack_tier'] = df['stack_count'].apply(get_stack_tier)
+
+            # Show stacking summary
+            st.markdown("---")
+            st.markdown("### 🎯 List Stacking Analysis")
+
+            stack_col1, stack_col2, stack_col3, stack_col4 = st.columns(4)
+            ultra_hot = len(df[df['stack_count'] >= 4])
+            very_hot = len(df[df['stack_count'] == 3])
+            hot = len(df[df['stack_count'] == 2])
+            standard = len(df[df['stack_count'] == 1])
+
+            with stack_col1:
+                st.metric("🔥🔥🔥 ULTRA HOT (4+)", ultra_hot)
+            with stack_col2:
+                st.metric("🔥🔥 VERY HOT (3)", very_hot)
+            with stack_col3:
+                st.metric("🔥 HOT (2)", hot)
+            with stack_col4:
+                st.metric("📊 Standard (1)", standard)
+
+            if ultra_hot > 0 or very_hot > 0:
+                st.success(f"🎯 Found **{ultra_hot + very_hot} highly motivated leads** with 3+ distress signals! These should be your VA's TOP priority.")
+
+            # Apply minimum stack count filter
+            if min_stack_count > 1:
+                before_filter = len(df)
+                df = df[df['stack_count'] >= min_stack_count]
+                after_filter = len(df)
+                st.info(f"📊 Filtered to {after_filter} leads with {min_stack_count}+ distress signals (removed {before_filter - after_filter} lower-priority leads)")
 
             # Step 4: Detect whale owners
             status_text.text("🐋 Detecting multi-property owners...")
@@ -3162,7 +3284,18 @@ elif page == "👥 VA Management":
                                                format_func=lambda x: {1: "🔴 Urgent", 2: "🟠 High", 3: "🟡 Normal", 4: "🟢 Low", 5: "⚪ Lowest"}[x])
 
                     # Filter options
-                    min_score = st.slider("Minimum motivation score", 0, 100, 50)
+                    filter_row1_col1, filter_row1_col2 = st.columns(2)
+                    with filter_row1_col1:
+                        min_score = st.slider("Minimum motivation score", 0, 100, 50)
+                    with filter_row1_col2:
+                        # Stack filter - only show if stack_count column exists
+                        min_stack = st.select_slider(
+                            "🎯 Minimum Stack Count",
+                            options=[0, 1, 2, 3, 4],
+                            value=0,
+                            format_func=lambda x: {0: "All", 1: "1+", 2: "2+ (Hot)", 3: "3+ (Very Hot)", 4: "4+ (Ultra)"}[x],
+                            help="Filter by number of distress signals (tax + probate + violations + foreclosure)"
+                        )
 
                     # Filter options row
                     filter_col1, filter_col2 = st.columns(2)
@@ -3261,6 +3394,15 @@ elif page == "👥 VA Management":
                                 st.info(f"📞 Found {after_count} leads with phone numbers (filtered out {before_count - after_count})")
                             else:
                                 st.warning("⚠️ No phone columns found. Leads may not have been skip traced yet.")
+
+                        # Apply stack filter if set
+                        if min_stack > 0 and 'stack_count' in preview_df.columns:
+                            before_count = len(preview_df)
+                            preview_df = preview_df[preview_df['stack_count'] >= min_stack]
+                            after_count = len(preview_df)
+                            st.info(f"🎯 Found {after_count} leads with {min_stack}+ distress signals (filtered out {before_count - after_count})")
+                        elif min_stack > 0 and 'stack_count' not in preview_df.columns:
+                            st.warning("⚠️ Stack count not available. Re-generate leads to get stacking data.")
 
                         st.session_state['preview_leads'] = preview_df
                         st.session_state['preview_va'] = selected_va_id
