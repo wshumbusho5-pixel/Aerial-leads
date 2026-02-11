@@ -3083,7 +3083,20 @@ elif page == "👥 VA Management":
                         except:
                             pass
 
-            # Add SKIP TRACED leads that were imported back
+            # Add SKIP TRACED SELLER leads from processed folder
+            skip_traced_files = sorted(PROCESSED_DATA_DIR.glob('skip_traced_leads_*.csv'), key=lambda x: x.stat().st_mtime, reverse=True)
+            for st_file in skip_traced_files[:10]:  # Last 10 files
+                try:
+                    df_check = pd.read_csv(st_file, nrows=5)
+                    if 'phone' in df_check.columns and df_check['phone'].notna().any():
+                        row_count = len(pd.read_csv(st_file))
+                        # Format the timestamp nicely
+                        st_name = st_file.stem.replace('skip_traced_leads_', '').replace('_', ' ')
+                        lead_sources[f"skiptrace:{st_file.name}"] = f"📞 SKIP TRACED SELLERS: {st_name} ({row_count:,} leads)"
+                except:
+                    pass
+
+            # Add SKIP TRACED leads from exports folder (external skip trace results)
             skip_trace_dir = DATA_DIR / 'skip_trace_exports'
             if skip_trace_dir.exists():
                 # Look for files that have phone data (imported back from skip tracer)
@@ -3095,7 +3108,7 @@ elif page == "👥 VA Management":
                             if 'phone' in df_check.columns and df_check['phone'].notna().any():
                                 row_count = len(pd.read_csv(st_file))
                                 st_name = st_file.stem.replace('_', ' ').title()
-                                lead_sources[f"skiptrace:{st_file.name}"] = f"📞 SKIP TRACED: {st_name} ({row_count:,} leads)"
+                                lead_sources[f"skiptrace_ext:{st_file.name}"] = f"📞 SKIP TRACED: {st_name} ({row_count:,} leads)"
                         except:
                             pass
 
@@ -3147,7 +3160,7 @@ elif page == "👥 VA Management":
                     st.info("💡 No investor leads found. Run Investor Finder first!")
                     filtered_sources = {"all_leads": "📊 All Leads (Combined)"}  # Fallback
             elif category == "Imported Leads":
-                filtered_sources = {k: v for k, v in lead_sources.items() if k.startswith('import:') or k.startswith('skiptrace:')}
+                filtered_sources = {k: v for k, v in lead_sources.items() if k.startswith('import:') or k.startswith('skiptrace:') or k.startswith('skiptrace_ext:')}
                 if not filtered_sources:
                     st.info("💡 No imported leads yet. Drop CSV files in `data/imports/` folder or import skip trace results.")
                     filtered_sources = {"all_leads": "📊 All Leads (Combined)"}  # Fallback
@@ -3257,7 +3270,14 @@ elif page == "👥 VA Management":
                     leads_df = pd.read_csv(import_file)
 
             elif lead_source.startswith("skiptrace:"):
-                # Load skip traced results
+                # Load skip traced results from processed folder
+                st_filename = lead_source.split(":", 1)[1]
+                st_file = PROCESSED_DATA_DIR / st_filename
+                if st_file.exists():
+                    leads_df = pd.read_csv(st_file)
+
+            elif lead_source.startswith("skiptrace_ext:"):
+                # Load skip traced results from exports folder
                 st_filename = lead_source.split(":", 1)[1]
                 st_file = skip_trace_dir / st_filename
                 if st_file.exists():
