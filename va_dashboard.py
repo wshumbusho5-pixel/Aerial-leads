@@ -1082,11 +1082,11 @@ def show_leads_page(leads_df, va_name):
     va_username = st.session_state.get('va_username', '')
     va_phone = st.session_state.get('va_phone', '')
 
-    # Phone setup section - Browser Dialer is now the primary option
+    # Phone setup section - Simple click-to-call is default
     with st.expander("📱 Call Settings", expanded=True):
         # Initialize calling mode in session state
         if 'calling_mode' not in st.session_state:
-            st.session_state.calling_mode = 'browser' if BROWSER_DIALER_AVAILABLE else 'phone'
+            st.session_state.calling_mode = 'simple'  # Default to simple tel: links
 
         st.markdown("### Calling Method")
 
@@ -1094,37 +1094,45 @@ def show_leads_page(leads_df, va_name):
         user_role = st.session_state.get('user_role', 'va')
         is_admin = user_role == 'admin'
 
-        # Browser Dialer is the only option for VAs (cost control)
-        if BROWSER_DIALER_AVAILABLE:
-            st.session_state.calling_mode = 'browser'  # Force browser mode
-            st.success("🖥️ **Browser Dialer Active**")
-            st.caption("Make calls directly from your browser using your headset.")
-        else:
-            st.error("Browser Dialer not configured - contact admin")
-
-        # Only show phone dialer option to admins
-        if is_admin:
-            st.markdown("---")
-            st.caption("🔒 Admin-only options:")
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("🖥️ Use Browser", use_container_width=True,
+        # Show calling mode options
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("📱 Click-to-Call", use_container_width=True,
+                       type="primary" if st.session_state.calling_mode == 'simple' else "secondary"):
+                st.session_state.calling_mode = 'simple'
+                st.rerun()
+        with col2:
+            if BROWSER_DIALER_AVAILABLE:
+                if st.button("🖥️ Browser Dialer", use_container_width=True,
                            type="primary" if st.session_state.calling_mode == 'browser' else "secondary"):
                     st.session_state.calling_mode = 'browser'
                     st.rerun()
-            with col2:
-                if TWILIO_AVAILABLE:
-                    if st.button("📱 Use Phone", use_container_width=True,
-                               type="primary" if st.session_state.calling_mode == 'phone' else "secondary"):
-                        st.session_state.calling_mode = 'phone'
-                        st.rerun()
-                else:
-                    st.button("📱 Phone N/A", use_container_width=True, disabled=True)
+            else:
+                st.button("🖥️ Browser N/A", use_container_width=True, disabled=True)
+
+        # Admin-only phone dialer option
+        if is_admin and TWILIO_AVAILABLE:
+            if st.button("📞 Twilio Phone", use_container_width=True,
+                       type="primary" if st.session_state.calling_mode == 'phone' else "secondary"):
+                st.session_state.calling_mode = 'phone'
+                st.rerun()
 
         st.markdown("---")
 
         # Show settings based on selected mode
-        if st.session_state.calling_mode == 'browser':
+        if st.session_state.calling_mode == 'simple':
+            st.success("📱 **Click-to-Call Mode Active**")
+            st.markdown("""
+            **How to use:**
+            1. Click any phone number below
+            2. Your phone app or softphone (Skype, etc.) opens
+            3. Call connects automatically
+            4. After call, log the result in Call Tracker
+            """)
+            st.caption("Works on mobile phones and desktop with Skype/Google Voice.")
+
+        elif st.session_state.calling_mode == 'browser':
+            st.info("🖥️ **Browser Dialer Mode**")
             st.markdown("""
             **How to use:**
             1. Use a headset with microphone (or laptop mic + speakers)
@@ -1287,7 +1295,14 @@ def show_leads_page(leads_df, va_name):
                         st.markdown(f"**{phone_idx + 1}.** {phone_num} *({type_badge})*")
 
                     with phone_col2:
-                        if calling_mode == 'browser' and BROWSER_DIALER_AVAILABLE:
+                        if calling_mode == 'simple':
+                            # Simple tel: link - works on any device
+                            clean_phone = ''.join(c for c in phone_num if c.isdigit())
+                            if len(clean_phone) == 10:
+                                clean_phone = '1' + clean_phone
+                            tel_url = f"tel:+{clean_phone}"
+                            st.link_button("📞 Call", tel_url, use_container_width=True)
+                        elif calling_mode == 'browser' and BROWSER_DIALER_AVAILABLE:
                             import urllib.parse
                             params = urllib.parse.urlencode({
                                 'identity': va_identity,
@@ -1311,7 +1326,12 @@ def show_leads_page(leads_df, va_name):
                                     else:
                                         st.error(message)
                         else:
-                            st.button("📞 Call", key=f"no_call_{section}_{lead_idx}_{phone_idx}", disabled=True, use_container_width=True)
+                            # Fallback to simple tel: link
+                            clean_phone = ''.join(c for c in phone_num if c.isdigit())
+                            if len(clean_phone) == 10:
+                                clean_phone = '1' + clean_phone
+                            tel_url = f"tel:+{clean_phone}"
+                            st.link_button("📞 Call", tel_url, use_container_width=True)
 
                     with phone_col3:
                         if st.button("📝 Log", key=f"log_{section}_{lead_idx}_{phone_idx}", use_container_width=True):
@@ -2000,18 +2020,28 @@ def show_callback_queue_page(va_name):
                         st.markdown(f"📅 {cb_date}")
 
                 with col3:
-                    # Open browser dialer
-                    va_identity = st.session_state.get('va_username', 'va-user')
-                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://va-public-production.up.railway.app')
-                    import urllib.parse
-                    params = urllib.parse.urlencode({
-                        'identity': va_identity,
-                        'phone': phone,
-                        'name': owner or '',
-                        'address': address or ''
-                    })
-                    dialer_url = f"{public_site_url}/dialer?{params}"
-                    st.link_button("📞 Call", dialer_url, use_container_width=True)
+                    # Call button based on mode
+                    calling_mode = st.session_state.get('calling_mode', 'simple')
+                    if calling_mode == 'simple' or not BROWSER_DIALER_AVAILABLE:
+                        # Simple tel: link
+                        clean_phone = ''.join(c for c in phone if c.isdigit())
+                        if len(clean_phone) == 10:
+                            clean_phone = '1' + clean_phone
+                        tel_url = f"tel:+{clean_phone}"
+                        st.link_button("📞 Call", tel_url, use_container_width=True)
+                    else:
+                        # Browser dialer
+                        va_identity = st.session_state.get('va_username', 'va-user')
+                        public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://va-public-production.up.railway.app')
+                        import urllib.parse
+                        params = urllib.parse.urlencode({
+                            'identity': va_identity,
+                            'phone': phone,
+                            'name': owner or '',
+                            'address': address or ''
+                        })
+                        dialer_url = f"{public_site_url}/dialer?{params}"
+                        st.link_button("📞 Call", dialer_url, use_container_width=True)
 
                     if st.button("📝 Log", key=f"log_cb_{idx}", use_container_width=True):
                         st.session_state.last_called_lead = {
@@ -2164,18 +2194,28 @@ def show_inbound_page(inbound_df, va_name):
 
             with col3:
                 if phone:
-                    # Browser dialer
-                    va_identity = st.session_state.get('va_username', 'va-user')
-                    public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://va-public-production.up.railway.app')
-                    import urllib.parse
-                    params = urllib.parse.urlencode({
-                        'identity': va_identity,
-                        'phone': phone,
-                        'name': name or '',
-                        'address': address or ''
-                    })
-                    dialer_url = f"{public_site_url}/dialer?{params}"
-                    st.link_button("📞 Call", dialer_url, use_container_width=True)
+                    # Call button based on mode
+                    calling_mode = st.session_state.get('calling_mode', 'simple')
+                    if calling_mode == 'simple' or not BROWSER_DIALER_AVAILABLE:
+                        # Simple tel: link
+                        clean_phone = ''.join(c for c in phone if c.isdigit())
+                        if len(clean_phone) == 10:
+                            clean_phone = '1' + clean_phone
+                        tel_url = f"tel:+{clean_phone}"
+                        st.link_button("📞 Call", tel_url, use_container_width=True)
+                    else:
+                        # Browser dialer
+                        va_identity = st.session_state.get('va_username', 'va-user')
+                        public_site_url = os.environ.get('PUBLIC_SITE_URL', 'https://va-public-production.up.railway.app')
+                        import urllib.parse
+                        params = urllib.parse.urlencode({
+                            'identity': va_identity,
+                            'phone': phone,
+                            'name': name or '',
+                            'address': address or ''
+                        })
+                        dialer_url = f"{public_site_url}/dialer?{params}"
+                        st.link_button("📞 Call", dialer_url, use_container_width=True)
 
                     if st.button("📝 Log", key=f"inbound_log_{idx}", use_container_width=True):
                         st.session_state.last_called_lead = {

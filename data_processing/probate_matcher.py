@@ -36,7 +36,7 @@ class ProbateMatcher:
         Initialize the matcher.
 
         Args:
-            data_dir: Directory containing Parcel.xlsx
+            data_dir: Directory containing property data
         """
         self.data_dir = data_dir
         self.parcel_file = data_dir / 'Parcel.xlsx'
@@ -44,17 +44,47 @@ class ProbateMatcher:
 
     def load_property_records(self) -> bool:
         """
-        Load property records from Franklin County Parcel.xlsx.
+        Load property records from available sources.
+
+        Tries:
+        1. all_leads_real.csv (processed leads with property data)
+        2. Parcel.xlsx (raw Franklin County data)
 
         Returns:
             True if loaded successfully, False otherwise
         """
+        # First try processed leads CSV (most complete data)
+        csv_file = PROCESSED_DATA_DIR / 'all_leads_real.csv'
+        if csv_file.exists():
+            try:
+                logger.info("Loading property records from all_leads_real.csv...")
+                df = pd.read_csv(csv_file, low_memory=False)
+
+                # Clean owner names
+                df['owner_name'] = df['owner_name'].fillna('').astype(str).str.upper().str.strip()
+                df['owner_name_normalized'] = df['owner_name'].apply(self._normalize_name)
+
+                # Clean addresses
+                df['address'] = df['address'].fillna('').astype(str).str.strip()
+
+                # Make sure we have city column
+                if 'city' not in df.columns:
+                    df['city'] = 'Columbus'
+
+                self.property_df = df
+                logger.info(f"Loaded {len(df)} property records from CSV")
+                return True
+
+            except Exception as e:
+                logger.warning(f"Error loading CSV: {e}, trying Parcel.xlsx...")
+
+        # Fallback to Parcel.xlsx
         if not self.parcel_file.exists():
-            logger.warning(f"Parcel.xlsx not found at {self.parcel_file}")
+            logger.warning(f"No property data found")
             return False
 
         try:
-            logger.info("Loading Franklin County property records...")
+            logger.info("Loading Franklin County property records from Parcel.xlsx...")
 
             df = pd.read_excel(self.parcel_file, engine='openpyxl')
 
