@@ -247,6 +247,9 @@ def load_calls():
 
 def save_call(call_data):
     """Save a call log entry to database and CSV"""
+    from datetime import datetime
+    print(f"[{datetime.now()}] SAVE_CALL: Attempting to save call for {call_data.get('va_name')} - {call_data.get('address')}")
+
     # Save to PostgreSQL first
     if DB_AUTH_AVAILABLE:
         try:
@@ -270,11 +273,16 @@ def save_call(call_data):
             ))
             conn.commit()
             conn.close()
-            print(f"Call saved to database: {call_data.get('va_name')} - {call_data.get('result')}")
+            print(f"[{datetime.now()}] SAVE_CALL SUCCESS: {call_data.get('va_name')} - {call_data.get('result')} - {call_data.get('address')}")
+            return True
         except Exception as e:
             import traceback
-            print(f"Database error in save_call: {e}")
+            print(f"[{datetime.now()}] SAVE_CALL ERROR: {e}")
             traceback.print_exc()
+            return False
+    else:
+        print(f"[{datetime.now()}] SAVE_CALL: DB_AUTH not available, skipping database save")
+        return False
 
     # Also save to CSV for backward compatibility
     calls_df = pd.DataFrame()
