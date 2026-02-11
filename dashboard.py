@@ -1533,8 +1533,18 @@ elif page == "📞 Skip Trace":
                                 success_count += 1
                                 df.at[idx, 'phone'] = result.primary_phone
                                 df.at[idx, 'email'] = result.primary_email
+                                # Save ALL phone numbers (up to 6)
                                 if len(result.phones) > 1:
                                     df.at[idx, 'phone_2'] = result.phones[1]
+                                if len(result.phones) > 2:
+                                    df.at[idx, 'phone_3'] = result.phones[2]
+                                if len(result.phones) > 3:
+                                    df.at[idx, 'phone_4'] = result.phones[3]
+                                if len(result.phones) > 4:
+                                    df.at[idx, 'phone_5'] = result.phones[4]
+                                if len(result.phones) > 5:
+                                    df.at[idx, 'phone_6'] = result.phones[5]
+                                # Save all emails
                                 if len(result.emails) > 1:
                                     df.at[idx, 'email_2'] = result.emails[1]
                                 df.at[idx, 'skip_traced'] = True
@@ -1744,6 +1754,10 @@ elif page == "📞 Skip Trace":
                                     'owner_name': row['owner_name'],
                                     'phone': result.primary_phone,
                                     'phone_2': result.phones[1] if len(result.phones) > 1 else None,
+                                    'phone_3': result.phones[2] if len(result.phones) > 2 else None,
+                                    'phone_4': result.phones[3] if len(result.phones) > 3 else None,
+                                    'phone_5': result.phones[4] if len(result.phones) > 4 else None,
+                                    'phone_6': result.phones[5] if len(result.phones) > 5 else None,
                                     'email': result.primary_email,
                                     'email_2': result.emails[1] if len(result.emails) > 1 else None,
                                     'success': result.success,
@@ -1751,12 +1765,20 @@ elif page == "📞 Skip Trace":
                                     'original_idx': original_idx
                                 })
 
-                                # Update the main DataFrame
+                                # Update the main DataFrame with ALL phones
                                 if result.success:
                                     df.at[original_idx, 'phone'] = result.primary_phone
                                     df.at[original_idx, 'email'] = result.primary_email
                                     if len(result.phones) > 1:
                                         df.at[original_idx, 'phone_2'] = result.phones[1]
+                                    if len(result.phones) > 2:
+                                        df.at[original_idx, 'phone_3'] = result.phones[2]
+                                    if len(result.phones) > 3:
+                                        df.at[original_idx, 'phone_4'] = result.phones[3]
+                                    if len(result.phones) > 4:
+                                        df.at[original_idx, 'phone_5'] = result.phones[4]
+                                    if len(result.phones) > 5:
+                                        df.at[original_idx, 'phone_6'] = result.phones[5]
                                     if len(result.emails) > 1:
                                         df.at[original_idx, 'email_2'] = result.emails[1]
                                     df.at[original_idx, 'skip_traced'] = True
