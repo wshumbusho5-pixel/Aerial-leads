@@ -222,3 +222,7 @@
 2026-02-09 22:30:57 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
 2026-02-09 22:32:23 - VAManager - INFO - Assigned 43 leads to VA-CYRUS-1907
 2026-02-09 22:33:24 - DNCChecker - INFO - DNCChecker initialized. Local DNC numbers: 0
+2026-02-10 17:04:09 - MarketLoader - INFO - Loading market config: columbus_oh
+2026-02-10 17:04:09 - ScraperFactory - INFO - Creating tax scraper for Columbus, Ohio (type: excel)
+2026-02-10 17:04:09 - ExcelLoader[columbus_oh] - INFO - Loading Columbus, Ohio tax data from Excel files...
+2026-02-10 17:04:09 - ExcelLoader[columbus_oh] - INFO - Loading TaxDetail.xlsx...
