@@ -1084,9 +1084,11 @@ def show_leads_page(leads_df, va_name):
 
     # Phone setup section - Browser Dialer is default
     with st.expander("📱 Call Settings", expanded=True):
-        # Initialize calling mode in session state
+        # Force browser mode (reset any cached 'simple' mode from earlier deployment)
+        if st.session_state.get('calling_mode') == 'simple':
+            st.session_state.calling_mode = 'browser'
         if 'calling_mode' not in st.session_state:
-            st.session_state.calling_mode = 'browser'  # Default to browser dialer
+            st.session_state.calling_mode = 'browser'
 
         st.markdown("### Calling Method")
 
