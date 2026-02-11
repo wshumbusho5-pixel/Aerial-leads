@@ -192,16 +192,45 @@ class BatchDataProvider(SkipTraceProvider):
                 error_message="No match found"
             )
 
-        # Extract phone numbers
+        # Extract phone numbers from ALL possible fields
         phones = []
-        phone_data = person.get('phoneNumbers', [])
-        for phone in phone_data:
-            if isinstance(phone, dict):
-                number = phone.get('number')
+        seen_phones = set()  # Avoid duplicates
+
+        # Check multiple possible phone fields in BatchData response
+        phone_fields = ['phoneNumbers', 'phones', 'phone', 'mobilePhones', 'landlinePhones']
+        for field in phone_fields:
+            phone_data = person.get(field, [])
+            if isinstance(phone_data, str):
+                phone_data = [phone_data]
+            elif isinstance(phone_data, dict):
+                phone_data = [phone_data]
+
+            for phone in phone_data:
+                number = None
+                if isinstance(phone, dict):
+                    number = phone.get('number') or phone.get('phoneNumber') or phone.get('phone')
+                elif isinstance(phone, str):
+                    number = phone
+
                 if number:
-                    phones.append(self._format_phone(number))
-            elif isinstance(phone, str):
-                phones.append(self._format_phone(phone))
+                    formatted = self._format_phone(number)
+                    digits = ''.join(c for c in formatted if c.isdigit())
+                    if digits and digits not in seen_phones and len(digits) >= 10:
+                        seen_phones.add(digits)
+                        phones.append(formatted)
+
+        # Also check for individual phone fields
+        for single_field in ['mobilePhone', 'cellPhone', 'landlinePhone', 'homePhone', 'workPhone']:
+            single_phone = person.get(single_field)
+            if single_phone:
+                if isinstance(single_phone, dict):
+                    single_phone = single_phone.get('number') or single_phone.get('phone')
+                if single_phone:
+                    formatted = self._format_phone(str(single_phone))
+                    digits = ''.join(c for c in formatted if c.isdigit())
+                    if digits and digits not in seen_phones and len(digits) >= 10:
+                        seen_phones.add(digits)
+                        phones.append(formatted)
 
         # Extract emails
         emails = []
