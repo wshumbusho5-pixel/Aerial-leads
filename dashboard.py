@@ -298,6 +298,20 @@ elif page == "🚀 Generate Leads":
 
     st.markdown("---")
 
+    # Owner Type Filter - CRITICAL for cold calling success
+    st.markdown("#### 👤 Owner Type Filter")
+    owner_type_col1, owner_type_col2 = st.columns(2)
+    with owner_type_col1:
+        individuals_only = st.checkbox(
+            "🎯 Individuals Only (RECOMMENDED for cold calling)",
+            value=True,
+            help="Filter out LLCs, corporations, trusts - these are hard to reach by phone. Keep only individual homeowners who actually answer calls."
+        )
+    with owner_type_col2:
+        st.info("💡 **Pro tip:** Individual owners have 80-90% skip trace success. LLCs only 40-50% and usually reach a registered agent, not the decision maker.")
+
+    st.markdown("---")
+
     # Probate & Foreclosure Integration Options
     st.markdown("#### Boost with Probate & Pre-Foreclosure Data")
     col3, col4 = st.columns(2)
@@ -339,6 +353,40 @@ elif page == "🚀 Generate Leads":
 
             progress_bar.progress(30)
             st.success(f"✅ Loaded {len(df)} properties")
+
+            # Step 1.3: Filter to individuals only (for better cold calling results)
+            if individuals_only and 'owner_name' in df.columns:
+                status_text.text("👤 Filtering to individual owners...")
+
+                # Entity keywords that indicate LLCs, corporations, trusts
+                ENTITY_KEYWORDS = [
+                    ' LLC', ' L.L.C', ' INC', ' CORP', ' CO,', ' CO ',
+                    ' TRUST', ' TRS', ' TRUSTEE', ' ESTATE OF',
+                    ' LP', ' L.P.', ' LLP', ' L.L.P', ' LTD', ' LIMITED',
+                    ' HOLDINGS', ' INVESTMENTS', ' INVESTMENT', ' PROPERTIES', ' PROPERTY',
+                    ' PARTNERS', ' PARTNERSHIP', ' GROUP', ' CAPITAL',
+                    ' CHURCH', ' MINISTRIES', ' MINISTRY', ' FOUNDATION',
+                    ' BANK', ' CREDIT UNION', ' MORTGAGE',
+                    ' REALTY', ' REAL ESTATE', ' RENTAL', ' RENTALS',
+                    ' MANAGEMENT', ' ASSET', ' ASSETS', ' VENTURES',
+                    ' COUNTY', ' STATE OF', ' CITY OF', ' FORFEITURE'
+                ]
+
+                def is_individual(name):
+                    if pd.isna(name):
+                        return False
+                    name_upper = str(name).upper()
+                    return not any(kw in name_upper for kw in ENTITY_KEYWORDS)
+
+                total_before = len(df)
+                df = df[df['owner_name'].apply(is_individual)]
+                total_after = len(df)
+                entities_removed = total_before - total_after
+
+                st.info(f"👤 Filtered to {total_after} individual owners (removed {entities_removed} LLCs/entities)")
+
+                if total_after == 0:
+                    st.warning("⚠️ No individual owners found! Try unchecking 'Individuals Only' or increasing the number of properties.")
 
             # Step 1.5: Integrate Probate & Sheriff Sale Data
             probate_df = None
