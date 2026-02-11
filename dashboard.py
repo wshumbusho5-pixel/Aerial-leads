@@ -352,68 +352,6 @@ elif page == "🚀 Generate Leads":
 
     st.markdown("---")
 
-    # Check if tax data files exist
-    tax_data_dir = DATA_DIR / 'sellers' / 'raw' / 'columbus_oh'
-    tax_detail_file = tax_data_dir / 'TaxDetail.xlsx'
-    parcel_file = tax_data_dir / 'Parcel.xlsx'
-    value_file = tax_data_dir / 'Value.xlsx'
-
-    files_exist = tax_detail_file.exists() and parcel_file.exists()
-
-    if not files_exist:
-        st.warning("⚠️ **Tax data files not found!** You need to upload Franklin County data files to generate leads.")
-
-        with st.expander("📁 Upload Franklin County Tax Data", expanded=True):
-            st.markdown("""
-            **Download these files from Franklin County:**
-            1. Go to [Franklin County Auditor Data](https://apps.franklincountyauditor.com/Outside_User_Files/)
-            2. Download: `TaxDetail.xlsx`, `Parcel.xlsx`, `Value.xlsx`
-            3. Upload them below:
-            """)
-
-            upload_col1, upload_col2, upload_col3 = st.columns(3)
-
-            with upload_col1:
-                tax_upload = st.file_uploader("TaxDetail.xlsx", type=['xlsx', 'csv'], key="tax_upload")
-                if tax_upload:
-                    tax_data_dir.mkdir(parents=True, exist_ok=True)
-                    with open(tax_detail_file, 'wb') as f:
-                        f.write(tax_upload.getbuffer())
-                    st.success("✅ TaxDetail uploaded!")
-
-            with upload_col2:
-                parcel_upload = st.file_uploader("Parcel.xlsx", type=['xlsx', 'csv'], key="parcel_upload")
-                if parcel_upload:
-                    tax_data_dir.mkdir(parents=True, exist_ok=True)
-                    with open(parcel_file, 'wb') as f:
-                        f.write(parcel_upload.getbuffer())
-                    st.success("✅ Parcel uploaded!")
-
-            with upload_col3:
-                value_upload = st.file_uploader("Value.xlsx", type=['xlsx', 'csv'], key="value_upload")
-                if value_upload:
-                    tax_data_dir.mkdir(parents=True, exist_ok=True)
-                    with open(value_file, 'wb') as f:
-                        f.write(value_upload.getbuffer())
-                    st.success("✅ Value uploaded!")
-
-            # Also allow direct CSV upload
-            st.markdown("---")
-            st.markdown("**Or upload your own lead list (CSV):**")
-            custom_upload = st.file_uploader("Upload custom leads CSV", type=['csv'], key="custom_leads_upload")
-            if custom_upload:
-                custom_df = pd.read_csv(custom_upload)
-                st.write(f"Preview: {len(custom_df)} leads")
-                st.dataframe(custom_df.head())
-
-                if st.button("💾 Save as Lead List", key="save_custom"):
-                    output_path = PROCESSED_DATA_DIR / f'custom_leads_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
-                    custom_df.to_csv(output_path, index=False)
-                    st.success(f"✅ Saved to {output_path.name}! You can now assign these in VA Management.")
-
-            if tax_upload and parcel_upload:
-                st.info("✅ Required files uploaded! Click 'Generate Leads Now' below.")
-
     if st.button("🚀 Generate Leads Now", type="primary"):
         progress_bar = st.progress(0)
         status_text = st.empty()
@@ -423,26 +361,15 @@ elif page == "🚀 Generate Leads":
             status_text.text("📊 Loading tax delinquent properties...")
             progress_bar.progress(10)
 
-            # Check if files exist first
-            if not tax_detail_file.exists():
-                st.error("❌ **TaxDetail.xlsx not found!** Please upload the Franklin County tax data files above.")
-                st.stop()
-
             # Use market config and factory for year_built support
             market = load_market('columbus_oh')
             loader = ScraperFactory.create_tax_scraper(market)
-
-            try:
-                df = loader.load_tax_delinquent_properties(
-                    min_amount_owed=min_tax_debt,
-                    min_years_delinquent=min_years,
-                    filter_by_zip=columbus_only,
-                    max_properties=num_properties
-                )
-            except FileNotFoundError as fnf:
-                st.error(f"❌ **Missing data file:** {fnf}")
-                st.info("📁 Please upload the required Franklin County Excel files above.")
-                st.stop()
+            df = loader.load_tax_delinquent_properties(
+                min_amount_owed=min_tax_debt,
+                min_years_delinquent=min_years,
+                filter_by_zip=columbus_only,
+                max_properties=num_properties
+            )
 
             progress_bar.progress(30)
             st.success(f"✅ Loaded {len(df)} properties")
