@@ -55,24 +55,36 @@ class BatchDataProvider(SkipTraceProvider):
 
     def _normalize_name(self, name: str) -> str:
         """
-        Convert name from "LASTNAME, FIRSTNAME" to "FIRSTNAME LASTNAME" format.
+        Convert name from "LASTNAME FIRSTNAME" or "LASTNAME, FIRSTNAME" to "FIRSTNAME LASTNAME" format.
 
         BatchData works better with "FIRSTNAME LASTNAME" format.
         """
         if not name:
             return name
 
-        name = name.strip()
+        name = name.strip().upper()
+
+        # Remove common suffixes that confuse matching
+        suffixes = [' JR', ' SR', ' II', ' III', ' IV', ' TTEE', ' TRUSTEE', ' ET AL', ' ETAL']
+        for suffix in suffixes:
+            if name.endswith(suffix):
+                name = name[:-len(suffix)].strip()
 
         # Check if name is in "LASTNAME, FIRSTNAME" format
         if ',' in name:
             parts = name.split(',', 1)
             if len(parts) == 2:
                 last_name = parts[0].strip()
-                first_name = parts[1].strip()
-                # Remove suffixes like "JR.", "SR.", "III" from first name part
-                first_name = first_name.split()[0] if first_name else ''
+                first_name = parts[1].strip().split()[0] if parts[1].strip() else ''
                 return f"{first_name} {last_name}".strip()
+
+        # Handle "LASTNAME FIRSTNAME MIDDLE" format (no comma)
+        # Assume first word is last name, rest is first name
+        parts = name.split()
+        if len(parts) >= 2:
+            last_name = parts[0]
+            first_name = parts[1]  # Take just the first name, ignore middle
+            return f"{first_name} {last_name}".strip()
 
         return name
 
