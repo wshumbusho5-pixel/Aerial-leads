@@ -322,7 +322,7 @@ async def sitemap():
     # Add individual property pages
     df = load_properties()
     if not df.empty and "slug" in df.columns:
-        for slug in df["slug"].dropna().unique()[:5000]:  # cap at 5000 per sitemap spec
+        for slug in df["slug"].dropna().unique()[:50000]:  # sitemap spec allows up to 50,000 URLs
             urls.append(f"    <url><loc>{base_url}/property/{slug}</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>")
 
     content = '<?xml version="1.0" encoding="UTF-8"?>\n'
