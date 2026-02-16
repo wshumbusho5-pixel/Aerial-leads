@@ -1,57 +1,46 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="hero" style="text-align: left; padding: 4rem 2rem;">
-    <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
-        <div>
-            <p style="color: #4CAF50; font-weight: 600; margin-bottom: 0.5rem;">We Buy Houses Columbus Ohio. Cash Offers in 24 Hours.</p>
-            <h1 style="font-size: 2.75rem; line-height: 1.2;">When No One Was There For My Family, I Made a Promise</h1>
-            <p style="font-size: 1.1rem; margin: 1.5rem 0; opacity: 0.9;">
-                I watched my father lose our childhood home to tax delinquency. No one helped. No one cared.
-                That pain drives me every single day.
-            </p>
-            <p style="font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.9;">
-                If you're facing foreclosure, back taxes, or need to sell fast. I will show up for you.
-                Real person. Fair offer. No judgment.
-            </p>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                <a href="/get-offer" class="btn btn-primary">Get a Fair Cash Offer</a>
-                <a href="/about" class="btn btn-secondary">Read My Story</a>
-            </div>
+<section class="hero" style="text-align: center; padding: 5rem 2rem;">
+    <div style="max-width: 800px; margin: 0 auto;">
+        <p style="color: #4ade80; font-weight: 600; font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem;">Ohio Cash Home Buyers. Serving Columbus and Cincinnati.</p>
+        <h1 style="font-size: 3rem; line-height: 1.1; margin-bottom: 1.5rem;">We Buy Houses Fast.<br>Cash. As-Is. No Fees.</h1>
+        <p style="font-size: 1.2rem; color: #9ca3af; max-width: 580px; margin: 0 auto 2rem; line-height: 1.7;">
+            Foreclosure. Back taxes. Probate. Inherited property. Whatever your situation,
+            Lifeline Home Buyers has the capital and experience to close quickly and treat you right.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/get-offer" class="btn btn-primary" style="font-size: 1.05rem; padding: 1rem 2rem;">Get Your Cash Offer</a>
+            <a href="/about" class="btn btn-secondary" style="font-size: 1.05rem; padding: 1rem 2rem;">How We Work</a>
         </div>
-        <div style="text-align: center;">
-            <img src="/static/willy.jpg" alt="Willy Shumbusho, Founder of Lifeline Home Buyers" style="width: 300px; height: 300px; border-radius: 50%; object-fit: cover; object-position: center top; margin: 0 auto; display: block; border: 4px solid #16a34a;">
-            <p style="margin-top: 1rem; font-weight: 600;">Willy Shumbusho</p>
-            <p style="opacity: 0.7; font-size: 0.9rem;">Founder, Lifeline Home Buyers</p>
-            <p style="opacity: 0.6; font-size: 0.8rem; margin-top: 0.25rem;">Columbus, Ohio · Since 2022</p>
-        </div>
+        <p style="margin-top: 1.25rem; color: #6b7280; font-size: 0.85rem;">No obligation. No fees. Response within 24 hours.</p>
     </div>
 </section>
 
-<div style="background: #1a1a2e; color: white; padding: 1.5rem 2rem;">
+<div style="background: #0d1117; color: white; padding: 1.5rem 2rem; border-top: 1px solid rgba(74,222,128,0.12); border-bottom: 1px solid rgba(74,222,128,0.12);">
     <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 1rem; text-align: center;">
         <div>
             <strong style="font-size: 1.5rem;">$0</strong>
-            <p style="opacity: 0.7; font-size: 0.85rem;">Fees or Commissions</p>
+            <p style="opacity: 0.6; font-size: 0.85rem; margin-top: 0.25rem;">Fees or Commissions</p>
         </div>
         <div>
             <strong style="font-size: 1.5rem;">24 Hours</strong>
-            <p style="opacity: 0.7; font-size: 0.85rem;">To Receive Your Offer</p>
+            <p style="opacity: 0.6; font-size: 0.85rem; margin-top: 0.25rem;">To Receive Your Offer</p>
         </div>
         <div>
             <strong style="font-size: 1.5rem;">As-Is</strong>
-            <p style="opacity: 0.7; font-size: 0.85rem;">No Repairs. No Cleaning.</p>
+            <p style="opacity: 0.6; font-size: 0.85rem; margin-top: 0.25rem;">No Repairs. No Cleaning.</p>
         </div>
         <div>
             <strong style="font-size: 1.5rem;">7 Days</strong>
-            <p style="opacity: 0.7; font-size: 0.85rem;">Fastest Closing Available</p>
+            <p style="opacity: 0.6; font-size: 0.85rem; margin-top: 0.25rem;">Fastest Closing Available</p>
         </div>
     </div>
 </div>
 
 <section class="section" style="background: white;">
     <div class="container">
-        <h2 class="section-title">Columbus Homeowners Trust Lifeline</h2>
+        <h2 class="section-title">Ohio Homeowners Trust Lifeline</h2>
         <div class="stats-grid">
             <div class="stat-item">
                 <h3>{{ stats.total_properties }}+</h3>
@@ -123,6 +112,28 @@
                 <h3>Need to Sell Fast</h3>
                 <p>Relocating, divorcing, or simply done waiting, we close faster than any buyer on the market.</p>
                 <a href="/get-offer" class="btn btn-primary" style="margin-top: 1rem;">Get Offer</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container" style="max-width: 900px;">
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 2.5rem; align-items: center;">
+            <div style="text-align: center;">
+                <img src="/static/willy.jpg" alt="Willy Shumbusho, Founder of Lifeline Home Buyers"
+                     style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; object-position: center top; border: 3px solid #16a34a; display: block; margin: 0 auto;">
+                <p style="font-size: 0.8rem; font-weight: 600; margin-top: 0.6rem; color: #374151;">Willy Shumbusho</p>
+                <p style="font-size: 0.72rem; color: #9ca3af;">Founder</p>
+            </div>
+            <div>
+                <p style="font-size: 0.8rem; font-weight: 700; color: #16a34a; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem;">Why Lifeline Exists</p>
+                <h2 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.75rem; color: #111827;">Built by someone who has been on your side of the table.</h2>
+                <p style="color: #6b7280; line-height: 1.7; margin-bottom: 1rem;">
+                    Lifeline was founded because there is a gap in this market that no corporate buyer will ever fill.
+                    We bring the resources to close and the integrity to do it right.
+                </p>
+                <a href="/about" style="color: #16a34a; font-weight: 600; font-size: 0.9rem; text-decoration: none;">Read the full story &rarr;</a>
             </div>
         </div>
     </div>
