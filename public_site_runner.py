@@ -238,6 +238,27 @@ def load_leads():
             logger.error(f"Failed to load leads: {e}")
     return pd.DataFrame()
 
+
+def load_properties():
+    """Load public-safe property pages CSV (no owner names or phone numbers)."""
+    props_file = PROCESSED_DATA_DIR / "public_properties.csv"
+    if props_file.exists():
+        try:
+            df = pd.read_csv(props_file)
+            # Ensure slug column exists
+            if "slug" not in df.columns and "address" in df.columns:
+                import re
+                def make_slug(addr):
+                    text = f"{addr} columbus oh".lower()
+                    text = re.sub(r"[^a-z0-9\s-]", "", text)
+                    text = re.sub(r"\s+", "-", text.strip())
+                    return re.sub(r"-+", "-", text)
+                df["slug"] = df["address"].apply(make_slug)
+            return df
+        except Exception as e:
+            logger.error(f"Failed to load properties: {e}")
+    return pd.DataFrame()
+
 app = FastAPI(title="Lifeline Home Buyers")
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "public_site" / "static")), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -279,19 +300,36 @@ Sitemap: https://life-line-homebuyers.com/sitemap.xml
 
 @app.get("/sitemap.xml")
 async def sitemap():
-    """XML sitemap for Google indexing."""
+    """XML sitemap for Google indexing — includes all property pages."""
     base_url = "https://life-line-homebuyers.com"
-    content = f"""<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    <url><loc>{base_url}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-    <url><loc>{base_url}/about</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-    <url><loc>{base_url}/get-offer</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-    <url><loc>{base_url}/probate</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-    <url><loc>{base_url}/tax-delinquent</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-    <url><loc>{base_url}/calculator</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-    <url><loc>{base_url}/we-buy-houses</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-    <url><loc>{base_url}/sell-house-fast</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-</urlset>"""
+
+    static_pages = [
+        (f"{base_url}/", "weekly", "1.0"),
+        (f"{base_url}/about", "monthly", "0.8"),
+        (f"{base_url}/get-offer", "monthly", "0.9"),
+        (f"{base_url}/probate", "weekly", "0.8"),
+        (f"{base_url}/tax-delinquent", "weekly", "0.8"),
+        (f"{base_url}/properties", "weekly", "0.7"),
+        (f"{base_url}/calculator", "monthly", "0.7"),
+        (f"{base_url}/we-buy-houses", "monthly", "0.8"),
+        (f"{base_url}/sell-house-fast", "monthly", "0.8"),
+    ]
+
+    urls = []
+    for loc, freq, priority in static_pages:
+        urls.append(f"    <url><loc>{loc}</loc><changefreq>{freq}</changefreq><priority>{priority}</priority></url>")
+
+    # Add individual property pages
+    df = load_properties()
+    if not df.empty and "slug" in df.columns:
+        for slug in df["slug"].dropna().unique()[:5000]:  # cap at 5000 per sitemap spec
+            urls.append(f"    <url><loc>{base_url}/property/{slug}</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>")
+
+    content = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    content += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    content += "\n".join(urls)
+    content += "\n</urlset>"
+
     return HTMLResponse(content=content, media_type="application/xml")
 
 
@@ -351,6 +389,97 @@ async def tax_delinquent(request: Request):
         "page_title": "Tax Delinquent Help | Lifeline Home Buyers",
         "meta_description": "Behind on taxes? We can help."
     })
+
+@app.get("/property/{slug}", response_class=HTMLResponse)
+async def property_detail(request: Request, slug: str):
+    """Individual property page — ranks for address searches."""
+    df = load_properties()
+    if df.empty or "slug" not in df.columns:
+        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+
+    match = df[df["slug"] == slug]
+    if match.empty:
+        return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+
+    prop = match.iloc[0].where(match.iloc[0].notna(), other=None).to_dict()
+
+    # Build value display string
+    val_low = prop.get("val_low")
+    val_high = prop.get("val_high")
+    if val_low and val_high:
+        value_range = f"${val_low:,} – ${val_high:,}"
+    else:
+        value_range = None
+
+    # Build taxes display
+    taxes_owed = prop.get("taxes_owed")
+    taxes_display = f"${int(taxes_owed):,}" if taxes_owed else None
+
+    address = prop.get("address", "")
+    city = prop.get("city", "Columbus")
+    neighborhood = prop.get("neighborhood", "Columbus")
+    lead_type = prop.get("lead_type", "motivated_seller")
+
+    # SEO title and description per property
+    if lead_type == "probate":
+        page_title = f"{address}, {city} OH | Inherited Property Cash Offer | Lifeline Home Buyers"
+        meta_desc = f"We buy inherited properties in {neighborhood}, Columbus OH. {address} — get a cash offer with no repairs, no fees, no hassle."
+    elif lead_type == "tax_delinquent":
+        page_title = f"{address}, {city} OH | Behind on Taxes? Sell Fast | Lifeline Home Buyers"
+        meta_desc = f"Property at {address} in {neighborhood}, Columbus OH has outstanding taxes. We buy as-is, pay off back taxes, close in 7 days."
+    elif lead_type == "sheriff_sale":
+        page_title = f"{address}, {city} OH | Stop Foreclosure | Lifeline Home Buyers"
+        meta_desc = f"Facing foreclosure on {address} in {neighborhood}? We buy before the sheriff sale. Cash offer within 24 hours."
+    else:
+        page_title = f"{address}, {city} OH | Cash Home Buyer | Lifeline Home Buyers"
+        meta_desc = f"We're looking to buy {address} in {neighborhood}, Columbus OH. Get a cash offer with no repairs or agent fees."
+
+    return templates.TemplateResponse("property_detail.html", {
+        "request": request,
+        "property": prop,
+        "slug": slug,
+        "value_range": value_range,
+        "taxes_display": taxes_display,
+        "neighborhood": neighborhood,
+        "page_title": page_title,
+        "meta_description": meta_desc,
+    })
+
+
+@app.get("/properties", response_class=HTMLResponse)
+async def property_list(request: Request, type: str = None, page: int = 1):
+    """Browseable list of all properties by type."""
+    df = load_properties()
+
+    if not df.empty and type:
+        df = df[df["lead_type"] == type]
+
+    per_page = 24
+    total = len(df)
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    properties = df.iloc[start:end].to_dict("records") if total > 0 else []
+
+    type_labels = {
+        "probate": "Inherited / Probate Properties",
+        "tax_delinquent": "Tax Delinquent Properties",
+        "sheriff_sale": "Foreclosure / Sheriff Sale Properties",
+        "code_violation": "Code Violation Properties",
+    }
+
+    return templates.TemplateResponse("property_list.html", {
+        "request": request,
+        "properties": properties,
+        "total": total,
+        "page": page,
+        "total_pages": total_pages,
+        "filter_type": type or "",
+        "type_label": type_labels.get(type, "All Properties"),
+        "page_title": f"{type_labels.get(type, 'Distressed Properties')} in Columbus OH | Lifeline Home Buyers",
+        "meta_description": f"We buy {type_labels.get(type, 'distressed properties').lower()} in Columbus, Ohio for cash. Browse our active list.",
+    })
+
 
 @app.get("/calculator", response_class=HTMLResponse)
 async def calculator(request: Request):

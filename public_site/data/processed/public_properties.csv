@@ -1,0 +1,468 @@
+slug,address,city,zip,state,neighborhood,lead_type,assessed_value,val_low,val_high,taxes_owed,years_delinquent,source_file,imported_at
+392-midland-av-columbus-oh,392 Midland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+350-352-12-innis-av-columbus-oh,350 352 1/2 Innis Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2227-w-broad-st-columbus-oh,2227 W Broad St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+584-siebert-st-columbus-oh,584 Siebert St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1355-1359-grandview-av-columbus-oh,1355 1359 Grandview Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+294-midland-av-columbus-oh,294 Midland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+242-n-grant-av-columbus-oh,242 N Grant Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1220-e-sixteenth-av-columbus-oh,1220 E Sixteenth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+0-homewood-av-columbus-oh,0 Homewood Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+190-n-warren-columbus-oh,190 N Warren,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1468-e-fourth-av-columbus-oh,1468 E Fourth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1890-cleveland-av-columbus-oh,1890 Cleveland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2200-cleveland-av-columbus-oh,2200 Cleveland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+598-e-markison-av-columbus-oh,598 E Markison Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1572-walsh-av-columbus-oh,1572 Walsh Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+0-w-mound-st-columbus-oh,0 W Mound St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1012-n-cleveland-av-columbus-oh,1012 N Cleveland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1219-e-fulton-st-columbus-oh,1219 E Fulton St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+514-wilson-av-columbus-oh,514 Wilson Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1247-mcallister-av-columbus-oh,1247 Mcallister Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1231-hildreth-av-columbus-oh,1231 Hildreth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+528-s-oakley-av-columbus-oh,528 S Oakley Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1380-mt-vernon-av-columbus-oh,1380 Mt Vernon Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1056-cable-av-columbus-oh,1056 Cable Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1832-minnesota-av-columbus-oh,1832 Minnesota Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+776-n-drexel-av-columbus-oh,776 N Drexel Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+863-studer-av-columbus-oh,863 Studer Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+218-lechner-av-columbus-oh,218 Lechner Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1936-floral-av-columbus-oh,1936 Floral Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+412-clarendon-av-columbus-oh,412 Clarendon Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2581-parkwood-av-columbus-oh,2581 Parkwood Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+64-brehl-av-columbus-oh,64 Brehl Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+688-lilley-av-columbus-oh,688 Lilley Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+536-ryan-av-columbus-oh,536 Ryan Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+374-376-welch-av-columbus-oh,374 376 Welch Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+870-e-twelfth-av-columbus-oh,870 E Twelfth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+182-188-e-thirteenth-av-columbus-oh,182 188 E Thirteenth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+179-nashoba-av-columbus-oh,179 Nashoba Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1094-leona-av-columbus-oh,1094 Leona Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1010-e-deshler-av-columbus-oh,1010 E Deshler Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+95-s-warren-av-columbus-oh,95 S Warren Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1431-e-eastwood-av-columbus-oh,1431 E Eastwood Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+499-bonham-av-columbus-oh,499 Bonham Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2148-avalon-pl-columbus-oh,2148 Avalon Pl,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+859-861-old-leonard-av-columbus-oh,859 - 861  Old Leonard Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+982-e-twelfth-av-columbus-oh,982 E Twelfth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1396-studer-av-columbus-oh,1396 Studer Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+840-842-w-sullivant-av-columbus-oh,840 842 W Sullivant Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+145-s-warren-av-columbus-oh,145 S Warren Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1075-miller-av-columbus-oh,1075 Miller Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+892-heyl-av-columbus-oh,892 Heyl Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+319-kendall-pl-columbus-oh,319 Kendall Pl,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+171-s-warren-av-columbus-oh,171 S Warren Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+22-innis-av-columbus-oh,22 Innis Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+3387-deshler-av-columbus-oh,3387 Deshler Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+764-st-clair-av-columbus-oh,764 St Clair Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1826-1828-12-parsons-av-columbus-oh,1826 1828 1/2 Parsons Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+179-n-warren-av-columbus-oh,179 N Warren Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+0-barthman-av-columbus-oh,0 Barthman Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+531-533-armstrong-st-columbus-oh,531 533 Armstrong St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2776-e-sixth-av-columbus-oh,2776 E Sixth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+48-n-twenty-first-st-columbus-oh,48 N Twenty First St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+460-e-frankfort-alley-st-columbus-oh,460 E Frankfort Alley St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+81-83-n-twenty-second-st-columbus-oh,81 83 N Twenty Second St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1460-sullivant-av-columbus-oh,1460 Sullivant Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+969-fourteenth-av-columbus-oh,969 Fourteenth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+355-wheatland-av-columbus-oh,355 Wheatland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+337-guilford-av-columbus-oh,337 Guilford Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+308-highland-av-columbus-oh,308 Highland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2078-cleveland-av-columbus-oh,2078 Cleveland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1617-e-kohr-pl-columbus-oh,1617 E Kohr Pl,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+513-s-warren-av-columbus-oh,513 S Warren Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1960-gladstone-av-columbus-oh,1960 Gladstone Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2318-2320-cleveland-av-columbus-oh,2318 2320 Cleveland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1863-e-rich-st-rear-columbus-oh,1863 E Rich St Rear,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2786-n-audubon-rd-columbus-oh,2786 N Audubon Rd,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+358-s-glenwood-av-columbus-oh,358 S Glenwood Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+559-s-wheatland-av-columbus-oh,559 S Wheatland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1524-manchester-av-columbus-oh,1524 Manchester Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+668-s-ogden-av-columbus-oh,668 S Ogden Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1049-w-fifth-av-columbus-oh,1049 W Fifth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+607-townsend-av-columbus-oh,607 Townsend Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1746-mound-st-columbus-oh,1746 Mound St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2961-sullivant-av-columbus-oh,2961 Sullivant Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2033-denune-av-columbus-oh,2033 Denune Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2016-minnesota-av-columbus-oh,2016 Minnesota Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1857-denune-av-columbus-oh,1857 Denune Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1424-e-maynard-av-columbus-oh,1424 E Maynard Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1707-manchester-av-columbus-oh,1707 Manchester Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+276-s-princeton-av-columbus-oh,276 S Princeton Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+881-e-third-av-columbus-oh,881 E Third Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+345-s-burgess-av-columbus-oh,345 S Burgess Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+402-s-wheatland-av-columbus-oh,402 S Wheatland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+382-s-terrace-av-columbus-oh,382 S Terrace Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1069-camden-av-columbus-oh,1069 Camden Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+454-s-terrace-av-columbus-oh,454 S Terrace Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+1294-e-fifteenth-av-columbus-oh,1294 E Fifteenth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+659-e-third-av-columbus-oh,659 E Third Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 1.csv,2026-02-16
+2122-margaret-av-columbus-oh,2122 Margaret Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+957-e-twelfth-av-columbus-oh,957 E Twelfth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+0-olpp-av-columbus-oh,0 Olpp Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+2470-lexington-av-columbus-oh,2470 Lexington Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+354-wayne-av-columbus-oh,354 Wayne Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1478-genessee-av-columbus-oh,1478 Genessee Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+2679-2681-cleveland-av-columbus-oh,2679 2681 Cleveland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1646-aberdeen-av-columbus-oh,1646 Aberdeen Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+2453-sullivant-av-columbus-oh,2453 Sullivant Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+0-warren-av-columbus-oh,0 Warren Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+248-taylor-av-columbus-oh,248 Taylor Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+67-tompkins-st-columbus-oh,67 Tompkins St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+0-front-st-rear-columbus-oh,0 Front St Rear,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1671-s-franklin-pk-columbus-oh,1671 S Franklin Pk,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+997-mt-vernon-av-columbus-oh,997 Mt Vernon Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1228-1230-mt-vernon-av-columbus-oh,1228 1230 Mt Vernon Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+220-e-jenkins-av-columbus-oh,220 E Jenkins Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+785-787-park-st-columbus-oh,785 787 Park St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1343-e-livingston-av-columbus-oh,1343 E Livingston Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1538-1542-accommodation-av-columbus-oh,1538 1542 Accommodation Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+154-warren-av-columbus-oh,154 Warren Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+410-s-monroe-av-columbus-oh,410 S Monroe Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1945-fairmont-av-columbus-oh,1945 Fairmont Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1603-franklin-av-columbus-oh,1603 Franklin Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+627-seymour-av-columbus-oh,627 Seymour Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1428-twentieth-av-columbus-oh,1428 Twentieth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+0-rhoads-av-columbus-oh,0 Rhoads Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+157-belvidere-av-columbus-oh,157 Belvidere Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+790-e-second-av-columbus-oh,790 E Second Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+98-tulane-rd-columbus-oh,98 Tulane Rd,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+753-s-front-st-columbus-oh,753 S Front St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1480-twenty-fourth-av-columbus-oh,1480 Twenty Fourth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+466-eldridge-av-columbus-oh,466 Eldridge Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+2126-summit-st-columbus-oh,2126 Summit St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1416-gibbard-av-columbus-oh,1416 Gibbard Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+168-lechner-av-columbus-oh,168 Lechner Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1506-1512-w-seventh-av-columbus-oh,1506 1512 W Seventh Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1781-king-av-columbus-oh,1781 King Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1789-king-av-columbus-oh,1789 King Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1469-fourth-av-columbus-oh,1469 Fourth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1562-richmond-av-columbus-oh,1562 Richmond Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1662-w-mound-st-columbus-oh,1662 W Mound St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1285-e-columbus-st-columbus-oh,1285 E Columbus St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+39-rodgers-av-columbus-oh,39 Rodgers Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+216-e-jenkins-av-columbus-oh,216 E Jenkins Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+870-taylor-av-columbus-oh,870 Taylor Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+32-orel-av-columbus-oh,32 Orel Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+852-e-main-st-columbus-oh,852 E Main St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+828-atcheson-st-columbus-oh,828 Atcheson St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1472-twenty-sixth-av-columbus-oh,1472 Twenty Sixth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1176-e-hildreth-av-columbus-oh,1176 E Hildreth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1286-aberdeen-av-columbus-oh,1286 Aberdeen Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+864-ann-st-columbus-oh,864 Ann St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+36-38-e-fifth-av-columbus-oh,36 38 E Fifth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1242-hildreth-av-columbus-oh,1242 Hildreth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+355-belvidere-av-columbus-oh,355 Belvidere Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+589-s-hague-av-columbus-oh,589 S Hague Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+45-stevens-av-columbus-oh,45 Stevens Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+832-834-s-ohio-av-columbus-oh,832 834 S Ohio Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+582-s-hague-av-columbus-oh,582 S Hague Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1443-minnesota-av-columbus-oh,1443 Minnesota Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+572-e-jenkins-av-columbus-oh,572 E Jenkins Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+2575-lexington-av-columbus-oh,2575 Lexington Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+2274-w-sullivant-av-columbus-oh,2274 W Sullivant Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+659-stewart-av-columbus-oh,659 Stewart Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1554-glenn-av-columbus-oh,1554 Glenn Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1447-republic-av-columbus-oh,1447 Republic Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+155-s-harris-av-columbus-oh,155 S Harris Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1018-s-ohio-av-columbus-oh,1018 S Ohio Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1431-e-atcheson-st-columbus-oh,1431 E Atcheson St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+2137-margaret-av-columbus-oh,2137 Margaret Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+97-99-n-terrace-av-columbus-oh,97 99 N Terrace Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+229-231-clarendon-av-columbus-oh,229 231 Clarendon Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+91-93-n-terrace-av-columbus-oh,91 93 N Terrace Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+402-s-richardson-av-columbus-oh,402 S Richardson Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+753-e-gates-st-columbus-oh,753 E Gates St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1052-1054-cable-av-columbus-oh,1052 1054 Cable Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+187-s-twentieth-st-columbus-oh,187 S Twentieth St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+2587-n-high-st-columbus-oh,2587 N High St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+347-sherborne-dr-columbus-oh,347 Sherborne Dr,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+788-berkeley-rd-columbus-oh,788 Berkeley Rd,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1233-hamlet-st-columbus-oh,1233 Hamlet St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+2578-renwood-pl-columbus-oh,2578 Renwood Pl,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+263-s-twentieth-st-columbus-oh,263 S Twentieth St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+310-s-hague-av-columbus-oh,310 S Hague Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+308-clarendon-av-columbus-oh,308 Clarendon Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1128-e-hildreth-av-columbus-oh,1128 E Hildreth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+491-493-s-burgess-av-columbus-oh,491 493 S Burgess Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+64-hayden-av-columbus-oh,64 Hayden Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1928-denbridge-wy-columbus-oh,1928 Denbridge Wy,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+207-e-markison-av-columbus-oh,207 E Markison Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+53-n-roys-av-columbus-oh,53 N Roys Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1333-mt-vernon-av-columbus-oh,1333 Mt Vernon Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh 2.csv,2026-02-16
+1092-e-sixteenth-av-columbus-oh,1092 E Sixteenth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1231-1235-columbus-st-columbus-oh,1231 1235 Columbus St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+2186-cleveland-av-columbus-oh,2186 Cleveland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1472-twenty-fifth-av-columbus-oh,1472 Twenty Fifth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1500-harvard-av-columbus-oh,1500 Harvard Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+130-chicago-av-columbus-oh,130 Chicago Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+130-n-eldon-av-columbus-oh,130 N Eldon Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1622-e-granville-st-columbus-oh,1622 E Granville St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+96-n-hartford-st-columbus-oh,96 N Hartford St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1995-fairmont-av-columbus-oh,1995 Fairmont Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1441-e-kohr-pl-columbus-oh,1441 E Kohr Pl,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1382-e-seventeenth-av-columbus-oh,1382 E Seventeenth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1935-aberdeen-av-columbus-oh,1935 Aberdeen Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+34-s-harris-av-columbus-oh,34 S Harris Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1365-1367-e-eighteenth-av-columbus-oh,1365 1367 E Eighteenth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1127-wellington-bl-columbus-oh,1127 Wellington Bl,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1590-e-maynard-av-columbus-oh,1590 E Maynard Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1300-s-linwood-av-columbus-oh,1300 S Linwood Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+190-192-e-fourth-av-columbus-oh,190 192 E Fourth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1181-s-ohio-av-columbus-oh,1181 S Ohio Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+470-474-s-eighteenth-st-columbus-oh,470 474 S Eighteenth St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+99-n-winner-av-columbus-oh,99 N Winner Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+41-43-n-brinker-av-columbus-oh,41 43 N Brinker Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+0-mooberry-st-columbus-oh,0 Mooberry St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+163-n-warren-columbus-oh,163 N Warren,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1454-1456-e-twenty-fourth-av-columbus-oh,1454 1456 E Twenty Fourth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+2213-margaret-av-columbus-oh,2213 Margaret Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1447-e-cordell-av-columbus-oh,1447 E Cordell Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+317-highland-av-columbus-oh,317 Highland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+504-506-kimball-pl-columbus-oh,504 506 Kimball Pl,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1817-milford-av-columbus-oh,1817 Milford Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+1528-manchester-av-columbus-oh,1528 Manchester Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+426-s-hague-av-columbus-oh,426 S Hague Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh4.csv,2026-02-16
+45-s-harris-av-columbus-oh,45 S Harris Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+830-e-fourth-av-columbus-oh,830 E Fourth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+540-porter-st-columbus-oh,540 Porter St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+705-berkeley-rd-columbus-oh,705 Berkeley Rd,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1664-maryland-av-columbus-oh,1664 Maryland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1987-fairmont-av-columbus-oh,1987 Fairmont Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+797-reinhard-av-columbus-oh,797 Reinhard Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1801-fulton-st-columbus-oh,1801 Fulton St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+924-e-fifteenth-av-columbus-oh,924 E Fifteenth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+2879-lockbourne-rd-columbus-oh,2879 Lockbourne Rd,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1024-linwood-av-columbus-oh,1024 Linwood Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+608-610-berkeley-rd-columbus-oh,608 610 Berkeley Rd,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+746-ann-st-columbus-oh,746 Ann St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+910-lockbourne-rd-columbus-oh,910 Lockbourne Rd,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+0-wellington-bl-columbus-oh,0 Wellington Bl,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+0-franklin-av-columbus-oh,0 Franklin Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+486-s-burgess-av-columbus-oh,486 S Burgess Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1480-1482-s-high-st-columbus-oh,1480 1482 S High St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+2330-ridgeway-av-columbus-oh,2330 Ridgeway Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+276-n-eighteenth-st-columbus-oh,276 N Eighteenth St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+565-mithoff-st-columbus-oh,565 Mithoff St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1153-sullivant-av-columbus-oh,1153 Sullivant Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1111-peters-av-columbus-oh,1111 Peters Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1107-stanley-av-columbus-oh,1107 Stanley Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1558-thomas-av-columbus-oh,1558 Thomas Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+247-whitethorne-av-columbus-oh,247 Whitethorne Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+189-sherborne-av-columbus-oh,189 Sherborne Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1631-1633-pembroke-av-columbus-oh,1631 1633 Pembroke Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+954-956-e-long-st-columbus-oh,954 956 E Long St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+322-n-burt-st-columbus-oh,322 N Burt St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+891-old-leonard-av-columbus-oh,891 Old Leonard Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+2881-e-eleventh-av-columbus-oh,2881 E Eleventh Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+966-linwood-av-columbus-oh,966 Linwood Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+69-71-champion-av-columbus-oh,69 71 Champion Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1277-1279-mooberry-st-columbus-oh,1277 1279 Mooberry St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+0-second-av-columbus-oh,0 Second Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+160-s-burgess-av-columbus-oh,160 S Burgess Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1575-sullivant-av-columbus-oh,1575 Sullivant Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1055-wildwood-av-columbus-oh,1055 Wildwood Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1369-1371-e-livingston-av-columbus-oh,1369 1371 E Livingston Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+769-bedford-av-columbus-oh,769 Bedford Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+2077-dartmouth-av-columbus-oh,2077 Dartmouth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+2063-sullivant-av-columbus-oh,2063 Sullivant Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+927-s-ohio-av-columbus-oh,927 S Ohio Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+129-s-burgess-av-columbus-oh,129 S Burgess Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+192-s-princeton-av-columbus-oh,192 S Princeton Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+478-oakwood-av-columbus-oh,478 Oakwood Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+978-wilson-av-columbus-oh,978 Wilson Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+63-midland-av-columbus-oh,63 Midland Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+750-752-lilley-av-columbus-oh,750 752 Lilley Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+31-s-warren-av-columbus-oh,31 S Warren Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+288-fourteenth-av-columbus-oh,288 Fourteenth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+471-eldridge-av-columbus-oh,471 Eldridge Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+57-59-n-ogden-av-columbus-oh,57 59 N Ogden Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+257-s-oakley-av-columbus-oh,257 S Oakley Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1350-e-seventeenth-av-columbus-oh,1350 E Seventeenth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+918-cassady-av-columbus-oh,918 Cassady Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1454-e-harvard-av-columbus-oh,1454 E Harvard Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+555-fairwood-av-columbus-oh,555 Fairwood Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+859-bellows-av-columbus-oh,859 Bellows Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1774-linden-pl-columbus-oh,1774 Linden Pl,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+208-210-s-powell-av-columbus-oh,208 210 S Powell Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+343-s-powell-av-columbus-oh,343 S Powell Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1618-kossuth-st-columbus-oh,1618 Kossuth St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+85-s-westmoor-av-columbus-oh,85 S Westmoor Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1476-e-kenmore-rd-columbus-oh,1476 E Kenmore Rd,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+156-w-california-av-columbus-oh,156 W California Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+77-n-brinker-av-columbus-oh,77 N Brinker Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+141-141-12-s-ogden-av-columbus-oh,141 141 1/2 S Ogden Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+692-dawson-av-columbus-oh,692 Dawson Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+1527-twenty-sixth-av-columbus-oh,1527 Twenty Sixth Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+696-s-ogden-av-columbus-oh,696 S Ogden Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+2596-azelda-st-columbus-oh,2596 Azelda St,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+686-s-wayne-av-columbus-oh,686 S Wayne Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+432-larcomb-av-columbus-oh,432 Larcomb Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+444-hilltonia-av-columbus-oh,444 Hilltonia Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+515-larcomb-av-columbus-oh,515 Larcomb Av,Columbus,,OH,Columbus,motivated_seller,,,,,,fresh_3.csv,2026-02-16
+3840-e-fifth-av-columbus-oh,3840 E Fifth Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2859-e-thirteenth-av-columbus-oh,2859 E Thirteenth Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+3478-3480-kimberly-av-columbus-oh,3478 3480 Kimberly Av,Columbus,43224,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1278-yolanda-dr-columbus-oh,1278 Yolanda Dr,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+0-middlehurst-dr-rear-columbus-oh,0 Middlehurst Dr Rear,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+0-glasshouse-av-columbus-oh,0 Glasshouse Av,Columbus,43232,OH,Reynoldsburg,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1956-glenn-av-columbus-oh,1956 Glenn Av,Columbus,43212,OH,Grandview Heights,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+0-harrisburg-pi-columbus-oh,0 Harrisburg Pi,Columbus,43223,OH,Southwest Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1657-harrisburg-pk-columbus-oh,1657 Harrisburg Pk,Columbus,43223,OH,Southwest Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1324-brown-rd-columbus-oh,1324 Brown Rd,Columbus,43223,OH,Southwest Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1976-marsdale-av-columbus-oh,1976 Marsdale Av,Columbus,43223,OH,Southwest Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+200-evergreen-te-columbus-oh,200 Evergreen Te,Columbus,43228,OH,Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+4400-currency-dr-columbus-oh,4400 Currency Dr,Columbus,43228,OH,Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+0-holt-rd-columbus-oh,0 Holt Rd,Columbus,43228,OH,Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1431-1437-neil-av-columbus-oh,1431 1437 Neil Av,Columbus,43201,OH,Short North,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1133-s-front-st-columbus-oh,1133 S Front St,Columbus,43206,OH,German Village Area,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2776-indianola-av-columbus-oh,2776 Indianola Av,Columbus,43202,OH,Clintonville,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+523-harris-av-columbus-oh,523 Harris Av,Columbus,43204,OH,Franklinton,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+150-chris-perry-ln-columbus-oh,150 Chris Perry Ln,Columbus,43213,OH,East Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+auden-av-columbus-oh,Auden Av,Columbus,43215,OH,Downtown Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+grandview-crossing-wy-columbus-oh,Grandview Crossing Wy,Columbus,43215,OH,Downtown Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+892-e-hudson-st-columbus-oh,892 E Hudson St,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2569-n-audubon-rd-columbus-oh,2569 N Audubon Rd,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1211-twentieth-av-columbus-oh,1211 Twentieth Av,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+719-e-akola-av-columbus-oh,719 E Akola Av,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2670-pontiac-st-columbus-oh,2670 Pontiac St,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2729-pontiac-st-columbus-oh,2729 Pontiac St,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2815-n-hiawatha-st-columbus-oh,2815 N Hiawatha St,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2783-azelda-st-columbus-oh,2783 Azelda St,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2834-n-hiawatha-st-columbus-oh,2834 N Hiawatha St,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2736-n-audubon-rd-columbus-oh,2736 N Audubon Rd,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+0-greenwich-st-rear-columbus-oh,0 Greenwich St Rear,Columbus,43224,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1125-1131-e-hudson-st-columbus-oh,1125 - 1131 E Hudson St,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2274-n-hamilton-av-columbus-oh,2274 N Hamilton Av,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2356-hiawatha-park-dr-columbus-oh,2356 Hiawatha Park Dr,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2931-cleveland-av-columbus-oh,2931 Cleveland Av,Columbus,43224,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1277-1279-e-hudson-st-columbus-oh,1277 1279 E Hudson St,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1225-twenty-fourth-av-columbus-oh,1225 Twenty Fourth Av,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1859-aberdeen-av-columbus-oh,1859 Aberdeen Av,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+963-kelton-av-columbus-oh,963 Kelton Av,Columbus,43206,OH,German Village Area,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1671-brighton-rd-columbus-oh,1671 Brighton Rd,Columbus,43224,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+848-brentnell-av-columbus-oh,848 Brentnell Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+281-s-lenappe-dr-columbus-oh,281 S Lenappe Dr,Columbus,43214,OH,Beechwold,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+514-napoleon-av-columbus-oh,514 Napoleon Av,Columbus,43213,OH,East Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+904-s-james-rd-columbus-oh,904 S James Rd,Columbus,43227,OH,Whitehall,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+794-chesterfield-rd-columbus-oh,794 Chesterfield Rd,Columbus,43209,OH,Bexley,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+81-ashburton-rd-columbus-oh,81 Ashburton Rd,Columbus,43213,OH,East Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+400-w-fourth-av-columbus-oh,400 W Fourth Av,Columbus,43201,OH,Short North,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+617-morse-rd-columbus-oh,617 Morse Rd,Columbus,43214,OH,Beechwold,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1010-twenty-sixth-av-columbus-oh,1010 Twenty Sixth Av,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1684-duxberry-av-columbus-oh,1684 Duxberry Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1674-marina-dr-columbus-oh,1674 Marina Dr,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+0-cleveland-av-columbus-oh,0 Cleveland Av,Columbus,43224,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+3471-bolton-av-columbus-oh,3471 Bolton Av,Columbus,43227,OH,Whitehall,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1408-ellsworth-av-columbus-oh,1408 Ellsworth Av,Columbus,43206,OH,German Village Area,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1486-windsor-av-columbus-oh,1486 Windsor Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+3880-olentangy-rd-columbus-oh,3880 Olentangy Rd,Columbus,43214,OH,Beechwold,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2101-12-rankin-av-columbus-oh,2101 1/2 Rankin Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2462-dawnlight-av-columbus-oh,2462 Dawnlight Av,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2043-rankin-av-columbus-oh,2043 Rankin Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+244-benfield-av-columbus-oh,244 Benfield Av,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+168-benfield-av-columbus-oh,168 Benfield Av,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+483-glendower-av-columbus-oh,483 Glendower Av,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2388-sixth-st-columbus-oh,2388 Sixth St,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2495-rhoads-av-columbus-oh,2495 Rhoads Av,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1630-dewberry-rd-columbus-oh,1630 Dewberry Rd,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+606-koebel-av-columbus-oh,606 Koebel Av,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+866-glendower-av-columbus-oh,866 Glendower Av,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1694-s-champion-av-columbus-oh,1694 S Champion Av,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1991-s-champion-av-columbus-oh,1991 S Champion Av,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+3129-c-av-columbus-oh,3129 C Av,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2440-s-fifth-st-columbus-oh,2440 S Fifth St,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+4049-w-garrett-dr-columbus-oh,4049 W Garrett Dr,Columbus,43214,OH,Beechwold,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1440-country-club-rd-columbus-oh,1440 Country Club Rd,Columbus,43227,OH,Whitehall,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+3155-parsons-av-columbus-oh,3155 Parsons Av,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+3978-livingston-av-columbus-oh,3978 Livingston Av,Columbus,43227,OH,Whitehall,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+851-clarendon-av-columbus-oh,851 Clarendon Av,Columbus,43223,OH,Southwest Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2034-woodward-av-columbus-oh,2034 Woodward Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1247-sampson-av-columbus-oh,1247 Sampson Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1390-joyce-av-columbus-oh,1390 Joyce Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1342-brookcliff-av-columbus-oh,1342 Brookcliff Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+580-woodrow-av-columbus-oh,580 Woodrow Av,Columbus,43207,OH,South Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+3174-e-blue-ridge-rd-columbus-oh,3174 E Blue Ridge Rd,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1741-ramblewood-av-columbus-oh,1741 Ramblewood Av,Columbus,43235,OH,Worthington,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1620-e-broad-st-columbus-oh,1620 E Broad St,Columbus,43203,OH,Near East Side,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1313-lincoln-rd-columbus-oh,1313 Lincoln Rd,Columbus,43212,OH,Grandview Heights,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1376-inglis-av-columbus-oh,1376 Inglis Av,Columbus,43212,OH,Grandview Heights,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+411-mayflower-bl-columbus-oh,411 Mayflower Bl,Columbus,43213,OH,East Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1020-westphal-av-columbus-oh,1020 Westphal Av,Columbus,43227,OH,Whitehall,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+4228-seigman-st-columbus-oh,4228 Seigman St,Columbus,43213,OH,East Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+4490-cleveland-av-columbus-oh,4490 Cleveland Av,Columbus,43231,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2459-wood-av-columbus-oh,2459 Wood Av,Columbus,43221,OH,Upper Arlington West,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2002-radnor-av-columbus-oh,2002 Radnor Av,Columbus,43224,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+487-georgesville-rd-columbus-oh,487 Georgesville Rd,Columbus,43228,OH,Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1815-brown-rd-columbus-oh,1815 Brown Rd,Columbus,43223,OH,Southwest Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1114-eureka-bl-columbus-oh,1114 Eureka Bl,Columbus,43223,OH,Southwest Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+5001-brewster-dr-columbus-oh,5001 Brewster Dr,Columbus,43232,OH,Reynoldsburg,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2140-denune-av-columbus-oh,2140 Denune Av,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2047-myrtle-av-columbus-oh,2047 Myrtle Av,Columbus,43211,OH,Linden,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2895-woodland-av-columbus-oh,2895 Woodland Av,Columbus,43224,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2542-s-ferris-park-dr-columbus-oh,2542 S Ferris Park Dr,Columbus,43224,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2175-n-mifflin-bl-columbus-oh,2175 N Mifflin Bl,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+0-e-leonard-av-columbus-oh,0 E Leonard Av,Columbus,43219,OH,Northland,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+2520-n-winston-ct-columbus-oh,2520 N Winston Ct,Columbus,43235,OH,Worthington,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+400-fernhill-av-columbus-oh,400 Fernhill Av,Columbus,43228,OH,Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+396-n-grener-av-columbus-oh,396 N Grener Av,Columbus,43228,OH,Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1850-schrock-rd-columbus-oh,1850 Schrock Rd,Columbus,43229,OH,Northland East,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+321-w-kanawha-av-columbus-oh,321 W Kanawha Av,Columbus,43214,OH,Beechwold,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+310-westview-av-columbus-oh,310 Westview Av,Columbus,43214,OH,Beechwold,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+3315-oakdale-av-columbus-oh,3315 Oakdale Av,Columbus,43204,OH,Franklinton,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+616-athens-av-columbus-oh,616 Athens Av,Columbus,43204,OH,Franklinton,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1432-frank-rd-columbus-oh,1432 Frank Rd,Columbus,43223,OH,Southwest Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+5696-duquesne-pl-columbus-oh,5696 Duquesne Pl,Columbus,43235,OH,Worthington,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+5601-barney-ln-columbus-oh,5601 Barney Ln,Columbus,43235,OH,Worthington,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+3334-trail-lane-ct-columbus-oh,3334 Trail Lane Ct,Columbus,43231,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+3030-bennington-av-columbus-oh,3030 Bennington Av,Columbus,43231,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+4471-collingdale-rd-columbus-oh,4471 Collingdale Rd,Columbus,43231,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+328-miller-av-columbus-oh,328 Miller Av,Columbus,43205,OH,South Side,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+454-456-s-ohio-av-columbus-oh,454 456 S Ohio Av,Columbus,43205,OH,South Side,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+804-806-fairwood-av-columbus-oh,804 806 Fairwood Av,Columbus,43205,OH,South Side,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1182-oakwood-av-columbus-oh,1182 Oakwood Av,Columbus,43206,OH,German Village Area,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+325-columbian-av-columbus-oh,325 Columbian Av,Columbus,43223,OH,Southwest Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+35-rodgers-av-columbus-oh,35 Rodgers Av,Columbus,43222,OH,Hilltop,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+888-s-high-st-columbus-oh,888 S High St,Columbus,43206,OH,German Village Area,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+410-e-fifteenth-av-columbus-oh,410 E Fifteenth Av,Columbus,43201,OH,Short North,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+3150-green-line-wy-columbus-oh,3150 Green Line Wy,Columbus,43231,OH,Northeast Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+375-w-state-st-columbus-oh,375 W State St,Columbus,43215,OH,Downtown Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+377-w-capital-st-columbus-oh,377 W Capital St,Columbus,43215,OH,Downtown Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+101-columbus-crew-wy-columbus-oh,101 Columbus Crew  Wy,Columbus,43215,OH,Downtown Columbus,motivated_seller,,,,,,skip_traced_feb05_236_leads.csv,2026-02-16
+1728-n-high-st-columbus-oh,1728 N High St,Columbus,43201,OH,Short North,tax_delinquent,,203000.0,275000.0,315016.0,,skip_traced_jan27_batch.csv,2026-02-16
+180-e-broad-st-columbus-oh,180 E Broad St,Columbus,43215,OH,Downtown Columbus,tax_delinquent,,2742000.0,3710000.0,508717.0,,skip_traced_jan27_batch.csv,2026-02-16
+1700-1778-n-high-st-columbus-oh,1700 1778 N High St,Columbus,43201,OH,Short North,tax_delinquent,,80000.0,108000.0,21587.0,,skip_traced_jan27_batch.csv,2026-02-16
+350-e-broad-st-columbus-oh,350 E Broad St,Columbus,43215,OH,Downtown Columbus,tax_delinquent,,14000.0,19000.0,44683.0,,skip_traced_jan27_batch.csv,2026-02-16
+164-guilford-av-columbus-oh,164 Guilford Av,Columbus,43222,OH,Hilltop,tax_delinquent,,7000.0,9000.0,23092.0,,skip_traced_jan27_batch.csv,2026-02-16
+435-w-state-st-columbus-oh,435 W State St,Columbus,43215,OH,Downtown Columbus,tax_delinquent,,409000.0,554000.0,117516.0,,skip_traced_jan27_batch.csv,2026-02-16
+1027-fourteenth-av-columbus-oh,1027 Fourteenth Av,Columbus,43211,OH,Linden,tax_delinquent,,122000.0,166000.0,22873.0,,skip_traced_jan27_batch.csv,2026-02-16
+2840-2842-w-broad-st-columbus-oh,2840 2842 W Broad St,Columbus,43204,OH,Franklinton,tax_delinquent,,53000.0,71000.0,150998.0,,skip_traced_jan27_batch.csv,2026-02-16
+841-843-ann-st-columbus-oh,841 843 Ann St,Columbus,43206,OH,German Village Area,tax_delinquent,,133000.0,181000.0,23455.0,,skip_traced_jan27_batch.csv,2026-02-16
+13-w-state-st-columbus-oh,13 W State St,Columbus,43215,OH,Downtown Columbus,tax_delinquent,,71000.0,96000.0,13464.0,,skip_traced_jan27_batch.csv,2026-02-16
+52-e-lynn-st-columbus-oh,52 E Lynn St,Columbus,43215,OH,Downtown Columbus,tax_delinquent,,138000.0,187000.0,22000.0,,skip_traced_jan27_batch.csv,2026-02-16
+1262-manchester-av-columbus-oh,1262 Manchester Av,Columbus,43211,OH,Linden,tax_delinquent,,67000.0,91000.0,17747.0,,skip_traced_jan27_batch.csv,2026-02-16
+97-99-stevens-av-columbus-oh,97 99 Stevens Av,Columbus,43222,OH,Hilltop,tax_delinquent,,15000.0,20000.0,26440.0,,skip_traced_jan27_batch.csv,2026-02-16
+32-n-fourth-st-columbus-oh,32 N Fourth St,Columbus,43215,OH,Downtown Columbus,tax_delinquent,,1122000.0,1518000.0,222280.0,,skip_traced_jan27_batch.csv,2026-02-16
+2003-minnesota-av-columbus-oh,2003 Minnesota Av,Columbus,43211,OH,Linden,tax_delinquent,,17000.0,24000.0,13311.0,,skip_traced_jan27_batch.csv,2026-02-16
+2219-2221-parkwood-av-columbus-oh,2219 2221 Parkwood Av,Columbus,43211,OH,Linden,tax_delinquent,,136000.0,185000.0,26194.0,,skip_traced_jan27_batch.csv,2026-02-16
+2673-n-audubon-rd-columbus-oh,2673 N Audubon Rd,Columbus,43211,OH,Linden,tax_delinquent,,77000.0,104000.0,17628.0,,skip_traced_jan27_batch.csv,2026-02-16
+2833-osceola-av-columbus-oh,2833 Osceola Av,Columbus,43211,OH,Linden,tax_delinquent,,93000.0,126000.0,21058.0,,skip_traced_jan27_batch.csv,2026-02-16
+2516-hiawatha-st-columbus-oh,2516 Hiawatha St,Columbus,43211,OH,Linden,tax_delinquent,,74000.0,101000.0,13468.0,,skip_traced_jan27_batch.csv,2026-02-16
+2156-n-gerbert-rd-columbus-oh,2156 N Gerbert Rd,Columbus,43211,OH,Linden,tax_delinquent,,62000.0,84000.0,15540.0,,skip_traced_jan27_batch.csv,2026-02-16
+378-380-napoleon-av-columbus-oh,378 380 Napoleon Av,Columbus,43213,OH,East Columbus,tax_delinquent,,28000.0,38000.0,42803.0,,skip_traced_jan27_batch.csv,2026-02-16
+3614-walmar-dr-columbus-oh,3614 Walmar Dr,Columbus,43224,OH,Northeast Columbus,tax_delinquent,,31000.0,42000.0,45580.0,,skip_traced_jan27_batch.csv,2026-02-16
+140-s-hampton-rd-columbus-oh,140 S Hampton Rd,Columbus,43213,OH,East Columbus,tax_delinquent,,26000.0,35000.0,25321.0,,skip_traced_jan27_batch.csv,2026-02-16
+4495-grimsby-rd-columbus-oh,4495 Grimsby Rd,Columbus,43227,OH,Whitehall,tax_delinquent,,128000.0,173000.0,34218.0,,skip_traced_jan27_batch.csv,2026-02-16
+1395-morse-rd-columbus-oh,1395 Morse Rd,Columbus,43229,OH,Northland East,tax_delinquent,,82000.0,111000.0,30457.0,,skip_traced_jan27_batch.csv,2026-02-16
+1524-joyce-av-columbus-oh,1524 Joyce Av,Columbus,43219,OH,Northland,tax_delinquent,,92000.0,125000.0,33814.0,,skip_traced_jan27_batch.csv,2026-02-16
+1161-koebel-rd-columbus-oh,1161 Koebel Rd,Columbus,43207,OH,South Columbus,tax_delinquent,,49000.0,67000.0,59005.0,,skip_traced_jan27_batch.csv,2026-02-16
+3464-petzinger-rd-columbus-oh,3464 Petzinger Rd,Columbus,43232,OH,Reynoldsburg,tax_delinquent,,77000.0,105000.0,29860.0,,skip_traced_jan27_batch.csv,2026-02-16
+991-whitethorne-av-columbus-oh,991 Whitethorne Av,Columbus,43223,OH,Southwest Columbus,tax_delinquent,,58000.0,79000.0,16112.0,,skip_traced_jan27_batch.csv,2026-02-16
+0-roche-rd-columbus-oh,0 Roche Rd,Columbus,43229,OH,Northland East,tax_delinquent,,14000.0,20000.0,17719.0,,skip_traced_jan27_batch.csv,2026-02-16
+2740-s-hamilton-rd-columbus-oh,2740 S Hamilton Rd,Columbus,43232,OH,Reynoldsburg,tax_delinquent,,32000.0,43000.0,16536.0,,skip_traced_jan27_batch.csv,2026-02-16
+1759-rebecca-st-columbus-oh,1759 Rebecca St,Columbus,43219,OH,Northland,tax_delinquent,,119000.0,161000.0,28673.0,,skip_traced_jan27_batch.csv,2026-02-16
+0-dresden-st-columbus-oh,0 Dresden St,Columbus,43224,OH,Northeast Columbus,tax_delinquent,,35000.0,47000.0,416890.0,,skip_traced_jan27_batch.csv,2026-02-16
+978-n-high-b-st-columbus-oh,978 N High B St,Columbus,43201,OH,Short North,tax_delinquent,,77000.0,105000.0,13046.0,,skip_traced_jan27_batch.csv,2026-02-16
+1721-northland-park-av-columbus-oh,1721 Northland Park Av,Columbus,43224,OH,Northeast Columbus,tax_delinquent,,600000.0,812000.0,135448.0,,skip_traced_jan27_batch.csv,2026-02-16
+525-sawyer-pl-columbus-oh,525 Sawyer Pl,Columbus,43203,OH,Near East Side,tax_delinquent,,4061000.0,5494000.0,743744.0,,skip_traced_jan27_batch.csv,2026-02-16
+50-w-broad-st-columbus-oh,50 W Broad St,Columbus,43215,OH,Downtown Columbus,tax_delinquent,,33000.0,45000.0,17229.0,,skip_traced_jan27_batch.csv,2026-02-16

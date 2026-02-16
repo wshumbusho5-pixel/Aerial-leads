@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
 {% block extra_head %}
-<!-- Schema.org markup for property -->
 <script type="application/ld+json">
 {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
     "name": "{{ property.address }}",
+    "description": "{{ meta_description }}",
     "address": {
         "@type": "PostalAddress",
         "streetAddress": "{{ property.address }}",
@@ -20,145 +20,165 @@
 
 {% block content %}
 <!-- Property Hero -->
-<section class="hero" style="padding: 3rem 2rem;">
-    <p style="margin-bottom: 0.5rem; opacity: 0.8;">Property Details</p>
-    <h1 style="font-size: 2rem;">{{ property.address }}</h1>
-    <p>{{ property.city if property.city else 'Columbus' }}, Ohio {{ property.zip if property.zip else '' }}</p>
+<section class="hero" style="padding: 2.5rem 2rem;">
+    <div style="max-width: 900px; margin: 0 auto;">
+        {% if property.lead_type == 'probate' %}
+        <p style="color: #c084fc; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem;">Inherited / Probate Property</p>
+        {% elif property.lead_type == 'tax_delinquent' %}
+        <p style="color: #fb923c; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem;">Tax Delinquent Property</p>
+        {% elif property.lead_type == 'sheriff_sale' %}
+        <p style="color: #f87171; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem;">Foreclosure / Sheriff Sale</p>
+        {% else %}
+        <p style="color: #4ade80; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem;">We're Looking to Buy</p>
+        {% endif %}
+
+        <h1 style="font-size: 1.9rem; line-height: 1.2; margin-bottom: 0.5rem;">{{ property.address }}</h1>
+        <p style="color: #9ca3af;">{{ property.city if property.city else 'Columbus' }}, Ohio{% if property.zip %} {{ property.zip }}{% endif %}{% if neighborhood %} &middot; {{ neighborhood }}{% endif %}</p>
+    </div>
 </section>
 
-<div class="container" style="padding: 3rem 2rem;">
+<div class="container" style="max-width: 960px; padding: 2.5rem 2rem;">
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start;">
 
-        <!-- Property Details -->
+        <!-- Left: Property Details -->
         <div>
-            <div class="card" style="margin-bottom: 2rem;">
-                <h2 style="margin-bottom: 1.5rem;">Property Information</h2>
 
-                {% if property.lead_type %}
-                <p style="margin-bottom: 1rem;">
-                    <span class="property-card type-badge {% if property.lead_type == 'probate' %}probate{% elif property.lead_type == 'tax_delinquent' %}tax{% endif %}">
-                        {% if property.lead_type == 'probate' %}
-                            Probate / Inherited Property
-                        {% elif property.lead_type == 'tax_delinquent' %}
-                            Tax Delinquent Property
-                        {% elif property.lead_type == 'code_violation' %}
-                            Code Violation
-                        {% elif property.lead_type == 'sheriff_sale' %}
-                            Sheriff Sale / Foreclosure
-                        {% else %}
-                            {{ property.lead_type | title }}
-                        {% endif %}
-                    </span>
-                </p>
-                {% endif %}
+            <!-- Key Facts Card -->
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <h2 style="margin-bottom: 1.25rem; font-size: 1.15rem;">Property Facts</h2>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
 
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 0.75rem 0; font-weight: 500;">Address</td>
-                        <td style="padding: 0.75rem 0;">{{ property.address }}</td>
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151; width: 45%;">Address</td>
+                        <td style="padding: 0.7rem 0;">{{ property.address }}</td>
                     </tr>
 
-                    {% if property.city %}
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 0.75rem 0; font-weight: 500;">City</td>
-                        <td style="padding: 0.75rem 0;">{{ property.city }}, Ohio</td>
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">City / State</td>
+                        <td style="padding: 0.7rem 0;">{{ property.city if property.city else 'Columbus' }}, Ohio</td>
                     </tr>
-                    {% endif %}
 
                     {% if property.zip %}
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 0.75rem 0; font-weight: 500;">ZIP Code</td>
-                        <td style="padding: 0.75rem 0;">{{ property.zip }}</td>
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">ZIP Code</td>
+                        <td style="padding: 0.7rem 0;">{{ property.zip }}</td>
                     </tr>
                     {% endif %}
 
-                    {% if property.taxes_owed and property.taxes_owed > 0 %}
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 0.75rem 0; font-weight: 500;">Tax Status</td>
-                        <td style="padding: 0.75rem 0; color: #e53935;">
-                            <span style="background: #ffebee; padding: 0.25rem 0.75rem; border-radius: 4px;">Outstanding Balance</span>
+                    {% if neighborhood %}
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">Neighborhood</td>
+                        <td style="padding: 0.7rem 0;">{{ neighborhood }}</td>
+                    </tr>
+                    {% endif %}
+
+                    {% if value_range %}
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">Estimated Value</td>
+                        <td style="padding: 0.7rem 0; color: #16a34a; font-weight: 600;">{{ value_range }}</td>
+                    </tr>
+                    {% endif %}
+
+                    {% if taxes_display %}
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">Outstanding Taxes</td>
+                        <td style="padding: 0.7rem 0;">
+                            <span style="background: #fef2f2; color: #dc2626; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.9rem;">{{ taxes_display }}</span>
                         </td>
                     </tr>
                     {% endif %}
 
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 0.75rem 0; font-weight: 500;">Owner</td>
-                        <td style="padding: 0.75rem 0; color: #999;">
-                            <span style="background: #f5f5f5; padding: 0.25rem 0.75rem; border-radius: 4px;">Verify ownership to view</span>
-                        </td>
+                    {% if property.years_delinquent and property.years_delinquent > 0 %}
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">Years Delinquent</td>
+                        <td style="padding: 0.7rem 0;">~{{ property.years_delinquent }} year{{ 's' if property.years_delinquent != 1 else '' }}</td>
                     </tr>
+                    {% endif %}
 
                     <tr>
-                        <td style="padding: 0.75rem 0; font-weight: 500;">Details</td>
-                        <td style="padding: 0.75rem 0; color: #999;">
-                            <span style="background: #f5f5f5; padding: 0.25rem 0.75rem; border-radius: 4px;">Verify ownership to view full details</span>
+                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">Owner Info</td>
+                        <td style="padding: 0.7rem 0; color: #9ca3af; font-size: 0.88rem;">
+                            <span style="background: #f9fafb; padding: 0.2rem 0.6rem; border-radius: 4px;">Confirm ownership to receive offer</span>
                         </td>
                     </tr>
                 </table>
 
-                <div style="margin-top: 1.5rem; padding: 1rem; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4CAF50;">
-                    <strong>Is this your property?</strong>
-                    <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">
-                        Verify your ownership to see full property details and receive a no-obligation cash offer.
+                <div style="margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #16a34a;">
+                    <strong style="color: #15803d;">Is this your property?</strong>
+                    <p style="margin: 0.4rem 0 0 0; color: #4b5563; font-size: 0.88rem; line-height: 1.6;">
+                        We're actively looking to buy in {{ neighborhood if neighborhood else 'Columbus' }}.
+                        Fill out the form and get a no-obligation cash offer within 24 hours.
                     </p>
                 </div>
             </div>
 
-            <!-- Situation Specific Content -->
+            <!-- Situation-Specific Content -->
             <div class="card">
                 {% if property.lead_type == 'probate' %}
                 <h2 style="margin-bottom: 1rem;">Inherited This Property?</h2>
-                <p>Dealing with a probate property can be overwhelming. You may be facing:</p>
-                <ul style="margin: 1rem 0; padding-left: 1.5rem;">
-                    <li>Court proceedings and paperwork</li>
-                    <li>Property in another city or state</li>
-                    <li>Multiple heirs who need to agree</li>
-                    <li>A house that needs repairs</li>
-                    <li>Ongoing property taxes and maintenance</li>
-                </ul>
-                <p><strong>We can help.</strong> We buy inherited properties as-is, handle the paperwork, and can close on your timeline. Get a cash offer today.</p>
+                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;">
+                    Dealing with a probate property in {{ neighborhood if neighborhood else 'Columbus' }} is one of the hardest things a family can face.
+                    You may be managing court proceedings from out of state, coordinating with other heirs,
+                    and watching taxes and utilities pile up on a house you can't easily sell.
+                </p>
+                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;"><strong>We remove every one of those obstacles.</strong> We buy inherited properties as-is —
+                belongings inside, no repairs, no cleaning required. We work within the probate process
+                and can close on your timeline.</p>
 
                 {% elif property.lead_type == 'tax_delinquent' %}
-                <h2 style="margin-bottom: 1rem;">Behind on Property Taxes?</h2>
-                <p>If you're facing back taxes on this property, time may be running out. You could be facing:</p>
-                <ul style="margin: 1rem 0; padding-left: 1.5rem;">
-                    <li>Tax lien sale or auction</li>
-                    <li>Accumulating penalties and interest</li>
-                    <li>Potential foreclosure</li>
-                    <li>Damage to your credit</li>
+                <h2 style="margin-bottom: 1rem;">Behind on Taxes at This Property?</h2>
+                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;">
+                    Franklin County's clock doesn't stop. Penalties compound, and a tax lien sale
+                    can put you in a position where you lose the property and walk away with nothing.
+                </p>
+                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;">
+                    <strong>Here's what we do differently:</strong> When we buy your property, we pay off the back taxes
+                    as part of the deal. You don't have to figure out the tax office.
+                    You just sign, and the problem is gone.
+                </p>
+                <ul style="color: #4b5563; padding-left: 1.5rem; line-height: 2;">
+                    <li>Cash offer within 24 hours</li>
+                    <li>We pay all back taxes at closing</li>
+                    <li>Close in as fast as 7 days</li>
+                    <li>No repairs, no cleaning, no agent fees</li>
                 </ul>
-                <p><strong>There's a way out.</strong> We can buy your property for cash, pay off the back taxes, and put money in your pocket. Don't lose your property to the county - contact us today.</p>
 
-                {% elif property.lead_type == 'code_violation' %}
-                <h2 style="margin-bottom: 1rem;">Facing Code Violations?</h2>
-                <p>Code violations can be expensive and stressful to deal with. You may be facing:</p>
-                <ul style="margin: 1rem 0; padding-left: 1.5rem;">
-                    <li>Fines and penalties adding up</li>
-                    <li>Expensive repairs required</li>
-                    <li>Deadlines from the city</li>
-                    <li>Potential liens on your property</li>
-                </ul>
-                <p><strong>Sell it as-is.</strong> We buy properties with code violations. No repairs needed, no cleaning required. Get cash and walk away from the headache.</p>
+                {% elif property.lead_type == 'sheriff_sale' %}
+                <h2 style="margin-bottom: 1rem;">Facing Foreclosure on This Property?</h2>
+                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;">
+                    Once a sheriff sale date is set in Franklin County, you have limited time to act.
+                    We can move fast — sometimes closing before the sale date — so you walk away with
+                    cash instead of nothing.
+                </p>
+                <p style="color: #4b5563; line-height: 1.7;">
+                    <strong>There are options even now.</strong> Contact us today and we'll tell you exactly
+                    what's possible given your timeline.
+                </p>
 
                 {% else %}
-                <h2 style="margin-bottom: 1rem;">We Want To Buy This Property</h2>
-                <p>Are you the owner of this property? We're actively looking to purchase properties in this area. Here's what we offer:</p>
-                <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                <h2 style="margin-bottom: 1rem;">We Want to Buy in {{ neighborhood if neighborhood else 'This Area' }}</h2>
+                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;">
+                    We're actively acquiring properties in {{ neighborhood if neighborhood else 'Columbus' }}{% if property.zip %} ({{ property.zip }}){% endif %}.
+                    If you own this property and are open to selling — for any reason — we'd like to make you a cash offer.
+                </p>
+                <ul style="color: #4b5563; padding-left: 1.5rem; line-height: 2;">
                     <li>Fair cash offer within 24 hours</li>
-                    <li>Buy as-is - no repairs or cleaning needed</li>
+                    <li>Buy as-is — no repairs or cleaning needed</li>
                     <li>No realtor fees or commissions</li>
                     <li>Close in as fast as 7 days</li>
-                    <li>We handle all paperwork</li>
                 </ul>
                 {% endif %}
             </div>
+
         </div>
 
-        <!-- Lead Capture Sidebar -->
+        <!-- Right: Lead Capture Form (sticky) -->
         <div>
             <div class="card" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; position: sticky; top: 100px;">
-                <h3 style="margin-bottom: 0.5rem;">Is This Your Property?</h3>
-                <p style="margin-bottom: 1.5rem; opacity: 0.9; font-size: 0.9rem;">Get a free, no-obligation cash offer today.</p>
+                <h3 style="margin-bottom: 0.4rem;">Is This Your Property?</h3>
+                <p style="margin-bottom: 1.25rem; opacity: 0.85; font-size: 0.88rem; line-height: 1.5;">
+                    Get a free cash offer. No fees, no obligation, no pressure.
+                </p>
 
                 <form action="/submit-lead" method="POST">
                     <input type="hidden" name="source_page" value="property/{{ slug }}">
@@ -179,28 +199,31 @@
                                style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
                     </div>
 
-                    <div class="form-group">
-                        <textarea name="message" rows="3" placeholder="Tell us about your situation..."
-                                  style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"></textarea>
-                    </div>
-
-                    <button type="submit" class="btn" style="width: 100%; background: #4CAF50; color: white;">
+                    <button type="submit" class="btn" style="width: 100%; background: #16a34a; color: white; font-size: 1rem; padding: 0.85rem;">
                         Get My Cash Offer
                     </button>
                 </form>
 
-                <p style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.7; text-align: center;">
-                    No obligation. No pressure. Just a fair offer.
+                <p style="margin-top: 0.75rem; font-size: 0.78rem; opacity: 0.6; text-align: center;">
+                    No obligation. Response within 24 hours.
                 </p>
             </div>
+
+            <!-- Franklin County Auditor link for credibility -->
+            <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 0.8rem; color: #6b7280;">
+                Property data sourced from Franklin County public records.
+                <a href="https://property.franklincountyauditor.com/" target="_blank" rel="nofollow noreferrer"
+                   style="color: #16a34a; text-decoration: none;">Verify at franklincountyauditor.com &rarr;</a>
+            </div>
         </div>
+
     </div>
 </div>
 
-<!-- Related Properties CTA -->
+<!-- Bottom CTA -->
 <section class="cta-section">
-    <h2>Own a Different Property?</h2>
-    <p style="margin-bottom: 2rem; opacity: 0.9;">We buy houses all over Columbus and Franklin County.</p>
-    <a href="/get-offer" class="btn">Get Offer For My Property</a>
+    <h2>We Buy Houses All Over Columbus</h2>
+    <p style="margin-bottom: 2rem; opacity: 0.9;">Any condition. Any situation. Cash in hand at closing.</p>
+    <a href="/get-offer" class="btn">Get a Free Offer for My Property</a>
 </section>
 {% endblock %}
