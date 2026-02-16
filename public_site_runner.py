@@ -261,7 +261,7 @@ async def health():
         "db_error": DB_ERROR
     }
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/robots.txt")
 async def robots_txt():
     """robots.txt for Google crawling."""
     content = """User-agent: *
