@@ -265,18 +265,18 @@ elif page == "🚀 Generate Leads":
     with col1:
         num_properties = st.slider(
             "Number of Properties",
-            min_value=10,
-            max_value=1000,
-            value=100,
-            step=10,
-            help="How many leads to generate"
+            min_value=100,
+            max_value=5000,
+            value=2000,
+            step=100,
+            help="How many leads to generate (up to 5000)"
         )
 
         min_tax_debt = st.slider(
             "Minimum Tax Debt ($)",
-            min_value=1000,
+            min_value=500,
             max_value=10000,
-            value=2000,
+            value=1000,
             step=500,
             help="Minimum amount owed in taxes"
         )
@@ -286,7 +286,7 @@ elif page == "🚀 Generate Leads":
             "Minimum Years Delinquent",
             min_value=1,
             max_value=10,
-            value=2,
+            value=1,
             help="Minimum years behind on taxes"
         )
 
