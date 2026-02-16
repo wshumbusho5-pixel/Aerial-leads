@@ -1,29 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Hero -->
 <section class="hero">
-    <h1>Sell Your Inherited Property Fast</h1>
-    <p>We buy probate and inherited houses in Columbus for cash. No repairs, no cleaning, no stress.</p>
-    <a href="/get-offer" class="btn btn-primary" style="margin-top: 1rem;">Get Cash Offer</a>
+    <h1>Sell Your Inherited Property &mdash; Cash, As-Is, Fast</h1>
+    <p>Probate is hard enough without worrying about repairs, showings, or agent fees. We handle all of it.</p>
+    <a href="/get-offer" class="btn btn-primary" style="margin-top: 1rem;">Get Your Cash Offer</a>
 </section>
 
-<!-- Problem/Solution -->
 <section class="section" style="background: white;">
     <div class="container">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
             <div>
-                <h2 style="margin-bottom: 1rem;">Inherited a Property?</h2>
-                <p style="margin-bottom: 1rem;">Dealing with an inherited property during an already difficult time can be overwhelming. You might be facing:</p>
+                <h2 style="margin-bottom: 1rem;">What You&rsquo;re Probably Dealing With Right Now</h2>
+                <p style="margin-bottom: 1rem;">Inheriting a property during a time of loss is one of the hardest things a family faces. The last thing you need is more complexity.</p>
                 <ul style="margin-bottom: 1.5rem; padding-left: 1.5rem;">
-                    <li style="margin-bottom: 0.5rem;">Complex probate court proceedings</li>
-                    <li style="margin-bottom: 0.5rem;">A house full of belongings to sort through</li>
-                    <li style="margin-bottom: 0.5rem;">Property in need of repairs</li>
-                    <li style="margin-bottom: 0.5rem;">Ongoing taxes, utilities, and maintenance</li>
-                    <li style="margin-bottom: 0.5rem;">Multiple heirs who need to agree</li>
-                    <li style="margin-bottom: 0.5rem;">A property far from where you live</li>
+                    <li style="margin-bottom: 0.5rem;">Probate court requirements you don&rsquo;t fully understand</li>
+                    <li style="margin-bottom: 0.5rem;">A house full of belongings that need to be sorted</li>
+                    <li style="margin-bottom: 0.5rem;">Repairs the property needs but you can&rsquo;t afford</li>
+                    <li style="margin-bottom: 0.5rem;">Taxes, utilities, and maintenance bills piling up every month</li>
+                    <li style="margin-bottom: 0.5rem;">Multiple heirs who all need to agree</li>
+                    <li style="margin-bottom: 0.5rem;">A property you may not even live near</li>
                 </ul>
-                <p><strong>We make it easy.</strong> We buy inherited properties as-is, handle the paperwork, and can work with the probate process.</p>
+                <p><strong>We remove every one of these obstacles.</strong> We buy inherited properties as-is, pay cash, and work within the probate process so you don&rsquo;t have to figure it out alone.</p>
             </div>
             <div class="card" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white;">
                 <h3 style="margin-bottom: 1rem;">Get Your Cash Offer</h3>
@@ -45,48 +43,47 @@
                     <button type="submit" class="btn" style="width: 100%; background: #4CAF50; color: white;">
                         Get My Cash Offer
                     </button>
+                    <p style="text-align: center; opacity: 0.7; font-size: 0.8rem; margin-top: 0.75rem;">No fees. No obligation.</p>
                 </form>
             </div>
         </div>
     </div>
 </section>
 
-<!-- How We Help -->
 <section class="section">
     <div class="container">
-        <h2 class="section-title">How We Help With Probate Properties</h2>
+        <h2 class="section-title">How We Make This Easier</h2>
         <div class="benefits-grid">
             <div class="benefit-item card">
                 <div class="benefit-icon">&#128221;</div>
-                <h3>We Handle Paperwork</h3>
-                <p>We're experienced with probate sales and can guide you through the process.</p>
+                <h3>We Know Probate</h3>
+                <p>We&rsquo;re experienced with probate sales in Ohio. We work with your attorney, your timeline, and the court process.</p>
             </div>
             <div class="benefit-item card">
                 <div class="benefit-icon">&#127968;</div>
-                <h3>Buy As-Is</h3>
-                <p>Don't clean out the house or make repairs. We take it exactly as it is.</p>
+                <h3>Sold As-Is</h3>
+                <p>Leave everything behind if you want. We take the property &mdash; belongings and all &mdash; in whatever condition it&rsquo;s in.</p>
             </div>
             <div class="benefit-item card">
                 <div class="benefit-icon">&#128101;</div>
-                <h3>Work With All Heirs</h3>
-                <p>Multiple heirs? We can work with everyone to make the process smooth.</p>
+                <h3>Multiple Heirs Welcome</h3>
+                <p>We work with all parties involved. One point of contact, clear communication, no confusion.</p>
             </div>
             <div class="benefit-item card">
                 <div class="benefit-icon">&#128176;</div>
-                <h3>Cash, No Delays</h3>
-                <p>No bank financing means no delays. Get cash when you need it.</p>
+                <h3>Cash. No Bank Delays.</h3>
+                <p>We fund every purchase ourselves. No mortgage approval waiting. No deal falling through.</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Probate Properties List -->
 {% if properties %}
 <section class="section" style="background: white;">
     <div class="container">
-        <h2 class="section-title">Current Probate Properties</h2>
+        <h2 class="section-title">Inherited Properties We&rsquo;re Looking to Buy</h2>
         <p style="text-align: center; color: #666; margin-bottom: 2rem;">
-            We're actively looking to purchase these inherited properties. Is one of them yours?
+            Is your property on this list? Reach out &mdash; we&rsquo;re ready to make an offer.
         </p>
 
         <div class="property-grid">
@@ -110,16 +107,15 @@
         </div>
 
         <div style="text-align: center; margin-top: 2rem;">
-            <a href="/properties?type=probate" class="btn btn-primary">View All Probate Properties</a>
+            <a href="/properties?type=probate" class="btn btn-primary">View All Inherited Properties</a>
         </div>
     </div>
 </section>
 {% endif %}
 
-<!-- CTA -->
 <section class="cta-section">
-    <h2>Ready to Sell Your Inherited Property?</h2>
-    <p style="margin-bottom: 2rem; opacity: 0.9;">Get a fair cash offer with no obligation. We're here to help.</p>
+    <h2>You&rsquo;ve Already Handled Enough</h2>
+    <p style="margin-bottom: 2rem; opacity: 0.9;">Let us handle the house. Get a no-obligation cash offer today.</p>
     <a href="/get-offer" class="btn">Get My Cash Offer</a>
 </section>
 {% endblock %}

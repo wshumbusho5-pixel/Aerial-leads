@@ -1,118 +1,115 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Hero -->
 <section class="hero">
     <h1>Get Your Free Cash Offer</h1>
-    <p>Fill out the form below and we'll get back to you within 24 hours with a fair, no-obligation cash offer.</p>
+    <p>No repairs. No fees. No pressure. We respond within 24 hours.</p>
 </section>
 
-<div class="container" style="max-width: 800px; padding: 3rem 2rem;">
+<div class="container" style="max-width: 900px; padding: 3rem 2rem;">
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
 
-        <!-- Form -->
         <div>
             <div class="card">
-                <h2 style="margin-bottom: 1.5rem;">Property Information</h2>
+                <h2 style="margin-bottom: 1.5rem;">Tell Us About Your Property</h2>
 
                 <form action="/submit-lead" method="POST">
                     <input type="hidden" name="source_page" value="get-offer">
 
                     <div class="form-group">
-                        <label for="property_address">Property Address *</label>
+                        <label for="property_address">Property Address</label>
                         <input type="text" id="property_address" name="property_address" required
                                placeholder="123 Main St, Columbus, OH 43215">
                     </div>
 
                     <div class="form-group">
-                        <label for="name">Your Name *</label>
+                        <label for="name">Your Name</label>
                         <input type="text" id="name" name="name" required placeholder="John Smith">
                     </div>
 
                     <div class="form-group">
-                        <label for="phone">Phone Number *</label>
+                        <label for="phone">Best Phone Number</label>
                         <input type="tel" id="phone" name="phone" required placeholder="(614) 555-1234">
                     </div>
 
                     <div class="form-group">
-                        <label for="email">Email Address</label>
+                        <label for="email">Email Address <span style="color: #999; font-weight: 400;">(optional)</span></label>
                         <input type="email" id="email" name="email" placeholder="john@example.com">
                     </div>
 
                     <div class="form-group">
-                        <label for="message">Tell Us About Your Situation</label>
+                        <label for="message">What&rsquo;s Your Situation?</label>
                         <textarea id="message" name="message" rows="4"
-                                  placeholder="Why are you looking to sell? Any details about the property condition, timeline, etc."></textarea>
+                                  placeholder="Foreclosure deadline, back taxes, inherited property, or anything else worth knowing. No detail is too small."></textarea>
                     </div>
 
                     <button type="submit" class="btn btn-primary" style="width: 100%;">
-                        Get My Cash Offer
+                        Get My Cash Offer &mdash; Free
                     </button>
+                    <p style="text-align: center; color: #999; font-size: 0.85rem; margin-top: 1rem;">No fees. No obligation. We respond within 24 hours.</p>
                 </form>
             </div>
         </div>
 
-        <!-- Benefits Sidebar -->
         <div>
             <div class="card" style="margin-bottom: 1.5rem;">
-                <h3 style="margin-bottom: 1rem;">Why Sell To Us?</h3>
+                <h3 style="margin-bottom: 1rem;">What You Get With Us</h3>
                 <ul style="list-style: none;">
                     <li style="padding: 0.75rem 0; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 0.75rem;">
                         <span style="color: #4CAF50; font-size: 1.25rem;">&#10003;</span>
-                        <span><strong>No Fees</strong> - We pay all closing costs</span>
+                        <span><strong>Zero Fees</strong> &mdash; We cover all closing costs</span>
                     </li>
                     <li style="padding: 0.75rem 0; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 0.75rem;">
                         <span style="color: #4CAF50; font-size: 1.25rem;">&#10003;</span>
-                        <span><strong>No Repairs</strong> - Sell completely as-is</span>
+                        <span><strong>Zero Repairs</strong> &mdash; We buy the property as-is, today</span>
                     </li>
                     <li style="padding: 0.75rem 0; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 0.75rem;">
                         <span style="color: #4CAF50; font-size: 1.25rem;">&#10003;</span>
-                        <span><strong>Fast Closing</strong> - Close in 7-14 days</span>
+                        <span><strong>Fast Close</strong> &mdash; As soon as 7 days from offer</span>
                     </li>
                     <li style="padding: 0.75rem 0; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 0.75rem;">
                         <span style="color: #4CAF50; font-size: 1.25rem;">&#10003;</span>
-                        <span><strong>Cash Offer</strong> - No bank financing delays</span>
+                        <span><strong>Cash Payment</strong> &mdash; No banks, no delays, no fall-throughs</span>
                     </li>
                     <li style="padding: 0.75rem 0; display: flex; align-items: center; gap: 0.75rem;">
                         <span style="color: #4CAF50; font-size: 1.25rem;">&#10003;</span>
-                        <span><strong>No Obligation</strong> - Get offer with no pressure</span>
+                        <span><strong>No Obligation</strong> &mdash; Take the offer or walk away. Your choice.</span>
                     </li>
                 </ul>
             </div>
 
             <div class="card" style="background: #f8f9fa;">
-                <h3 style="margin-bottom: 1rem;">What Happens Next?</h3>
+                <h3 style="margin-bottom: 1rem;">What Happens After You Submit</h3>
                 <ol style="padding-left: 1.5rem;">
-                    <li style="margin-bottom: 0.75rem;">We review your property information</li>
-                    <li style="margin-bottom: 0.75rem;">Our team analyzes comparable sales</li>
-                    <li style="margin-bottom: 0.75rem;">We contact you within 24 hours</li>
-                    <li style="margin-bottom: 0.75rem;">You receive a no-obligation cash offer</li>
-                    <li>If you accept, we close on YOUR timeline</li>
+                    <li style="margin-bottom: 0.75rem;">We review the property details you&rsquo;ve shared</li>
+                    <li style="margin-bottom: 0.75rem;">We research comparable sales in your area</li>
+                    <li style="margin-bottom: 0.75rem;">We call you within 24 hours &mdash; usually sooner</li>
+                    <li style="margin-bottom: 0.75rem;">You receive a written, no-obligation cash offer</li>
+                    <li>You choose: accept and close, or walk away free</li>
                 </ol>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Trust Section -->
 <section class="section" style="background: white;">
     <div class="container">
-        <h2 class="section-title">We Buy Houses In Any Condition</h2>
+        <h2 class="section-title">No Matter the Condition. No Matter the Situation.</h2>
         <div class="benefits-grid">
             <div class="benefit-item">
                 <div class="benefit-icon">&#127968;</div>
                 <h3>Any Condition</h3>
-                <p>Fire damage, water damage, foundation issues, roof problems - we buy them all.</p>
+                <p>Fire damage, flood, foundation problems, mold, full of belongings &mdash; we&rsquo;ve seen everything and we buy it all.</p>
             </div>
             <div class="benefit-item">
                 <div class="benefit-icon">&#128176;</div>
                 <h3>Any Situation</h3>
-                <p>Foreclosure, divorce, probate, tax liens, job relocation - we can help.</p>
+                <p>Foreclosure, divorce, probate, tax liens, problem tenants, relocation &mdash; we have experience with all of it.</p>
             </div>
             <div class="benefit-item">
                 <div class="benefit-icon">&#128197;</div>
                 <h3>Any Timeline</h3>
-                <p>Need to close fast? Need more time? We work on your schedule.</p>
+                <p>Facing a deadline? We can move in days. Need more time to arrange your move? We&rsquo;ll wait. You lead.</p>
             </div>
         </div>
     </div>
