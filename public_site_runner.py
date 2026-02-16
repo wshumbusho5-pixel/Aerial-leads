@@ -18,6 +18,7 @@ PROCESSED_DATA_DIR = DATA_DIR / "processed"
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import pandas as pd
 import logging
 
@@ -238,6 +239,7 @@ def load_leads():
     return pd.DataFrame()
 
 app = FastAPI(title="Lifeline Home Buyers")
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "public_site" / "static")), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.globals['now'] = datetime.now
 
