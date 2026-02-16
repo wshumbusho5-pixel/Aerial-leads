@@ -432,6 +432,10 @@ TWILIO_TWIML_APP_SID = os.environ.get('TWILIO_TWIML_APP_SID', '')
 TWILIO_API_KEY = os.environ.get('TWILIO_API_KEY', '')
 TWILIO_API_SECRET = os.environ.get('TWILIO_API_SECRET', '')
 
+# Call forwarding - real phone numbers to forward inbound calls to
+FORWARD_TO_SELLERS = os.environ.get('FORWARD_TO_SELLERS', '')  # Your real number for sellers line
+FORWARD_TO_BUYERS = os.environ.get('FORWARD_TO_BUYERS', '')    # Your real number for buyers line
+
 # Phone number labels for VA selection
 PHONE_NUMBERS = {
     'sellers': {'number': TWILIO_PHONE_NUMBER, 'label': 'Sellers Line'},
@@ -593,6 +597,44 @@ async def handle_twiml(request: Request):
         import traceback
         traceback.print_exc()
         return HTMLResponse(content=f"<Response><Say>Error: {str(e)}</Say></Response>", media_type="application/xml")
+
+
+@app.post("/incoming-call")
+async def incoming_call_sellers(request: Request):
+    """Handle inbound calls to the sellers Twilio number - forward to real phone."""
+    forward_to = FORWARD_TO_SELLERS
+    caller_id = TWILIO_PHONE_NUMBER
+
+    response = VoiceResponse()
+    if forward_to:
+        dial = Dial(caller_id=caller_id, timeout=30)
+        dial.number(forward_to)
+        response.append(dial)
+        logger.info(f"Forwarding sellers line call to {forward_to}")
+    else:
+        response.say("Thank you for calling Lifeline Home Buyers. Please leave a message or call back later.")
+        logger.warning("FORWARD_TO_SELLERS not configured")
+
+    return HTMLResponse(content=str(response), media_type="application/xml")
+
+
+@app.post("/incoming-call-buyers")
+async def incoming_call_buyers(request: Request):
+    """Handle inbound calls to the buyers Twilio number - forward to real phone."""
+    forward_to = FORWARD_TO_BUYERS or FORWARD_TO_SELLERS  # Fallback to sellers number
+    caller_id = TWILIO_PHONE_NUMBER_2 or TWILIO_PHONE_NUMBER
+
+    response = VoiceResponse()
+    if forward_to:
+        dial = Dial(caller_id=caller_id, timeout=30)
+        dial.number(forward_to)
+        response.append(dial)
+        logger.info(f"Forwarding buyers line call to {forward_to}")
+    else:
+        response.say("Thank you for calling Lifeline Home Buyers. Please leave a message or call back later.")
+        logger.warning("FORWARD_TO_BUYERS not configured")
+
+    return HTMLResponse(content=str(response), media_type="application/xml")
 
 
 @app.post("/api/dialer/log-call")
