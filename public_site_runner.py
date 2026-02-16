@@ -239,6 +239,7 @@ def load_leads():
 
 app = FastAPI(title="Lifeline Home Buyers")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+templates.env.globals['now'] = datetime.now
 
 @app.on_event("startup")
 async def startup():
