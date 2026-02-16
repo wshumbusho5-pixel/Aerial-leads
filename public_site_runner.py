@@ -262,6 +262,37 @@ async def health():
     }
 
 @app.get("/", response_class=HTMLResponse)
+async def robots_txt():
+    """robots.txt for Google crawling."""
+    content = """User-agent: *
+Allow: /
+Disallow: /dialer
+Disallow: /api/
+
+Sitemap: https://va-public-production.up.railway.app/sitemap.xml
+"""
+    return HTMLResponse(content=content, media_type="text/plain")
+
+
+@app.get("/sitemap.xml")
+async def sitemap():
+    """XML sitemap for Google indexing."""
+    base_url = "https://va-public-production.up.railway.app"
+    content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url><loc>{base_url}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+    <url><loc>{base_url}/about</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+    <url><loc>{base_url}/get-offer</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+    <url><loc>{base_url}/probate</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+    <url><loc>{base_url}/tax-delinquent</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+    <url><loc>{base_url}/calculator</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+    <url><loc>{base_url}/we-buy-houses</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+    <url><loc>{base_url}/sell-house-fast</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+</urlset>"""
+    return HTMLResponse(content=content, media_type="application/xml")
+
+
+@app.get("/")
 async def home(request: Request):
     df = load_leads()
     stats = {
@@ -272,23 +303,23 @@ async def home(request: Request):
     return templates.TemplateResponse("home.html", {
         "request": request,
         "stats": stats,
-        "page_title": "Lifeline Home Buyers | We Buy Houses Ohio",
-        "meta_description": "We buy houses in any condition - cash offers in 24 hours."
+        "page_title": "We Buy Houses Columbus Ohio | Cash Offers in 24 Hours | Lifeline Home Buyers",
+        "meta_description": "We buy houses in Columbus, Ohio for cash. Any condition - tax delinquent, probate, foreclosure, repairs needed. Get a fair cash offer in 24 hours. Call (614) 825-3368."
     })
 
 @app.get("/about", response_class=HTMLResponse)
 async def about(request: Request):
     return templates.TemplateResponse("about.html", {
         "request": request,
-        "page_title": "About | Lifeline Home Buyers",
-        "meta_description": "Our story - why we started Lifeline Home Buyers."
+        "page_title": "About Us | Lifeline Home Buyers Columbus Ohio",
+        "meta_description": "We are local Columbus Ohio cash home buyers. Founded by Willy Shumbusho to help homeowners facing foreclosure, tax problems, and difficult situations. Call (614) 825-3368."
     })
 
 @app.get("/get-offer", response_class=HTMLResponse)
 async def get_offer(request: Request):
     return templates.TemplateResponse("get_offer.html", {
         "request": request,
-        "page_title": "Get Cash Offer | Lifeline Home Buyers",
+        "page_title": "Get a Free Cash Offer | Sell Your House Fast Columbus Ohio | Lifeline Home Buyers",
         "meta_description": "Get a free cash offer for your property."
     })
 
