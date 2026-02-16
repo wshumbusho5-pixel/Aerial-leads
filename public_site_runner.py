@@ -272,7 +272,7 @@ Allow: /
 Disallow: /dialer
 Disallow: /api/
 
-Sitemap: https://va-public-production.up.railway.app/sitemap.xml
+Sitemap: https://life-line-homebuyers.com/sitemap.xml
 """
     return HTMLResponse(content=content, media_type="text/plain")
 
@@ -280,7 +280,7 @@ Sitemap: https://va-public-production.up.railway.app/sitemap.xml
 @app.get("/sitemap.xml")
 async def sitemap():
     """XML sitemap for Google indexing."""
-    base_url = "https://va-public-production.up.railway.app"
+    base_url = "https://life-line-homebuyers.com"
     content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url><loc>{base_url}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
