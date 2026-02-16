@@ -599,6 +599,62 @@ async def handle_twiml(request: Request):
         return HTMLResponse(content=f"<Response><Say>Error: {str(e)}</Say></Response>", media_type="application/xml")
 
 
+@app.post("/incoming-sms")
+async def incoming_sms_sellers(request: Request):
+    """Forward incoming SMS from sellers line to real phone via Twilio."""
+    from twilio.twiml.messaging_response import MessagingResponse
+    try:
+        form = await request.form()
+        from_number = form.get('From', '')
+        body = form.get('Body', '')
+        logger.info(f"Incoming SMS from {from_number}: {body}")
+
+        # Forward via Twilio client
+        if TWILIO_CLIENT_AVAILABLE and FORWARD_TO_SELLERS:
+            client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=f"SMS from {from_number}: {body}",
+                from_=TWILIO_PHONE_NUMBER,
+                to=FORWARD_TO_SELLERS
+            )
+            logger.info(f"Forwarded SMS to {FORWARD_TO_SELLERS}")
+
+        # Send auto-reply to sender
+        response = MessagingResponse()
+        response.message("Thank you for reaching out to Lifeline Home Buyers! We'll get back to you shortly. Call us at (614) 825-3368 for a faster response.")
+        return HTMLResponse(content=str(response), media_type="application/xml")
+    except Exception as e:
+        logger.error(f"SMS error: {e}")
+        return HTMLResponse(content="<Response></Response>", media_type="application/xml")
+
+
+@app.post("/incoming-sms-buyers")
+async def incoming_sms_buyers(request: Request):
+    """Forward incoming SMS from buyers line to real phone via Twilio."""
+    from twilio.twiml.messaging_response import MessagingResponse
+    try:
+        form = await request.form()
+        from_number = form.get('From', '')
+        body = form.get('Body', '')
+        forward_to = FORWARD_TO_BUYERS or FORWARD_TO_SELLERS
+        logger.info(f"Incoming SMS (buyers) from {from_number}: {body}")
+
+        if TWILIO_CLIENT_AVAILABLE and forward_to:
+            client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=f"BUYER SMS from {from_number}: {body}",
+                from_=TWILIO_PHONE_NUMBER_2 or TWILIO_PHONE_NUMBER,
+                to=forward_to
+            )
+
+        response = MessagingResponse()
+        response.message("Thank you for reaching out to Lifeline Home Buyers! We'll get back to you shortly.")
+        return HTMLResponse(content=str(response), media_type="application/xml")
+    except Exception as e:
+        logger.error(f"SMS buyers error: {e}")
+        return HTMLResponse(content="<Response></Response>", media_type="application/xml")
+
+
 @app.post("/incoming-call")
 async def incoming_call_sellers(request: Request):
     """Handle inbound calls to the sellers Twilio number - forward to real phone."""
