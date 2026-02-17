@@ -18,8 +18,13 @@ import json
 import os
 import sys
 import logging
-import yaml
-import markdown
+try:
+    import yaml
+    import markdown
+    BLOG_AVAILABLE = True
+except ImportError:
+    BLOG_AVAILABLE = False
+    logger.warning("yaml or markdown not available - blog disabled")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -201,7 +206,7 @@ BLOG_POSTS_DIR = BASE_DIR / "blog_posts"
 def load_blog_posts():
     """Load all blog posts from markdown files with YAML frontmatter."""
     posts = []
-    if not BLOG_POSTS_DIR.exists():
+    if not BLOG_AVAILABLE or not BLOG_POSTS_DIR.exists():
         return posts
 
     for md_file in BLOG_POSTS_DIR.glob("*.md"):
