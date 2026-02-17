@@ -1,6 +1,62 @@
 {% extends "base.html" %}
 
 {% block extra_head %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "How do I verify Lifeline is a legitimate company?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Lifeline Home Buyers is a real estate investment company based in Columbus, Ohio. Our acquisitions team evaluates every property, and our founder maintains direct oversight on strategy and operations. All transactions close through licensed title companies."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How are offers calculated?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Offers are based on comparable sales, property condition, and current market data. We provide a written breakdown showing how the number was determined. There is no obligation to accept."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What condition does the property need to be in?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Any condition. We acquire properties with deferred maintenance, code violations, fire damage, hoarding situations, and occupied or vacant status. No repairs or cleanout required."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What about outstanding mortgages or liens?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Mortgages, tax liens, and other encumbrances are paid from sale proceeds at closing. If the property is underwater, we communicate that before proceeding."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is the typical closing timeline?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "7 days with clear title. 14 to 30 days is standard. Extended timelines of 60 to 90 days are available. Leaseback arrangements can be structured if additional time is needed."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Are there fees or commissions?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No. Lifeline covers all closing costs. No agent commissions, no processing fees. The offer amount is the net amount received by the seller."
+            }
+        }
+    ]
+}
+</script>
 <style>
 /* ── HOME-SPECIFIC STYLES ───────────────────────────────── */
 
@@ -816,7 +872,7 @@
     <div class="founder-inner">
 
         <div class="founder-photo-col">
-            <img src="/static/willy.jpg" alt="Willy Shumbusho, Founder of Lifeline Home Buyers">
+            <img src="/static/willy.jpg" alt="Willy Shumbusho, Founder of Lifeline Home Buyers" loading="lazy">
             <p class="name">Willy Shumbusho</p>
             <p class="role">Founder &amp; Managing Director</p>
             <a href="/about" style="display:inline-block; margin-top:1rem; font-size:0.78rem; color:var(--amber); text-decoration:none;">
@@ -873,7 +929,7 @@
 
         <div class="faq-item">
             <p class="faq-q">How do I verify Lifeline is a legitimate company?</p>
-            <p class="faq-a">Lifeline Home Buyers is a registered real estate investment company based in Columbus, Ohio. Our acquisitions team evaluates every property, and our founder maintains direct oversight on strategy and operations. All transactions close through licensed title companies.</p>
+            <p class="faq-a">Lifeline Home Buyers is a real estate investment company based in Columbus, Ohio. Our acquisitions team evaluates every property, and our founder maintains direct oversight on strategy and operations. All transactions close through licensed title companies.</p>
         </div>
 
         <div class="faq-item">

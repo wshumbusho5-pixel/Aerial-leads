@@ -1,6 +1,54 @@
 {% extends "base.html" %}
 
 {% block extra_head %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "How fast can you buy my house in Columbus?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "We can close in as few as 7 days after the offer is accepted. If you need more time, 30, 60, or 90 days, that works too. You choose the date."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Will you make a fair offer?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Offers are based on current Franklin County market data and actual repair costs. We provide a written breakdown. You keep what you would otherwise lose to agent commissions, closing costs, repairs, and months of carrying costs."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What condition do you buy in?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Any condition. Fire damage, water damage, mold, foundation issues, deferred maintenance, full of belongings. We do not require a single repair before closing."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Are there any fees or hidden costs?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "None. We pay all closing costs. No agent commissions, no processing fees. The offer amount is the net amount received by the seller."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Where in Columbus do you buy?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Throughout all of Franklin County. Columbus, Westerville, Dublin, Grove City, Reynoldsburg, Whitehall, Gahanna, Upper Arlington, Hilliard, Worthington, and every neighborhood in between."
+            }
+        }
+    ]
+}
+</script>
 <style>
 .shf-hero {
     background: #0b1120;

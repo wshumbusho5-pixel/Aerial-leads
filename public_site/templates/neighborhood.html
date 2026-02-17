@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": ["RealEstateAgent", "LocalBusiness"],
+    "name": "Lifeline Home Buyers",
+    "description": "We buy houses in {{ neighborhood.name }}, Columbus OH for cash. Any condition, any situation.",
+    "url": "https://life-line-homebuyers.com/we-buy-houses-{{ slug }}",
+    "telephone": "+1-614-825-3368",
+    "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Columbus",
+        "addressRegion": "OH",
+        "postalCode": "{{ neighborhood.zip }}",
+        "addressCountry": "US"
+    },
+    "areaServed": {
+        "@type": "City",
+        "name": "Columbus"
+    }
+}
+</script>
+<style>
+.nbhd-hero {
+    background: #0b1120;
+    color: white;
+    padding: 6rem 2rem 5rem;
+}
+.nbhd-hero-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 4rem;
+    align-items: center;
+}
+.nbhd-hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 1.25rem;
+}
+.nbhd-hero h1 em {
+    font-style: normal;
+    color: var(--amber);
+}
+.nbhd-hero-sub {
+    color: #7a8394;
+    font-size: 1.05rem;
+    line-height: 1.75;
+    max-width: 540px;
+    margin-bottom: 2rem;
+}
+
+.nbhd-form-card {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 2rem 1.75rem;
+}
+.nbhd-form-card h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #c4cdd9;
+    margin-bottom: 0.3rem;
+}
+.nbhd-form-card > p {
+    font-size: 0.76rem;
+    color: #3d4a5e;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+}
+
+.dark-input {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 7px;
+    color: white;
+    font-size: 0.9rem;
+    font-family: inherit;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s;
+}
+.dark-input:focus { outline: none; border-color: var(--amber); }
+.dark-input::placeholder { color: #3d4655; }
+
+.nbhd-about {
+    padding: 6rem 2rem;
+    background: white;
+}
+.nbhd-about-inner {
+    max-width: 820px;
+    margin: 0 auto;
+}
+.nbhd-about p {
+    color: #4b5563;
+    font-size: 1rem;
+    line-height: 1.75;
+    margin-bottom: 1.15rem;
+}
+
+.nbhd-types {
+    padding: 6rem 2rem;
+    background: #f7f8fa;
+    border-top: 1px solid #eef0f3;
+}
+.nbhd-types-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.nbhd-types-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.nbhd-type-card {
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: white;
+}
+.nbhd-type-card h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.4rem;
+}
+.nbhd-type-card p {
+    font-size: 0.92rem;
+    color: #6b7280;
+    line-height: 1.65;
+}
+
+.nbhd-cta {
+    background: #0b1120;
+    color: white;
+    padding: 5.5rem 2rem;
+    text-align: center;
+}
+.nbhd-cta h2 {
+    font-size: 1.85rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+}
+.nbhd-cta p {
+    color: #4e5a6e;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 900px) {
+    .nbhd-hero-inner { grid-template-columns: 1fr; }
+    .nbhd-hero h1 { font-size: 1.8rem; }
+    .nbhd-types-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="nbhd-hero">
+    <div class="nbhd-hero-inner">
+        <div>
+            <span class="section-label" style="color:var(--amber);">{{ neighborhood.name }} | Columbus, Ohio</span>
+            <h1>We Buy Houses in <em>{{ neighborhood.name }}</em>, Columbus OH</h1>
+            <p class="nbhd-hero-sub">
+                {{ neighborhood.desc }}
+            </p>
+            <div style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;">
+                <a href="tel:+16148253368" style="color:var(--amber); font-size:1.3rem; font-weight:900; text-decoration:none;">(614) 825-3368</a>
+                <a href="/get-offer" class="btn btn-primary">Get Your Cash Offer</a>
+            </div>
+        </div>
+
+        <div class="nbhd-form-card">
+            <h3>Get a Cash Offer for Your {{ neighborhood.name }} Property</h3>
+            <p>Our team evaluates {{ neighborhood.name }} properties within 24 hours.</p>
+            <form action="/submit-lead" method="POST">
+                <input type="hidden" name="source_page" value="neighborhood-{{ slug }}">
+                <input class="dark-input" type="text" name="property_address" required placeholder="Property address in {{ neighborhood.name }}">
+                <input class="dark-input" type="text" name="name" required placeholder="Your name">
+                <input class="dark-input" type="tel" name="phone" required placeholder="Phone number">
+                <input class="dark-input" type="email" name="email" placeholder="Email (optional)">
+                <button type="submit" style="width:100%; padding:0.85rem; background:var(--green); color:white; border:none; border-radius:7px; font-size:0.92rem; font-weight:700; cursor:pointer; margin-top:0.25rem; transition:background 0.2s;"
+                        onmouseover="this.style.background='#095a28'"
+                        onmouseout="this.style.background='#0b6b30'">
+                    Request Cash Offer
+                </button>
+                <p style="text-align:center; font-size:0.75rem; color:#3d4a5e; margin-top:0.75rem;">No fees. No obligation.</p>
+            </form>
+        </div>
+    </div>
+</section>
+
+<section class="nbhd-about">
+    <div class="nbhd-about-inner">
+        <span class="section-label">About {{ neighborhood.name }}</span>
+        <h2 class="section-heading">Selling a House in {{ neighborhood.name }}, Columbus</h2>
+
+        <p>{{ neighborhood.long_desc }}</p>
+
+        <p>
+            Lifeline Home Buyers is actively acquiring properties in the {{ neighborhood.zip }} zip code
+            and surrounding areas. Whether your property has deferred maintenance, tax issues,
+            or you simply need to sell quickly, we provide fair cash offers with no obligation.
+        </p>
+
+        <div style="margin-top:1.5rem;">
+            <a href="/properties?zip={{ neighborhood.zip }}" style="font-size:0.88rem; color:#0b6b30; text-decoration:none; font-weight:600;">
+                View properties in {{ neighborhood.zip }} &rarr;
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="nbhd-types">
+    <div class="nbhd-types-inner">
+        <span class="section-label">Property Types</span>
+        <h2 class="section-heading">Properties We Buy in {{ neighborhood.name }}</h2>
+
+        <div class="nbhd-types-grid">
+            {% for ptype in neighborhood.property_types %}
+            <div class="nbhd-type-card">
+                <h4>{{ ptype.title }}</h4>
+                <p>{{ ptype.desc }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="nbhd-cta">
+    <h2>Sell Your {{ neighborhood.name }} Property for Cash</h2>
+    <p>No repairs. No fees. No obligation. Written offer within 24 hours.</p>
+    <div style="display:flex; justify-content:center; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+        <a href="tel:+16148253368" style="color:var(--amber); font-size:1.3rem; font-weight:900; text-decoration:none;">(614) 825-3368</a>
+        <a href="/get-offer" class="btn btn-primary" style="font-size:0.95rem; padding:0.9rem 2rem;">Submit Property for Evaluation</a>
+    </div>
+</section>
+
+{% endblock %}

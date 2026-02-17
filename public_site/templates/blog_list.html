@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+.blog-hero {
+    background: #0b1120;
+    color: white;
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+}
+.blog-hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+}
+.blog-hero p {
+    color: #7a8394;
+    font-size: 1.05rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+.blog-list-section {
+    padding: 5rem 2rem;
+    background: white;
+}
+.blog-list-inner {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.blog-card {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 2rem 0;
+}
+.blog-card:first-child { padding-top: 0; }
+.blog-card:last-child { border-bottom: none; }
+
+.blog-card-date {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.5rem;
+}
+.blog-card h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+.blog-card h2 a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.blog-card h2 a:hover { color: var(--green); }
+.blog-card p {
+    color: #6b7280;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin-bottom: 0.75rem;
+}
+.blog-card-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.blog-tag {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--green);
+    background: #f0fdf4;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.blog-read-more {
+    font-size: 0.88rem;
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 600;
+}
+.blog-read-more:hover { text-decoration: underline; }
+
+.blog-pagination {
+    margin-top: 3rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+.blog-pagination a {
+    padding: 0.5rem 1.25rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    color: #374151;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.blog-pagination a:hover {
+    border-color: var(--green);
+    color: var(--green);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="blog-hero">
+    <span class="section-label" style="color:var(--amber);">Resources</span>
+    <h1>Homeowner Resources &amp; Guides</h1>
+    <p>Guides for Ohio homeowners dealing with inherited property, tax issues, and cash sales.</p>
+</section>
+
+<section class="blog-list-section">
+    <div class="blog-list-inner">
+        {% for post in posts %}
+        <article class="blog-card">
+            <div class="blog-card-date">{{ post.date }}</div>
+            <h2><a href="/blog/{{ post.slug }}">{{ post.title }}</a></h2>
+            <p>{{ post.description }}</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <div class="blog-card-tags">
+                    {% for tag in post.tags %}
+                    <span class="blog-tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                <a href="/blog/{{ post.slug }}" class="blog-read-more">Read more &rarr;</a>
+            </div>
+        </article>
+        {% endfor %}
+
+        {% if total_pages > 1 %}
+        <div class="blog-pagination">
+            {% if page > 1 %}
+            <a href="/blog?page={{ page - 1 }}">&larr; Newer</a>
+            {% endif %}
+            {% if page < total_pages %}
+            <a href="/blog?page={{ page + 1 }}">Older &rarr;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

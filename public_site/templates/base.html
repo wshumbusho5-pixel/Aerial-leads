@@ -32,11 +32,16 @@
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
-        "@type": "RealEstateAgent",
+        "@type": ["RealEstateAgent", "LocalBusiness"],
         "name": "Lifeline Home Buyers",
         "description": "We buy houses in Columbus, Ohio for cash. Any condition, any situation — tax delinquent, probate, foreclosure. Fair cash offers in 24 hours.",
         "url": "https://life-line-homebuyers.com",
         "telephone": "+1-614-825-3368",
+        "foundingDate": "2022",
+        "founder": {
+            "@type": "Person",
+            "name": "Willy Shumbusho"
+        },
         "address": {
             "@type": "PostalAddress",
             "addressLocality": "Columbus",
@@ -46,9 +51,52 @@
         "areaServed": [
             {"@type": "City", "name": "Columbus"},
             {"@type": "AdministrativeArea", "name": "Franklin County"}
+        ],
+        "openingHoursSpecification": [
+            {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "opens": "09:00",
+                "closes": "18:00"
+            },
+            {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": "Saturday",
+                "opens": "09:00",
+                "closes": "14:00"
+            }
+        ],
+        "priceRange": "$$",
+        "logo": "https://life-line-homebuyers.com/static/lifeline_logo.svg",
+        "image": "https://life-line-homebuyers.com/static/lifeline_logo.svg",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+1-614-825-3368",
+            "contactType": "sales",
+            "areaServed": "US-OH",
+            "availableLanguage": "English"
+        }
+    }
+    </script>
+
+    {% if breadcrumbs %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {% for crumb in breadcrumbs %}
+            {
+                "@type": "ListItem",
+                "position": {{ loop.index }},
+                "name": "{{ crumb.name }}",
+                "item": "{{ crumb.url }}"
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
         ]
     }
     </script>
+    {% endif %}
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -513,6 +561,7 @@
                 <li><a href="/probate">Probate</a></li>
                 <li><a href="/tax-delinquent">Tax Help</a></li>
                 <li><a href="/about">About</a></li>
+                <li><a href="/blog">Resources</a></li>
                 <li><a href="tel:+16148253368" class="nav-phone">(614) 825-3368</a></li>
                 <li><a href="/get-offer" class="nav-cta">Submit Property</a></li>
             </ul>
@@ -526,6 +575,7 @@
         <a href="/probate">Probate</a>
         <a href="/tax-delinquent">Tax Help</a>
         <a href="/about">About</a>
+        <a href="/blog">Resources</a>
         <a href="/properties">Property Intelligence</a>
         <a href="tel:+16148253368" class="mob-phone">(614) 825-3368</a>
         <a href="/get-offer" class="mob-cta">Submit Property</a>
@@ -549,7 +599,7 @@
                 </p>
                 <p style="margin-top:0.4rem; font-size:0.75rem; color:#3d4a5e;">Mon–Fri 9am–6pm &nbsp;|&nbsp; Sat by appointment</p>
             </div>
-            <div style="display:flex; gap:3rem;">
+            <div style="display:flex; gap:3rem; flex-wrap:wrap;">
                 <div class="footer-links-col">
                     <span style="font-size:0.7rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#3d4a5e; margin-bottom:0.3rem;">Acquisitions</span>
                     <a href="/get-offer">Submit Property</a>
@@ -558,10 +608,19 @@
                     <a href="/properties">Property Intelligence</a>
                 </div>
                 <div class="footer-links-col">
+                    <span style="font-size:0.7rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#3d4a5e; margin-bottom:0.3rem;">Neighborhoods</span>
+                    <a href="/we-buy-houses-linden">Linden</a>
+                    <a href="/we-buy-houses-franklinton">Franklinton</a>
+                    <a href="/we-buy-houses-near-east-side">Near East Side</a>
+                    <a href="/we-buy-houses-south-side">South Side</a>
+                    <a href="/we-buy-houses-hilltop">Hilltop</a>
+                    <a href="/we-buy-houses-german-village">German Village</a>
+                </div>
+                <div class="footer-links-col">
                     <span style="font-size:0.7rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#3d4a5e; margin-bottom:0.3rem;">Company</span>
                     <a href="/about">About Lifeline</a>
-                    <a href="/about">Our Process</a>
-                    <a href="/about">Leadership</a>
+                    <a href="/blog">Resources</a>
+                    <a href="/about">Contact</a>
                 </div>
             </div>
         </div>

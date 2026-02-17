@@ -106,13 +106,19 @@ def log_debug(message: str):
 
 def log_success(message: str):
     """Log success message with emoji"""
-    console.print(f"[bold green]✅ {message}[/bold green]")
+    try:
+        console.print(f"[bold green]✅ {message}[/bold green]")
+    except BrokenPipeError:
+        pass
     main_logger.info(message)
 
 
 def log_failure(message: str):
     """Log failure message with emoji"""
-    console.print(f"[bold red]❌ {message}[/bold red]")
+    try:
+        console.print(f"[bold red]❌ {message}[/bold red]")
+    except BrokenPipeError:
+        pass
     main_logger.error(message)
 
 

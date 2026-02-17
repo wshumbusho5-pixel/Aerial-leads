@@ -1035,7 +1035,7 @@ elif page == "⚖️ Probate & Foreclosure":
                     status_text = st.empty()
 
                     try:
-                        tracer = SkipTracer(provider='batchdata', api_key=BATCHDATA_API_KEY)
+                        tracer = SkipTracer(provider='batchdata', api_key=BATCHDATA_API_KEY, cache_dir=PROCESSED_DATA_DIR)
                         dnc_checker = DNCChecker()
 
                         results = []
@@ -1234,7 +1234,7 @@ elif page == "⚖️ Probate & Foreclosure":
                 status_text = st.empty()
 
                 try:
-                    tracer = SkipTracer(provider='batchdata', api_key=BATCHDATA_API_KEY)
+                    tracer = SkipTracer(provider='batchdata', api_key=BATCHDATA_API_KEY, cache_dir=PROCESSED_DATA_DIR)
                     dnc_checker = DNCChecker()
 
                     results = []
@@ -1503,7 +1503,7 @@ elif page == "📞 Skip Trace":
                     results_container = st.container()
 
                     try:
-                        tracer = SkipTracer(provider='batchdata', api_key=BATCHDATA_API_KEY)
+                        tracer = SkipTracer(provider='batchdata', api_key=BATCHDATA_API_KEY, cache_dir=PROCESSED_DATA_DIR)
                         dnc_checker = DNCChecker()
 
                         results = []
@@ -1550,6 +1550,14 @@ elif page == "📞 Skip Trace":
                                 df.at[idx, 'skip_traced'] = True
                                 df.at[idx, 'skip_trace_confidence'] = result.confidence_score
 
+                                # Save additional skip trace data
+                                df.at[idx, 'all_phones'] = '; '.join(result.phones) if result.phones else None
+                                df.at[idx, 'all_emails'] = '; '.join(result.emails) if result.emails else None
+                                df.at[idx, 'relatives'] = '; '.join(result.relatives) if result.relatives else None
+                                df.at[idx, 'other_addresses'] = '; '.join(result.other_addresses) if result.other_addresses else None
+                                df.at[idx, 'skip_trace_provider'] = result.provider
+                                df.at[idx, 'skip_trace_date'] = result.lookup_date
+
                                 # Run DNC check on new phone
                                 if result.primary_phone:
                                     dnc_result = dnc_checker.check_dnc(result.primary_phone)
@@ -1568,6 +1576,14 @@ elif page == "📞 Skip Trace":
                                 'email': result.primary_email if result.success else None,
                                 'success': result.success
                             })
+
+                            # Incremental save every 10 leads to prevent data loss
+                            if (i + 1) % 10 == 0 or (i + 1) == total:
+                                if is_investor_leads:
+                                    df.to_csv(file_options[selected_inv_file], index=False)
+                                else:
+                                    df.to_csv(PROCESSED_DATA_DIR / 'columbus_oh_all_leads.csv', index=False)
+                                    df.to_csv(PROCESSED_DATA_DIR / 'all_leads_real.csv', index=False)
 
                         # Save updated DataFrame
                         if is_investor_leads:
@@ -1727,7 +1743,7 @@ elif page == "📞 Skip Trace":
                         results_container = st.container()
 
                         try:
-                            tracer = SkipTracer(provider='batchdata', api_key=BATCHDATA_API_KEY)
+                            tracer = SkipTracer(provider='batchdata', api_key=BATCHDATA_API_KEY, cache_dir=PROCESSED_DATA_DIR)
 
                             results = []
                             for i, (idx, row) in enumerate(selected_rows.iterrows()):
@@ -1851,7 +1867,7 @@ elif page == "📞 Skip Trace":
             if quick_name and quick_address:
                 with st.spinner("Skip tracing..."):
                     try:
-                        tracer = SkipTracer(provider='batchdata', api_key=BATCHDATA_API_KEY)
+                        tracer = SkipTracer(provider='batchdata', api_key=BATCHDATA_API_KEY, cache_dir=PROCESSED_DATA_DIR)
                         result = tracer.lookup(owner_name=quick_name, address=quick_address)
 
                         if result.success:
@@ -2244,10 +2260,16 @@ elif page == "📞 Skip Trace":
                         st.session_state['skip_traced_leads'] = matched_df
                         st.session_state['skip_traced_type'] = lead_type
 
-                        # AUTO-SAVE skip traced results
+                        # AUTO-SAVE skip traced results to BOTH locations
                         try:
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            # Save to imports folder so it shows in VA Management > Imported Leads
+                            imports_save_dir = DATA_DIR / 'imports'
+                            imports_save_dir.mkdir(parents=True, exist_ok=True)
+                            matched_df.to_csv(imports_save_dir / f'skip_traced_{lead_type}_{timestamp}.csv', index=False)
+
                             if lead_type == 'property':
-                                output_path = PROCESSED_DATA_DIR / f'skip_traced_leads_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+                                output_path = PROCESSED_DATA_DIR / f'skip_traced_leads_{timestamp}.csv'
                             else:
                                 output_path = Path(__file__).parent / "data" / "buyers" / "processed" / f'skip_traced_investors_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
                             matched_df.to_csv(output_path, index=False)

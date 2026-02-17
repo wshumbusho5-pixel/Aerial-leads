@@ -26,6 +26,7 @@ from datetime import datetime
 # ── Paths ─────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent.parent
 IMPORTS_DIR = BASE_DIR / "data" / "imports"
+RAW_DIR = BASE_DIR / "data" / "sellers" / "raw"   # Franklin County Excel files live here
 # Output goes to public_site/data/processed/ where the web app reads from
 OUTPUT_FILE = BASE_DIR / "public_site" / "data" / "processed" / "public_properties.csv"
 OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -125,6 +126,131 @@ def detect_lead_type(row: pd.Series, filename: str) -> str:
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
+def load_franklin_county_excel() -> list:
+    """
+    Process the three Franklin County bulk Excel files:
+      data/sellers/raw/TaxDetail.xlsx  — tax amounts owed
+      data/sellers/raw/Parcel.xlsx     — addresses, owner names, neighborhoods
+      data/sellers/raw/Value.xlsx      — assessed and market values
+
+    Returns list of public-safe property dicts (no owner names/phones).
+    """
+    tax_file = RAW_DIR / "TaxDetail.xlsx"
+    parcel_file = RAW_DIR / "Parcel.xlsx"
+    value_file = RAW_DIR / "Value.xlsx"
+
+    if not parcel_file.exists():
+        return []
+
+    print("\n→ Loading Franklin County bulk Excel files (this takes ~30 seconds)...")
+
+    # Load Parcel (addresses)
+    print("  Loading Parcel.xlsx ...")
+    df_parcel = pd.read_excel(parcel_file, engine="openpyxl")
+    df_parcel.columns = [c.strip() for c in df_parcel.columns]
+
+    # Normalize key columns — handle various column name formats
+    col_map = {}
+    for c in df_parcel.columns:
+        cl = c.lower().replace(" ", "").replace("_", "")
+        if cl in ("parcelid", "parcelnumber", "parcelno"):
+            col_map[c] = "parcel_id"
+        elif "siteaddress" in cl or (cl == "address" and "parcel_id" not in col_map.values()):
+            col_map[c] = "address"
+        elif "ownername" in cl or cl == "owner1":
+            col_map[c] = "owner_name"
+        elif "zipcode" in cl or cl == "zip":
+            col_map[c] = "zip_code"
+        elif "neighborhood" in cl or cl == "nbhd":
+            col_map[c] = "neighborhood"
+        elif "lucdesc" in cl or "landuse" in cl or "propertytype" in cl:
+            col_map[c] = "property_type"
+    df_parcel = df_parcel.rename(columns=col_map)
+
+    needed = [c for c in ["parcel_id", "address", "zip_code"] if c in df_parcel.columns]
+    if not needed:
+        print("  ⚠️  Could not find address/parcel columns in Parcel.xlsx")
+        return []
+
+    rows = []
+
+    # Load TaxDetail (amounts owed) if available
+    taxes_by_parcel = {}
+    if tax_file.exists():
+        print("  Loading TaxDetail.xlsx ...")
+        df_tax = pd.read_excel(tax_file, engine="openpyxl")
+        df_tax.columns = [c.strip() for c in df_tax.columns]
+        for _, row in df_tax.iterrows():
+            pid = str(row.get("Parcel Id") or row.get("ParcelId") or row.get("PARCEL ID") or "").strip()
+            amt = float(row.get("TotTotal") or row.get("TotalDue") or row.get("taxes_owed") or 0)
+            if pid and amt > 0:
+                taxes_by_parcel[pid] = amt
+
+    # Load Value (assessed/market values) if available
+    values_by_parcel = {}
+    if value_file.exists():
+        print("  Loading Value.xlsx ...")
+        df_val = pd.read_excel(value_file, engine="openpyxl")
+        df_val.columns = [c.strip() for c in df_val.columns]
+        for _, row in df_val.iterrows():
+            pid = str(row.get("Parcel Id") or row.get("ParcelId") or row.get("PARCEL ID") or "").strip()
+            market = float((row.get("MarketLand") or 0) + (row.get("MarketImpr") or 0))
+            assessed = float((row.get("TaxableLand") or 0) + (row.get("TaxableImpr") or 0))
+            if pid:
+                values_by_parcel[pid] = {"market": market, "assessed": assessed}
+
+    print(f"  Processing {len(df_parcel):,} parcels ...")
+    for _, row in df_parcel.iterrows():
+        address = str(row.get("address") or "").strip()
+        if not address or address.lower() in ("nan", ""):
+            continue
+
+        pid = str(row.get("parcel_id") or "").strip()
+        zip_code = str(row.get("zip_code") or "").strip()
+        if zip_code in ("nan", "0", ""):
+            zip_code = ""
+        else:
+            zip_code = zip_code.split(".")[0]  # remove .0 from numeric
+
+        city = "Columbus"
+        neighborhood = row.get("neighborhood") or ZIP_NEIGHBORHOODS.get(zip_code, "Columbus")
+        if not neighborhood or str(neighborhood) == "nan":
+            neighborhood = ZIP_NEIGHBORHOODS.get(zip_code, "Columbus")
+
+        taxes_owed = taxes_by_parcel.get(pid, 0)
+        val_data = values_by_parcel.get(pid, {})
+        market = val_data.get("market", 0)
+        assessed = val_data.get("assessed", 0)
+
+        if market > 0:
+            val_low = int(market * 0.85 / 1000) * 1000
+            val_high = int(market * 1.15 / 1000) * 1000
+        else:
+            val_low, val_high = estimate_value_range(assessed)
+
+        lead_type = "tax_delinquent" if taxes_owed > 0 else "motivated_seller"
+
+        rows.append({
+            "slug": make_slug(address, city),
+            "address": address.title(),
+            "city": city,
+            "zip": zip_code or None,
+            "state": "OH",
+            "neighborhood": neighborhood,
+            "lead_type": lead_type,
+            "assessed_value": int(assessed) if assessed > 0 else None,
+            "val_low": val_low,
+            "val_high": val_high,
+            "taxes_owed": int(taxes_owed) if taxes_owed > 0 else None,
+            "years_delinquent": None,
+            "source_file": "FranklinCounty_bulk",
+            "imported_at": datetime.now().strftime("%Y-%m-%d"),
+        })
+
+    print(f"  ✅ {len(rows):,} properties loaded from Franklin County Excel files")
+    return rows
+
+
 def main():
     print("=" * 60)
     print("Lifeline Home Buyers - Property Data Import")
@@ -133,6 +259,11 @@ def main():
 
     all_rows = []
 
+    # ── Step 1: Franklin County bulk Excel files (the big source) ─────────────
+    fc_rows = load_franklin_county_excel()
+    all_rows.extend(fc_rows)
+
+    # ── Step 2: Any additional CSVs in imports/ ────────────────────────────────
     import_files = sorted(IMPORTS_DIR.glob("*.csv")) + sorted(IMPORTS_DIR.glob("*.xlsx"))
 
     if not import_files:

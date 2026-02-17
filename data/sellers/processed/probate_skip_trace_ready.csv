@@ -1,0 +1,25 @@
+owner_name,address,city,state,zip_code,lead_type,decedent_name,case_number,match_type,confidence
+"VEATCH, ALAN K.",,Columbus,OH,,probate_executor,"KHOURY, DAN T.",143002,no_property_found,0.0
+"CASE, W. LYMAN, JR.",,Columbus,OH,,probate_executor,"CASE, W. LYMAN",152283,no_property_found,0.0
+"MC CATHRAN, PEGGY A.",,Columbus,OH,,probate_executor,"MC CATHRAN, FRANK LEROY",174536,no_property_found,0.0
+"DU PEE, SUZANNE",,Columbus,OH,,probate_executor,"DAVIS, RAYMOND C.",204325,no_property_found,0.0
+"O'BRIEN, ROBERT T",,Columbus,OH,,probate_executor,"O'BRIEN, CLARENCE",212432,no_property_found,0.0
+"BOHANNAN, CHRISTINE",,Columbus,OH,,probate_executor,"BARRICKLOW, HENRY S.",219767,no_property_found,0.0
+"CLARK, THOMAS R.",1889 S FOURTH ST,Columbus,OH,43207,probate_executor,"HARRIS, JAMES",232093,decedent_property,0.75
+"COCHRAN, DEBORAH L.",,Columbus,OH,,probate_executor,"COCHRAN, WILLIAM H.",233653,no_property_found,0.0
+"MC CATHRAN, PEGGY",,Columbus,OH,,probate_executor,"MC CATHRAN, CARRIE MILDRED",254314,no_property_found,0.0
+"MILLER, THOMAS O.",,Columbus,OH,,probate_executor,"DAKAN, EVERETT L.",259653,no_property_found,0.0
+"HAMILTON, LEE R.",,Columbus,OH,,probate_executor,"HAMILTON, WILLIAM JOHN",263968,no_property_found,0.0
+"DICK, MARTHA",,Columbus,OH,,probate_executor,"DICK, CHARLES L.",265795,no_property_found,0.0
+"SCHELL, MARTHA J.",,Columbus,OH,,probate_executor,"KESSLER, CARL",267790,no_property_found,0.0
+"GILLESPIE, DAVID L.",,Columbus,OH,,probate_executor,"BEE, RUSSELL E.",268969,no_property_found,0.0
+"DOUGHERTY, MARJORIE ANN",,Columbus,OH,,probate_executor,"KNICK, MARION D.",276238,no_property_found,0.0
+"WOOD, LURA L.",292 CYPRESS AV,Columbus,OH,43223,probate_executor,"WILLIAMS, BLANCHE E.",276402,decedent_property,0.7741935483870968
+"CARLISLE, MARY JO",,Columbus,OH,,probate_executor,"CARLISLE, WALTER JOSEPH, JR.",276544,no_property_found,0.0
+"FRASCH, JOSEPH F., JR.",,Columbus,OH,,probate_executor,"SAXTON, JEWEL",276915,no_property_found,0.0
+"HUSSEY, ROSEMARY T.",,Columbus,OH,,probate_executor,"TONTI, ALFRED E.",277519,no_property_found,0.0
+"ARTER, LILLIE",,Columbus,OH,,probate_executor,"FOUT, LOUISE FRANKLIN",278670,no_property_found,0.0
+"BURRIS, RUTH",345 S BURGESS AV,Columbus,OH,43204,probate_executor,"LOCKHART, FRED G.",284368,decedent_property,0.8148148148148148
+"SELCER, SUSAN JANE",,Columbus,OH,,probate_executor,"JEFFREY, WILLA F.",285908,no_property_found,0.0
+"GOLDBERG, ETHEL",,Columbus,OH,,probate_executor,"GOLDBERG, HYMAN",289241,no_property_found,0.0
+"MALLEY, KINGSTON E.",,Columbus,OH,,probate_executor,"DAVIS, FLORENCE S.",294314,no_property_found,0.0
