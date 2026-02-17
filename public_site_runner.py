@@ -441,7 +441,12 @@ async def health():
         "exists": TEMPLATES_DIR.exists(),
         "db_available": DB_AVAILABLE,
         "db_url_set": bool(DATABASE_URL),
-        "db_error": DB_ERROR
+        "db_error": DB_ERROR,
+        "blog_available": BLOG_AVAILABLE,
+        "blog_dir": str(BLOG_POSTS_DIR),
+        "blog_dir_exists": BLOG_POSTS_DIR.exists(),
+        "blog_posts_count": len(load_blog_posts()),
+        "blog_files": [f.name for f in BLOG_POSTS_DIR.glob("*.md")] if BLOG_POSTS_DIR.exists() else [],
     }
 
 @app.get("/robots.txt")
