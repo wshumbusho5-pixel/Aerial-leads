@@ -481,6 +481,106 @@
     position: relative;
 }
 
+/* ── STATS STRIP ───────────────────────────────────────── */
+.stats-strip {
+    background: var(--dark-2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 2rem;
+}
+.stats-strip-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-around;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+.stat-item { text-align: center; }
+.stat-number {
+    font-size: 1.75rem;
+    font-weight: 900;
+    color: var(--amber);
+    letter-spacing: -0.03em;
+    display: block;
+}
+.stat-label {
+    font-size: 0.78rem;
+    color: #5a6478;
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* ── PROPERTY DATA ─────────────────────────────────────── */
+.property-data-section {
+    padding: 5rem 2rem;
+    background: #f4f5f7;
+}
+.property-data-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+.property-search-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+}
+.property-search-bar input {
+    flex: 1;
+    padding: 0.85rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: white;
+}
+.property-search-bar input:focus {
+    outline: none;
+    border-color: var(--green);
+}
+.property-search-bar button {
+    padding: 0.85rem 1.5rem;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.property-data-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+.data-stat-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+.data-stat-card .number {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--dark);
+    letter-spacing: -0.02em;
+}
+.data-stat-card .label {
+    font-size: 0.82rem;
+    color: #6b7280;
+    margin-top: 0.3rem;
+}
+
+@media (max-width: 900px) {
+    .property-data-stats { grid-template-columns: 1fr; }
+    .property-search-bar { flex-direction: column; }
+}
+
 /* ── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 900px) {
     .hero-inner {
@@ -517,7 +617,7 @@
             </h1>
 
             <p class="hero-sub">
-                I buy houses directly from Ohio homeowners dealing with back taxes, probate, or
+                Lifeline buys houses directly from Ohio homeowners dealing with back taxes, probate, or
                 situations that make a traditional sale impossible. No listing photos. No open houses. No pretending everything's fine.
             </p>
 
@@ -526,14 +626,14 @@
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
                     (614) 825-3368
                 </a>
-                <a href="/get-offer" class="btn btn-primary">See What My Offer Would Be</a>
+                <a href="/get-offer" class="btn btn-primary">Get Your Cash Offer</a>
             </div>
 
             <div class="founder-line">
-                <img src="/static/willy.jpg" alt="Willy Shumbusho, Lifeline Home Buyers">
+                <img src="/static/willy.jpg" alt="Willy Shumbusho, Founder of Lifeline Home Buyers">
                 <div class="founder-line-text">
-                    <strong>Hi, I'm Willy Shumbusho.</strong>
-                    I've purchased 38 homes across Franklin County since 2022. I'm the one who picks up the phone. Most of my calls come in after 8pm.
+                    <strong>Willy Shumbusho, Founder</strong>
+                    Lifeline closes with its own capital — no banks, no contingencies. We operate across Franklin County and central Ohio, handling probate, foreclosure, tax liens, and situations that don't fit a traditional sale. When you call, you're talking to me directly. Most of our calls come in after 8pm.
                 </div>
             </div>
         </div>
@@ -541,7 +641,7 @@
         <div class="hero-right">
             <div class="hero-form-card">
                 <h3>Let's start with the basics.</h3>
-                <p>Takes 60 seconds. If you call, you're getting me — not a call center.</p>
+                <p>Takes 60 seconds. When you call Lifeline, you're talking to the founder — not a call center.</p>
 
                 <form action="/submit-lead" method="POST">
                     <input type="hidden" name="source_page" value="home">
@@ -569,7 +669,7 @@
      ═══════════════════════════════════════════ -->
 <div class="wont-do-strip">
     <div class="wont-do-inner">
-        <span class="wont-label">What I won't do</span>
+        <span class="wont-label">What we don't do</span>
         <div class="wont-items">
             <span class="wont-item">Send a lowball number and act like it's fair</span>
             <span class="wont-item">Pressure you to sign anything</span>
@@ -580,18 +680,80 @@
 </div>
 
 <!-- ═══════════════════════════════════════════
+     STATS STRIP — COMPANY SCALE
+     ═══════════════════════════════════════════ -->
+<div class="stats-strip">
+    <div class="stats-strip-inner">
+        <div class="stat-item">
+            <span class="stat-number">Franklin County</span>
+            <span class="stat-label">Primary Market</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">Cash Buyer</span>
+            <span class="stat-label">No Bank Financing</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">7–30 Days</span>
+            <span class="stat-label">Average Close Time</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number">Since 2022</span>
+            <span class="stat-label">Operating in Ohio</span>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PROPERTY DATA — SEARCH & BROWSE
+     ═══════════════════════════════════════════ -->
+<section class="property-data-section">
+    <div class="property-data-inner">
+        <span class="section-label">Property Data</span>
+        <h2 class="section-heading">Look up any property in Franklin County.</h2>
+        <p style="color:#6b7280; font-size:0.92rem; line-height:1.7; max-width:600px;">
+            Lifeline tracks thousands of properties across the county — tax status, assessed values, property type.
+            Search for your address or browse our full database.
+        </p>
+
+        <form class="property-search-bar" action="/properties" method="GET">
+            <input type="text" name="q" placeholder="Enter a property address (e.g. 123 Main St, Columbus)">
+            <button type="submit">Search</button>
+        </form>
+
+        <div class="property-data-stats">
+            <div class="data-stat-card">
+                <div class="number">19,700+</div>
+                <div class="label">Properties tracked in Franklin County</div>
+            </div>
+            <div class="data-stat-card">
+                <div class="number">Updated Monthly</div>
+                <div class="label">Direct from county records</div>
+            </div>
+            <div class="data-stat-card">
+                <div class="number">Free Access</div>
+                <div class="label">Public property data, no sign-up required</div>
+            </div>
+        </div>
+
+        <a href="/properties" style="font-size:0.9rem; color:var(--green); text-decoration:none; font-weight:600;">
+            Browse all properties &rarr;
+        </a>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
      LOCAL PROOF — ASYMMETRIC LAYOUT
      ═══════════════════════════════════════════ -->
 <section class="local-proof">
     <div class="local-proof-inner">
 
         <div>
-            <span class="section-label">Where I work</span>
-            <h2 class="section-heading">Homes I've bought across Franklin County</h2>
+            <span class="section-label">Where we operate</span>
+            <h2 class="section-heading">Properties Lifeline has purchased across Franklin County</h2>
             <p style="color:#6b7280; font-size:0.92rem; line-height:1.7; margin-bottom:0.25rem;">
-                I know these neighborhoods because I've walked through houses in them.
+                We know these neighborhoods because we've walked through houses in them.
                 Sometimes the house is a mess. Sometimes life is too.
-                That doesn't change anything on my end.
+                That doesn't change anything on our end.
             </p>
 
             <div class="proof-neighborhoods">
@@ -630,22 +792,22 @@
             <span class="section-label" style="margin-bottom:1.25rem; display:block;">Recent closings</span>
 
             <div class="proof-example-card">
-                <p>Single-family home, Near East Side. Owner inherited the property after her mother passed. Four heirs, none local. We closed in 19 days.</p>
+                <p>Single-family home, Near East Side. Owner inherited the property after her mother passed. Four heirs, none local. Lifeline closed in 19 days.</p>
                 <div class="detail">Probate sale &mdash; Franklin County &mdash; 2024</div>
             </div>
 
             <div class="proof-example-card">
-                <p>Ranch home, Linden. Owner was 3 years behind on taxes. The county had already filed a lien. We paid off the back taxes at closing and he walked away with cash.</p>
+                <p>Ranch home, Linden. Owner was 3 years behind on taxes. The county had already filed a lien. Lifeline paid off the back taxes at closing and he walked away with cash.</p>
                 <div class="detail">Tax delinquent &mdash; Franklin County &mdash; 2024</div>
             </div>
 
             <div class="proof-example-card">
-                <p>Two-story in Franklinton. Roof was bad, basement had water damage, furnace was out. Bought it as-is. Owner didn't touch a thing.</p>
+                <p>Two-story in Franklinton. Roof was bad, basement had water damage, furnace was out. Purchased as-is. Owner didn't touch a thing.</p>
                 <div class="detail">As-is purchase &mdash; Franklin County &mdash; 2023</div>
             </div>
 
             <a href="/about" style="display:inline-block; margin-top:0.75rem; font-size:0.85rem; color:var(--green); text-decoration:none; font-weight:600;">
-                Read more about how I work &rarr;
+                Learn more about how Lifeline works &rarr;
             </a>
         </div>
 
@@ -704,33 +866,33 @@
      ═══════════════════════════════════════════ -->
 <section class="microstories">
     <div class="microstories-inner">
-        <span class="section-label">What working with me actually looks like</span>
-        <h2 class="section-heading" style="margin-bottom:0.5rem;">Three real examples.</h2>
+        <span class="section-label">What working with Lifeline looks like</span>
+        <h2 class="section-heading" style="margin-bottom:0.5rem;">Three real closings.</h2>
         <p style="color:#6b7280; font-size:0.92rem; margin-bottom:2rem; line-height:1.6;">
             Not a process flowchart. Just what actually happened.
         </p>
 
         <div class="story-card">
-            <p>Last fall, a woman called me about her father's house in Linden. She lived in Georgia.
+            <p>Last fall, a woman called about her father's house in Linden. She lived in Georgia.
             The property had been sitting empty for eight months — utilities off, grass overgrown,
             neighbor complaints piling up. She didn't know if probate was required or how long it would take.
-            We figured it out together, worked with her attorney, and closed in 31 days.
+            Our team figured it out with her attorney and closed in 31 days.
             She never had to fly to Columbus.</p>
             <p class="context">Inherited property / probate — Franklin County</p>
         </div>
 
         <div class="story-card">
-            <p>A man called me because he needed 90 days before he could move — his daughter was
-            finishing her school year and he didn't want to pull her mid-semester. We built that
-            into the purchase agreement. Signed the contract in week one,
+            <p>A seller needed 90 days before he could move — his daughter was
+            finishing her school year and he didn't want to pull her mid-semester. Lifeline built that
+            into the purchase agreement. Contract signed in week one,
             closed the day after her last day of school.</p>
             <p class="context">Flexible closing — South Columbus</p>
         </div>
 
         <div class="story-card">
-            <p>I bought a house last year where the seller hadn't paid taxes in four years.
-            He was embarrassed to even bring it up. We went through the numbers together —
-            I showed him exactly how the back taxes would be handled at closing
+            <p>Lifeline purchased a property where the seller hadn't paid taxes in four years.
+            He was embarrassed to even bring it up. Our founder walked through the numbers with him —
+            showed him exactly how the back taxes would be handled at closing
             and what he'd actually walk away with. He said it was the first conversation
             about that house where he didn't feel like the bad guy.</p>
             <p class="context">Tax delinquent — Franklinton, Columbus</p>
@@ -743,7 +905,7 @@
      ═══════════════════════════════════════════ -->
 <section class="testimonial-section">
     <div class="testimonial-inner">
-        <span class="section-label">From someone I helped</span>
+        <span class="section-label">From a Lifeline seller</span>
         <blockquote class="raw-testimonial">
             "We were honestly overwhelmed and didn't know what to do with my mom's house.
             Willy walked us through everything step by step. He never made us feel rushed
@@ -764,17 +926,17 @@
 
         <div class="faq-item">
             <p class="faq-q">Is this a scam? How do I know you're real?</p>
-            <p class="faq-a">Reasonable question. I'm a private buyer based in Columbus — not a franchise, not a call center. I'm the one who picks up the phone, comes to see the property, and signs the contract. You can verify me, look up the address after closing, and talk to me before committing to anything.</p>
+            <p class="faq-a">Reasonable question. Lifeline Home Buyers is a private real estate company based in Columbus — not a franchise, not a call center. Our founder personally handles acquisitions, walks the property, and signs the contract. You can verify us, look up the address after closing, and talk to Willy directly before committing to anything.</p>
         </div>
 
         <div class="faq-item">
             <p class="faq-q">Are you going to lowball me?</p>
-            <p class="faq-a">My offers are below retail value — that's honest. I buy as-is and close fast, and that has a cost. But I'll show you exactly how I arrived at the number, and you can compare it to whatever else you have on the table. No pressure to accept.</p>
+            <p class="faq-a">Our offers are below retail value — that's honest. We buy as-is and close fast, and that has a cost. But we'll show you exactly how we arrived at the number, and you can compare it to whatever else you have on the table. No pressure to accept.</p>
         </div>
 
         <div class="faq-item">
             <p class="faq-q">What happens to everything inside the house?</p>
-            <p class="faq-a">Take what you want, leave the rest. I've bought houses full of furniture, full of junk, and full of things families weren't ready to sort through. None of that is your problem to fix before we close.</p>
+            <p class="faq-a">Take what you want, leave the rest. We've bought houses full of furniture, full of junk, and full of things families weren't ready to sort through. None of that is your problem to fix before closing.</p>
         </div>
 
         <div class="faq-item">
@@ -784,7 +946,7 @@
 
         <div class="faq-item">
             <p class="faq-q">How fast can this actually close?</p>
-            <p class="faq-a">Seven days is possible if the title is clean. Most closings happen in 14–30 days. If you need more time — 60 days, 90 days — that's fine too. I work around your timeline.</p>
+            <p class="faq-a">Seven days is possible if the title is clean. Most closings happen in 14–30 days. If you need more time — 60 days, 90 days — that's fine too. Lifeline works around your timeline.</p>
         </div>
 
         <div class="faq-item">
@@ -799,7 +961,7 @@
      ═══════════════════════════════════════════ -->
 <section class="home-cta">
     <h2>Let's see what your options actually are.</h2>
-    <p>No commitment. I'll give you a straight answer about what the property is worth to me.</p>
+    <p>No commitment. We'll give you a straight answer about what the property is worth to us.</p>
     <div style="display:flex; justify-content:center; align-items:center; gap:1.5rem; flex-wrap:wrap; position:relative;">
         <a href="tel:+16148253368" class="phone-big" style="font-size:1.3rem;">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;fill:var(--amber)"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
