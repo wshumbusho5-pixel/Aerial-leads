@@ -190,9 +190,30 @@ def init_database():
             )
         """)
 
+        # Public properties table — powers SEO property pages
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS public_properties (
+                id SERIAL PRIMARY KEY,
+                slug VARCHAR(500) UNIQUE NOT NULL,
+                address VARCHAR(500) NOT NULL,
+                city VARCHAR(100) DEFAULT 'Columbus',
+                zip VARCHAR(10),
+                state VARCHAR(5) DEFAULT 'OH',
+                neighborhood VARCHAR(100),
+                lead_type VARCHAR(50) DEFAULT 'motivated_seller',
+                assessed_value INTEGER,
+                val_low INTEGER,
+                val_high INTEGER,
+                taxes_owed INTEGER,
+                years_delinquent INTEGER,
+                imported_at DATE DEFAULT CURRENT_DATE,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
         conn.commit()
         conn.close()
-        logger.info("Database initialized with call_logs and appointments tables")
+        logger.info("Database initialized successfully")
         return True
     except Exception as e:
         logger.error(f"Database init failed: {e}")
@@ -240,23 +261,24 @@ def load_leads():
 
 
 def load_properties():
-    """Load public-safe property pages CSV (no owner names or phone numbers)."""
+    """Load public properties — database first, CSV fallback."""
+    conn = get_db_connection()
+    if conn:
+        try:
+            df = pd.read_sql("SELECT * FROM public_properties ORDER BY imported_at DESC", conn)
+            conn.close()
+            if not df.empty:
+                return df
+        except Exception as e:
+            logger.error(f"Failed to load properties from DB: {e}")
+
+    # Fallback to CSV
     props_file = PROCESSED_DATA_DIR / "public_properties.csv"
     if props_file.exists():
         try:
-            df = pd.read_csv(props_file)
-            # Ensure slug column exists
-            if "slug" not in df.columns and "address" in df.columns:
-                import re
-                def make_slug(addr):
-                    text = f"{addr} columbus oh".lower()
-                    text = re.sub(r"[^a-z0-9\s-]", "", text)
-                    text = re.sub(r"\s+", "-", text.strip())
-                    return re.sub(r"-+", "-", text)
-                df["slug"] = df["address"].apply(make_slug)
-            return df
+            return pd.read_csv(props_file)
         except Exception as e:
-            logger.error(f"Failed to load properties: {e}")
+            logger.error(f"Failed to load properties CSV: {e}")
     return pd.DataFrame()
 
 app = FastAPI(title="Lifeline Home Buyers")
@@ -545,6 +567,184 @@ async def property_database(request: Request, page: int = 1, type: str = None):
         "page_title": "Property Database | Lifeline Home Buyers",
         "meta_description": "Search distressed properties in Columbus, Ohio."
     })
+
+
+# ============================================
+# ADMIN — Property Data Upload
+# ============================================
+
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'Lifeline2026!')
+
+import re as _re
+import io
+
+def _make_slug(address: str, city: str = "columbus") -> str:
+    text = f"{address} {city} oh".lower()
+    text = _re.sub(r"[^a-z0-9\s-]", "", text)
+    text = _re.sub(r"\s+", "-", text.strip())
+    return _re.sub(r"-+", "-", text)
+
+ZIP_NEIGHBORHOODS = {
+    "43201": "Short North", "43202": "Clintonville", "43203": "Near East Side",
+    "43204": "Franklinton", "43205": "South Side", "43206": "German Village Area",
+    "43207": "South Columbus", "43209": "Bexley", "43210": "University District",
+    "43211": "Linden", "43212": "Grandview Heights", "43213": "East Columbus",
+    "43214": "Beechwold", "43215": "Downtown Columbus", "43219": "Northland",
+    "43220": "Upper Arlington", "43221": "Upper Arlington West", "43222": "Hilltop",
+    "43223": "Southwest Columbus", "43224": "Northeast Columbus", "43227": "Whitehall",
+    "43229": "Northland East", "43230": "Gahanna", "43231": "Northeast Columbus",
+    "43232": "Reynoldsburg", "43235": "Worthington", "43240": "New Albany Area",
+}
+
+def _detect_lead_type(row: dict, filename: str) -> str:
+    fname = filename.lower()
+    if "probate" in fname: return "probate"
+    if "tax" in fname or "delinquent" in fname: return "tax_delinquent"
+    if "sheriff" in fname or "foreclosure" in fname: return "sheriff_sale"
+    if "violation" in fname: return "code_violation"
+    taxes = float(row.get("taxes_owed") or row.get("tax_owed") or 0)
+    if taxes > 0: return "tax_delinquent"
+    return "motivated_seller"
+
+def _estimate_value_range(assessed):
+    if not assessed or assessed <= 0:
+        return None, None
+    market = assessed / 0.35
+    return int(market * 0.85 / 1000) * 1000, int(market * 1.15 / 1000) * 1000
+
+def _process_upload_df(df: pd.DataFrame, filename: str) -> list:
+    """Parse uploaded dataframe into property records."""
+    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+    address_col = next((c for c in df.columns if "address" in c), None)
+    if not address_col:
+        return []
+
+    records = []
+    for _, row in df.iterrows():
+        row = row.where(row.notna(), other=None).to_dict()
+        address = str(row.get(address_col) or "").strip()
+        if not address or address.lower() == "nan":
+            continue
+
+        zip_code = str(row.get("zip_code") or row.get("zip") or "").strip()
+        if not zip_code or zip_code == "nan":
+            m = _re.search(r"\b(4[0-9]{4})\b", address)
+            zip_code = m.group(1) if m else ""
+
+        city = str(row.get("city") or "Columbus").strip()
+        if not city or city == "nan":
+            city = "Columbus"
+
+        neighborhood = ZIP_NEIGHBORHOODS.get(zip_code, "Columbus")
+        assessed = float(row.get("assessed_value") or row.get("taxable_value") or 0)
+        market = float(row.get("market_value") or 0)
+        taxes_owed = float(row.get("taxes_owed") or row.get("tax_owed") or 0)
+        years_delinquent = int(float(row.get("years_delinquent") or 0))
+
+        if market > 0:
+            val_low = int(market * 0.85 / 1000) * 1000
+            val_high = int(market * 1.15 / 1000) * 1000
+        else:
+            val_low, val_high = _estimate_value_range(assessed)
+
+        records.append({
+            "slug": _make_slug(address, city),
+            "address": address.title(),
+            "city": city,
+            "zip": zip_code or None,
+            "neighborhood": neighborhood,
+            "lead_type": _detect_lead_type(row, filename),
+            "assessed_value": int(assessed) if assessed > 0 else None,
+            "val_low": val_low,
+            "val_high": val_high,
+            "taxes_owed": int(taxes_owed) if taxes_owed > 0 else None,
+            "years_delinquent": years_delinquent if years_delinquent > 0 else None,
+        })
+    return records
+
+def _upsert_properties(records: list) -> int:
+    """Insert or update properties in the database. Returns count saved."""
+    conn = get_db_connection()
+    if not conn:
+        return 0
+    try:
+        cursor = conn.cursor()
+        count = 0
+        for r in records:
+            cursor.execute("""
+                INSERT INTO public_properties
+                    (slug, address, city, zip, neighborhood, lead_type,
+                     assessed_value, val_low, val_high, taxes_owed, years_delinquent, imported_at)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, CURRENT_DATE)
+                ON CONFLICT (slug) DO UPDATE SET
+                    address = EXCLUDED.address,
+                    city = EXCLUDED.city,
+                    zip = EXCLUDED.zip,
+                    neighborhood = EXCLUDED.neighborhood,
+                    lead_type = EXCLUDED.lead_type,
+                    assessed_value = EXCLUDED.assessed_value,
+                    val_low = EXCLUDED.val_low,
+                    val_high = EXCLUDED.val_high,
+                    taxes_owed = EXCLUDED.taxes_owed,
+                    years_delinquent = EXCLUDED.years_delinquent,
+                    imported_at = CURRENT_DATE,
+                    updated_at = CURRENT_TIMESTAMP
+            """, (
+                r["slug"], r["address"], r["city"], r["zip"], r["neighborhood"],
+                r["lead_type"], r["assessed_value"], r["val_low"], r["val_high"],
+                r["taxes_owed"], r["years_delinquent"]
+            ))
+            count += 1
+        conn.commit()
+        conn.close()
+        return count
+    except Exception as e:
+        logger.error(f"Upsert error: {e}")
+        return 0
+
+from fastapi import UploadFile, File
+
+@app.get("/admin/upload", response_class=HTMLResponse)
+async def admin_upload_page(request: Request, success: int = None, error: str = None):
+    return templates.TemplateResponse("admin_upload.html", {
+        "request": request,
+        "success": success,
+        "error": error,
+        "page_title": "Admin — Upload Property Data",
+        "meta_description": "",
+    })
+
+@app.post("/admin/upload", response_class=HTMLResponse)
+async def admin_upload_post(
+    request: Request,
+    password: str = Form(...),
+    file: UploadFile = File(...)
+):
+    # Password check
+    if password != ADMIN_PASSWORD:
+        return RedirectResponse(url="/admin/upload?error=Wrong+password", status_code=303)
+
+    # Read file
+    contents = await file.read()
+    filename = file.filename or ""
+
+    try:
+        if filename.endswith(".csv"):
+            df = pd.read_csv(io.BytesIO(contents))
+        elif filename.endswith((".xlsx", ".xls")):
+            df = pd.read_excel(io.BytesIO(contents), engine="openpyxl")
+        else:
+            return RedirectResponse(url="/admin/upload?error=Only+CSV+or+Excel+files+accepted", status_code=303)
+    except Exception as e:
+        return RedirectResponse(url=f"/admin/upload?error=Could+not+read+file", status_code=303)
+
+    records = _process_upload_df(df, filename)
+    if not records:
+        return RedirectResponse(url="/admin/upload?error=No+valid+addresses+found+in+file", status_code=303)
+
+    saved = _upsert_properties(records)
+    return RedirectResponse(url=f"/admin/upload?success={saved}", status_code=303)
+
 
 @app.get("/thank-you", response_class=HTMLResponse)
 async def thank_you(request: Request):
