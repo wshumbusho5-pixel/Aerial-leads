@@ -1,27 +1,102 @@
 {% extends "base.html" %}
 
-{% block content %}
-<section class="hero" style="min-height: 60vh; display: flex; flex-direction: column; justify-content: center;">
-    <div style="font-size: 5rem; margin-bottom: 1rem;">&#10003;</div>
-    <h1 style="color: #4CAF50;">Thank You!</h1>
-    <p style="max-width: 500px; margin: 1rem auto;">
-        We've received your information and will be in touch within 24 hours with your cash offer.
-    </p>
+{% block extra_head %}
+<style>
+.ty-hero {
+    background: #0b1120;
+    color: white;
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 5rem 2rem;
+    text-align: center;
+}
+.ty-check {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+.ty-check svg {
+    width: 28px;
+    height: 28px;
+    fill: white;
+}
+.ty-hero h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+}
+.ty-hero > p {
+    color: #7a8394;
+    font-size: 1rem;
+    max-width: 480px;
+    line-height: 1.7;
+}
+.ty-next {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 2rem;
+    max-width: 480px;
+    margin: 2rem auto 0;
+    text-align: left;
+}
+.ty-next h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: white;
+}
+.ty-next ol {
+    padding-left: 1.25rem;
+    color: #7a8394;
+    font-size: 0.92rem;
+    line-height: 1.8;
+}
+.ty-next ol li { margin-bottom: 0.5rem; }
+.ty-contact {
+    margin-top: 2rem;
+    color: #5a6478;
+    font-size: 0.88rem;
+}
+.ty-contact a {
+    color: var(--amber);
+    text-decoration: none;
+    font-weight: 700;
+}
+</style>
+{% endblock %}
 
-    <div style="background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 10px; max-width: 500px; margin: 2rem auto;">
-        <h3 style="margin-bottom: 1rem;">What Happens Next?</h3>
-        <ol style="text-align: left; padding-left: 1.5rem;">
-            <li style="margin-bottom: 0.75rem;">Our team reviews your property information</li>
-            <li style="margin-bottom: 0.75rem;">We research comparable sales in your area</li>
-            <li style="margin-bottom: 0.75rem;">We prepare a fair, no-obligation cash offer</li>
-            <li>We call you within 24 hours to present our offer</li>
+{% block content %}
+<section class="ty-hero">
+    <div class="ty-check">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+    </div>
+    <h1>Submission Received</h1>
+    <p>Our acquisitions team has received your property information and will be in contact within 24 hours.</p>
+
+    <div class="ty-next">
+        <h3>What Happens Next</h3>
+        <ol>
+            <li>Our team reviews your property information and public records</li>
+            <li>We research comparable sales in your area</li>
+            <li>We prepare a written, no-obligation evaluation</li>
+            <li>We contact you within 24 hours to present our offer</li>
         </ol>
     </div>
 
-    <p style="opacity: 0.8; margin-top: 2rem;">
-        Questions? Feel free to call us anytime.
+    <p class="ty-contact">
+        Questions? Call us at <a href="tel:+16148253368">(614) 825-3368</a>
     </p>
 
-    <a href="/" class="btn btn-secondary" style="margin-top: 1rem;">Back to Home</a>
+    <a href="/" class="btn btn-primary" style="margin-top:1.5rem;">Back to Home</a>
 </section>
 {% endblock %}

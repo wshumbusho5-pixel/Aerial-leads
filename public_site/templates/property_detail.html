@@ -16,214 +16,370 @@
     }
 }
 </script>
+<style>
+.pd-hero {
+    background: #0b1120;
+    color: white;
+    padding: 4rem 2rem;
+}
+.pd-hero-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.pd-hero .type-label {
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+.pd-hero h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 0.5rem;
+}
+.pd-hero .location {
+    color: #7a8394;
+    font-size: 0.95rem;
+}
+
+.pd-body {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2.5rem;
+    align-items: start;
+}
+
+.pd-facts {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+}
+.pd-facts h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 1.25rem;
+}
+.pd-facts table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+.pd-facts tr { border-bottom: 1px solid #f3f4f6; }
+.pd-facts tr:last-child { border-bottom: none; }
+.pd-facts td {
+    padding: 0.7rem 0;
+}
+.pd-facts .label-td {
+    font-weight: 500;
+    color: #374151;
+    width: 45%;
+}
+.pd-facts .owner-badge {
+    background: #f9fafb;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+.pd-facts .tax-badge {
+    background: #fef2f2;
+    color: #dc2626;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.88rem;
+}
+.pd-facts .value-badge {
+    color: var(--green);
+    font-weight: 600;
+}
+
+.pd-cta-box {
+    background: #f0fdf4;
+    border-radius: 8px;
+    border-left: 3px solid var(--green);
+    padding: 1rem;
+    margin-top: 1.5rem;
+}
+.pd-cta-box strong {
+    color: #166534;
+    font-size: 0.92rem;
+}
+.pd-cta-box p {
+    color: #4b5563;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-top: 0.35rem;
+}
+
+.pd-situation {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 2rem;
+}
+.pd-situation h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 1rem;
+}
+.pd-situation p {
+    color: #4b5563;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+.pd-situation ul {
+    color: #4b5563;
+    padding-left: 1.25rem;
+    font-size: 0.92rem;
+    line-height: 2;
+}
+
+.pd-form-card {
+    background: #0b1120;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 1.75rem;
+    color: white;
+    position: sticky;
+    top: 100px;
+}
+.pd-form-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+.pd-form-card > p {
+    font-size: 0.82rem;
+    color: #5a6478;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+}
+
+.dark-input {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 7px;
+    color: white;
+    font-size: 0.9rem;
+    font-family: inherit;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s;
+}
+.dark-input:focus { outline: none; border-color: var(--amber); }
+.dark-input::placeholder { color: #3d4655; }
+
+.pd-source {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    font-size: 0.78rem;
+    color: #6b7280;
+}
+.pd-source a {
+    color: var(--green);
+    text-decoration: none;
+}
+
+.pd-bottom-cta {
+    background: #0b1120;
+    color: white;
+    padding: 5rem 2rem;
+    text-align: center;
+}
+.pd-bottom-cta h2 {
+    font-size: 1.6rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+}
+.pd-bottom-cta p {
+    color: #4e5a6e;
+    font-size: 0.92rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 900px) {
+    .pd-body { grid-template-columns: 1fr; }
+    .pd-form-card { position: static; }
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<!-- Property Hero -->
-<section class="hero" style="padding: 2.5rem 2rem;">
-    <div style="max-width: 900px; margin: 0 auto;">
+
+<section class="pd-hero">
+    <div class="pd-hero-inner">
         {% if property.lead_type == 'probate' %}
-        <p style="color: #c084fc; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem;">Inherited / Probate Property</p>
+        <span class="type-label" style="color:#c084fc;">Inherited / Probate Property</span>
         {% elif property.lead_type == 'tax_delinquent' %}
-        <p style="color: #fb923c; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem;">Tax Delinquent Property</p>
+        <span class="type-label" style="color:#fb923c;">Tax Delinquent Property</span>
         {% elif property.lead_type == 'sheriff_sale' %}
-        <p style="color: #f87171; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem;">Foreclosure / Sheriff Sale</p>
+        <span class="type-label" style="color:#f87171;">Foreclosure / Sheriff Sale</span>
         {% else %}
-        <p style="color: #4ade80; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem;">We're Looking to Buy</p>
+        <span class="type-label" style="color:var(--amber);">Property Record</span>
         {% endif %}
 
-        <h1 style="font-size: 1.9rem; line-height: 1.2; margin-bottom: 0.5rem;">{{ property.address }}</h1>
-        <p style="color: #9ca3af;">{{ property.city if property.city else 'Columbus' }}, Ohio{% if property.zip %} {{ property.zip }}{% endif %}{% if neighborhood %} &middot; {{ neighborhood }}{% endif %}</p>
+        <h1>{{ property.address }}</h1>
+        <p class="location">{{ property.city if property.city else 'Columbus' }}, Ohio{% if property.zip %} {{ property.zip }}{% endif %}{% if neighborhood %} &middot; {{ neighborhood }}{% endif %}</p>
     </div>
 </section>
 
-<div class="container" style="max-width: 960px; padding: 2.5rem 2rem;">
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start;">
-
-        <!-- Left: Property Details -->
-        <div>
-
-            <!-- Key Facts Card -->
-            <div class="card" style="margin-bottom: 1.5rem;">
-                <h2 style="margin-bottom: 1.25rem; font-size: 1.15rem;">Property Facts</h2>
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
-
-                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151; width: 45%;">Address</td>
-                        <td style="padding: 0.7rem 0;">{{ property.address }}</td>
-                    </tr>
-
-                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">City / State</td>
-                        <td style="padding: 0.7rem 0;">{{ property.city if property.city else 'Columbus' }}, Ohio</td>
-                    </tr>
-
-                    {% if property.zip %}
-                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">ZIP Code</td>
-                        <td style="padding: 0.7rem 0;">{{ property.zip }}</td>
-                    </tr>
-                    {% endif %}
-
-                    {% if neighborhood %}
-                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">Neighborhood</td>
-                        <td style="padding: 0.7rem 0;">{{ neighborhood }}</td>
-                    </tr>
-                    {% endif %}
-
-                    {% if value_range %}
-                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">Estimated Value</td>
-                        <td style="padding: 0.7rem 0; color: #16a34a; font-weight: 600;">{{ value_range }}</td>
-                    </tr>
-                    {% endif %}
-
-                    {% if taxes_display %}
-                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">Outstanding Taxes</td>
-                        <td style="padding: 0.7rem 0;">
-                            <span style="background: #fef2f2; color: #dc2626; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.9rem;">{{ taxes_display }}</span>
-                        </td>
-                    </tr>
-                    {% endif %}
-
-                    {% if property.years_delinquent and property.years_delinquent > 0 %}
-                    <tr style="border-bottom: 1px solid #f3f4f6;">
-                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">Years Delinquent</td>
-                        <td style="padding: 0.7rem 0;">~{{ property.years_delinquent }} year{{ 's' if property.years_delinquent != 1 else '' }}</td>
-                    </tr>
-                    {% endif %}
-
-                    <tr>
-                        <td style="padding: 0.7rem 0; font-weight: 500; color: #374151;">Owner Info</td>
-                        <td style="padding: 0.7rem 0; color: #9ca3af; font-size: 0.88rem;">
-                            <span style="background: #f9fafb; padding: 0.2rem 0.6rem; border-radius: 4px;">Confirm ownership to receive offer</span>
-                        </td>
-                    </tr>
-                </table>
-
-                <div style="margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #16a34a;">
-                    <strong style="color: #15803d;">Is this your property?</strong>
-                    <p style="margin: 0.4rem 0 0 0; color: #4b5563; font-size: 0.88rem; line-height: 1.6;">
-                        We're actively looking to buy in {{ neighborhood if neighborhood else 'Columbus' }}.
-                        Fill out the form and get a no-obligation cash offer within 24 hours.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Situation-Specific Content -->
-            <div class="card">
-                {% if property.lead_type == 'probate' %}
-                <h2 style="margin-bottom: 1rem;">Inherited This Property?</h2>
-                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;">
-                    Dealing with a probate property in {{ neighborhood if neighborhood else 'Columbus' }} is one of the hardest things a family can face.
-                    You may be managing court proceedings from out of state, coordinating with other heirs,
-                    and watching taxes and utilities pile up on a house you can't easily sell.
-                </p>
-                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;"><strong>We remove every one of those obstacles.</strong> We buy inherited properties as-is —
-                belongings inside, no repairs, no cleaning required. We work within the probate process
-                and can close on your timeline.</p>
-
-                {% elif property.lead_type == 'tax_delinquent' %}
-                <h2 style="margin-bottom: 1rem;">Behind on Taxes at This Property?</h2>
-                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;">
-                    Franklin County's clock doesn't stop. Penalties compound, and a tax lien sale
-                    can put you in a position where you lose the property and walk away with nothing.
-                </p>
-                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;">
-                    <strong>Here's what we do differently:</strong> When we buy your property, we pay off the back taxes
-                    as part of the deal. You don't have to figure out the tax office.
-                    You just sign, and the problem is gone.
-                </p>
-                <ul style="color: #4b5563; padding-left: 1.5rem; line-height: 2;">
-                    <li>Cash offer within 24 hours</li>
-                    <li>We pay all back taxes at closing</li>
-                    <li>Close in as fast as 7 days</li>
-                    <li>No repairs, no cleaning, no agent fees</li>
-                </ul>
-
-                {% elif property.lead_type == 'sheriff_sale' %}
-                <h2 style="margin-bottom: 1rem;">Facing Foreclosure on This Property?</h2>
-                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;">
-                    Once a sheriff sale date is set in Franklin County, you have limited time to act.
-                    We can move fast — sometimes closing before the sale date — so you walk away with
-                    cash instead of nothing.
-                </p>
-                <p style="color: #4b5563; line-height: 1.7;">
-                    <strong>There are options even now.</strong> Contact us today and we'll tell you exactly
-                    what's possible given your timeline.
-                </p>
-
-                {% else %}
-                <h2 style="margin-bottom: 1rem;">We Want to Buy in {{ neighborhood if neighborhood else 'This Area' }}</h2>
-                <p style="color: #4b5563; margin-bottom: 1rem; line-height: 1.7;">
-                    We're actively acquiring properties in {{ neighborhood if neighborhood else 'Columbus' }}{% if property.zip %} ({{ property.zip }}){% endif %}.
-                    If you own this property and are open to selling — for any reason — we'd like to make you a cash offer.
-                </p>
-                <ul style="color: #4b5563; padding-left: 1.5rem; line-height: 2;">
-                    <li>Fair cash offer within 24 hours</li>
-                    <li>Buy as-is — no repairs or cleaning needed</li>
-                    <li>No realtor fees or commissions</li>
-                    <li>Close in as fast as 7 days</li>
-                </ul>
+<div class="pd-body">
+    <div>
+        <div class="pd-facts">
+            <h2>Property Facts</h2>
+            <table>
+                <tr>
+                    <td class="label-td">Address</td>
+                    <td>{{ property.address }}</td>
+                </tr>
+                <tr>
+                    <td class="label-td">City / State</td>
+                    <td>{{ property.city if property.city else 'Columbus' }}, Ohio</td>
+                </tr>
+                {% if property.zip %}
+                <tr>
+                    <td class="label-td">ZIP Code</td>
+                    <td>{{ property.zip }}</td>
+                </tr>
                 {% endif %}
-            </div>
+                {% if neighborhood %}
+                <tr>
+                    <td class="label-td">Neighborhood</td>
+                    <td>{{ neighborhood }}</td>
+                </tr>
+                {% endif %}
+                {% if value_range %}
+                <tr>
+                    <td class="label-td">Estimated Value</td>
+                    <td class="value-badge">{{ value_range }}</td>
+                </tr>
+                {% endif %}
+                {% if taxes_display %}
+                <tr>
+                    <td class="label-td">Outstanding Taxes</td>
+                    <td><span class="tax-badge">{{ taxes_display }}</span></td>
+                </tr>
+                {% endif %}
+                {% if property.years_delinquent and property.years_delinquent > 0 %}
+                <tr>
+                    <td class="label-td">Years Delinquent</td>
+                    <td>~{{ property.years_delinquent }} year{{ 's' if property.years_delinquent != 1 else '' }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td class="label-td">Owner Info</td>
+                    <td><span class="owner-badge">Confirm ownership to receive offer</span></td>
+                </tr>
+            </table>
 
-        </div>
-
-        <!-- Right: Lead Capture Form (sticky) -->
-        <div>
-            <div class="card" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; position: sticky; top: 100px;">
-                <h3 style="margin-bottom: 0.4rem;">Is This Your Property?</h3>
-                <p style="margin-bottom: 1.25rem; opacity: 0.85; font-size: 0.88rem; line-height: 1.5;">
-                    Get a free cash offer. No fees, no obligation, no pressure.
+            <div class="pd-cta-box">
+                <strong>Is this your property?</strong>
+                <p>
+                    Lifeline is actively acquiring in {{ neighborhood if neighborhood else 'Columbus' }}.
+                    Submit for a no-obligation evaluation within 24 hours.
                 </p>
-
-                <form action="/submit-lead" method="POST">
-                    <input type="hidden" name="source_page" value="property/{{ slug }}">
-                    <input type="hidden" name="property_address" value="{{ property.address }}">
-
-                    <div class="form-group">
-                        <input type="text" name="name" required placeholder="Your Name"
-                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
-                    </div>
-
-                    <div class="form-group">
-                        <input type="tel" name="phone" required placeholder="Phone Number"
-                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
-                    </div>
-
-                    <div class="form-group">
-                        <input type="email" name="email" placeholder="Email (optional)"
-                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
-                    </div>
-
-                    <button type="submit" class="btn" style="width: 100%; background: #16a34a; color: white; font-size: 1rem; padding: 0.85rem;">
-                        Get My Cash Offer
-                    </button>
-                </form>
-
-                <p style="margin-top: 0.75rem; font-size: 0.78rem; opacity: 0.6; text-align: center;">
-                    No obligation. Response within 24 hours.
-                </p>
-            </div>
-
-            <!-- Franklin County Auditor link for credibility -->
-            <div style="margin-top: 1rem; padding: 0.75rem 1rem; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 0.8rem; color: #6b7280;">
-                Property data sourced from Franklin County public records.
-                <a href="https://property.franklincountyauditor.com/" target="_blank" rel="nofollow noreferrer"
-                   style="color: #16a34a; text-decoration: none;">Verify at franklincountyauditor.com &rarr;</a>
             </div>
         </div>
 
+        <div class="pd-situation">
+            {% if property.lead_type == 'probate' %}
+            <h2>Inherited This Property?</h2>
+            <p>
+                Managing a probate property in {{ neighborhood if neighborhood else 'Columbus' }} introduces
+                court proceedings, heir coordination, and ongoing carrying costs. Lifeline handles all of it.
+            </p>
+            <p>We acquire inherited properties as-is. No repairs, no cleaning, no listing required. We work within the probate process and close on your timeline.</p>
+
+            {% elif property.lead_type == 'tax_delinquent' %}
+            <h2>Behind on Taxes at This Property?</h2>
+            <p>
+                Franklin County enforces tax delinquency through lien sales and foreclosure proceedings.
+                Penalties compound quarterly. The longer the balance remains, the fewer options available.
+            </p>
+            <p>
+                Lifeline resolves back taxes at closing. The seller does not pay out of pocket. Net proceeds are paid in cash at the closing table.
+            </p>
+            <ul>
+                <li>Cash offer within 24 hours</li>
+                <li>All back taxes resolved at closing</li>
+                <li>Close in as few as 7 days</li>
+                <li>No repairs, no cleaning, no agent fees</li>
+            </ul>
+
+            {% elif property.lead_type == 'sheriff_sale' %}
+            <h2>Facing Foreclosure on This Property?</h2>
+            <p>
+                Once a sheriff sale date is set in Franklin County, the timeline is limited.
+                Lifeline can close before the sale date so the seller walks away with proceeds instead of nothing.
+            </p>
+            <p>Contact us today to discuss what is possible given your timeline.</p>
+
+            {% else %}
+            <h2>We Acquire in {{ neighborhood if neighborhood else 'This Area' }}</h2>
+            <p>
+                Lifeline is actively acquiring properties in {{ neighborhood if neighborhood else 'Columbus' }}{% if property.zip %} ({{ property.zip }}){% endif %}.
+                If you own this property and are considering selling, we will provide a written cash offer.
+            </p>
+            <ul>
+                <li>Written offer within 24 hours</li>
+                <li>Purchase as-is. No repairs or cleaning</li>
+                <li>No agent fees or commissions</li>
+                <li>Close in as few as 7 days</li>
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    <div>
+        <div class="pd-form-card">
+            <h3>Is This Your Property?</h3>
+            <p>Request a no-obligation evaluation. No fees.</p>
+
+            <form action="/submit-lead" method="POST">
+                <input type="hidden" name="source_page" value="property/{{ slug }}">
+                <input type="hidden" name="property_address" value="{{ property.address }}">
+                <input class="dark-input" type="text" name="name" required placeholder="Your name">
+                <input class="dark-input" type="tel" name="phone" required placeholder="Phone number">
+                <input class="dark-input" type="email" name="email" placeholder="Email (optional)">
+                <button type="submit" style="width:100%; padding:0.85rem; background:var(--green); color:white; border:none; border-radius:7px; font-size:0.92rem; font-weight:700; cursor:pointer; transition:background 0.2s;"
+                        onmouseover="this.style.background='#095a28'"
+                        onmouseout="this.style.background='#0b6b30'">
+                    Request Evaluation
+                </button>
+            </form>
+            <p style="margin-top:0.75rem; font-size:0.75rem; color:#3d4a5e; text-align:center;">
+                No obligation. Response within 24 hours.
+            </p>
+        </div>
+
+        <div class="pd-source">
+            Property data sourced from Franklin County public records.
+            <a href="https://property.franklincountyauditor.com/" target="_blank" rel="nofollow noreferrer">Verify at franklincountyauditor.com &rarr;</a>
+        </div>
     </div>
 </div>
 
-<!-- Bottom CTA -->
-<section class="cta-section">
-    <h2>We Buy Houses All Over Columbus</h2>
-    <p style="margin-bottom: 2rem; opacity: 0.9;">Any condition. Any situation. Cash in hand at closing.</p>
-    <a href="/get-offer" class="btn">Get a Free Offer for My Property</a>
+<section class="pd-bottom-cta">
+    <h2>Lifeline Acquires Properties Across Columbus</h2>
+    <p>Any condition. Any situation. Written offer within 24 hours.</p>
+    <a href="/get-offer" class="btn btn-primary">Submit Property for Evaluation</a>
 </section>
+
 {% endblock %}

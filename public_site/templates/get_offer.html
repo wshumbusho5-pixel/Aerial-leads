@@ -1,117 +1,234 @@
 {% extends "base.html" %}
 
+{% block extra_head %}
+<style>
+.offer-hero {
+    background: #0b1120;
+    color: white;
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+}
+.offer-hero h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+}
+.offer-hero p {
+    color: #7a8394;
+    font-size: 1rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.offer-body {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+.offer-form-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 2.25rem;
+}
+.offer-form-card h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #111827;
+    margin-bottom: 1.5rem;
+}
+
+.offer-sidebar h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 1rem;
+}
+.offer-checklist {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 2rem;
+}
+.offer-checklist li {
+    padding: 0.7rem 0;
+    border-bottom: 1px solid #eef0f3;
+    font-size: 0.92rem;
+    color: #374151;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    line-height: 1.5;
+}
+.offer-checklist li::before {
+    content: '';
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-top: 0.55rem;
+}
+
+.offer-next {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+.offer-next h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.75rem;
+}
+.offer-next ol {
+    padding-left: 1.25rem;
+    color: #4b5563;
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+.offer-next ol li { margin-bottom: 0.5rem; }
+
+.offer-situations {
+    padding: 5.5rem 2rem;
+    background: #f7f8fa;
+    border-top: 1px solid #eef0f3;
+}
+.offer-situations-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.sit-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.sit-card {
+    padding: 1.25rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: white;
+}
+.sit-card h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.35rem;
+}
+.sit-card p {
+    font-size: 0.88rem;
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+    .offer-body { grid-template-columns: 1fr; }
+    .sit-grid { grid-template-columns: 1fr; }
+    .offer-hero h1 { font-size: 1.8rem; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="hero">
-    <h1>Get Your Free Cash Offer</h1>
-    <p>No repairs. No fees. No pressure. We respond within 24 hours.</p>
+
+<section class="offer-hero">
+    <span class="section-label" style="color:var(--amber);">Property Evaluation</span>
+    <h1>Request a Property Evaluation</h1>
+    <p>No fees. No obligation. Our acquisitions team responds within 24 hours.</p>
 </section>
 
-<div class="container" style="max-width: 900px; padding: 3rem 2rem;">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+<div class="offer-body">
+    <div class="offer-form-card">
+        <h2>Property Details</h2>
 
-        <div>
-            <div class="card">
-                <h2 style="margin-bottom: 1.5rem;">Tell Us About Your Property</h2>
+        <form action="/submit-lead" method="POST">
+            <input type="hidden" name="source_page" value="get-offer">
 
-                <form action="/submit-lead" method="POST">
-                    <input type="hidden" name="source_page" value="get-offer">
-
-                    <div class="form-group">
-                        <label for="property_address">Property Address</label>
-                        <input type="text" id="property_address" name="property_address" required
-                               placeholder="123 Main St, Columbus, OH 43215">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="name">Your Name</label>
-                        <input type="text" id="name" name="name" required placeholder="John Smith">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phone">Best Phone Number</label>
-                        <input type="tel" id="phone" name="phone" required placeholder="(614) 555-1234">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email Address <span style="color: #999; font-weight: 400;">(optional)</span></label>
-                        <input type="email" id="email" name="email" placeholder="john@example.com">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="message">What&rsquo;s Your Situation?</label>
-                        <textarea id="message" name="message" rows="4"
-                                  placeholder="Foreclosure deadline, back taxes, inherited property, or anything else worth knowing. No detail is too small."></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">
-                        Get My Free Cash Offer
-                    </button>
-                    <p style="text-align: center; color: #999; font-size: 0.85rem; margin-top: 1rem;">No fees. No obligation. We respond within 24 hours.</p>
-                </form>
-            </div>
-        </div>
-
-        <div>
-            <div class="card" style="margin-bottom: 1.5rem;">
-                <h3 style="margin-bottom: 1rem;">What You Get With Us</h3>
-                <ul style="list-style: none;">
-                    <li style="padding: 0.75rem 0; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="color: #4CAF50; font-size: 1.25rem;">&#10003;</span>
-                        <span><strong>Zero Fees</strong>. We cover all closing costs</span>
-                    </li>
-                    <li style="padding: 0.75rem 0; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="color: #4CAF50; font-size: 1.25rem;">&#10003;</span>
-                        <span><strong>Zero Repairs</strong>. We buy the property as-is, today</span>
-                    </li>
-                    <li style="padding: 0.75rem 0; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="color: #4CAF50; font-size: 1.25rem;">&#10003;</span>
-                        <span><strong>Fast Close</strong>. As soon as 7 days from offer</span>
-                    </li>
-                    <li style="padding: 0.75rem 0; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="color: #4CAF50; font-size: 1.25rem;">&#10003;</span>
-                        <span><strong>Cash Payment</strong>. No banks, no delays, no fall-throughs</span>
-                    </li>
-                    <li style="padding: 0.75rem 0; display: flex; align-items: center; gap: 0.75rem;">
-                        <span style="color: #4CAF50; font-size: 1.25rem;">&#10003;</span>
-                        <span><strong>No Obligation</strong>. Take the offer or walk away. Your choice.</span>
-                    </li>
-                </ul>
+            <div class="form-group">
+                <label for="property_address">Property Address</label>
+                <input type="text" id="property_address" name="property_address" required
+                       placeholder="123 Main St, Columbus, OH 43215">
             </div>
 
-            <div class="card" style="background: #f8f9fa;">
-                <h3 style="margin-bottom: 1rem;">What Happens After You Submit</h3>
-                <ol style="padding-left: 1.5rem;">
-                    <li style="margin-bottom: 0.75rem;">We review the property details you&rsquo;ve shared</li>
-                    <li style="margin-bottom: 0.75rem;">We research comparable sales in your area</li>
-                    <li style="margin-bottom: 0.75rem;">We call you within 24 hours, usually sooner</li>
-                    <li style="margin-bottom: 0.75rem;">You receive a written, no-obligation cash offer</li>
-                    <li>You choose: accept and close, or walk away free</li>
-                </ol>
+            <div class="form-group">
+                <label for="name">Your Name</label>
+                <input type="text" id="name" name="name" required placeholder="Full name">
             </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" required placeholder="(614) 555-1234">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address <span style="color: #9ca3af; font-weight: 400;">(optional)</span></label>
+                <input type="email" id="email" name="email" placeholder="email@example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="message">Property Situation</label>
+                <textarea id="message" name="message" rows="4"
+                          placeholder="Tax delinquency, probate, pre-foreclosure, deferred maintenance, or any other details relevant to the property."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                Submit for Evaluation
+            </button>
+            <p style="text-align: center; color: #9ca3af; font-size: 0.82rem; margin-top: 0.75rem;">No fees. No obligation. Response within 24 hours.</p>
+        </form>
+    </div>
+
+    <div class="offer-sidebar">
+        <h3>What Lifeline Provides</h3>
+        <ul class="offer-checklist">
+            <li>No closing costs or fees charged to seller</li>
+            <li>No repairs or property preparation required</li>
+            <li>Closing in as few as 7 days from accepted offer</li>
+            <li>Privately funded. No bank approval delays</li>
+            <li>No obligation to accept. Walk away at any time</li>
+        </ul>
+
+        <div class="offer-next">
+            <h3>After You Submit</h3>
+            <ol>
+                <li>Our team reviews property records and comparable sales</li>
+                <li>We prepare a written evaluation based on current market data</li>
+                <li>We contact you within 24 hours to present our offer</li>
+                <li>You review. Accept and close, or walk away. Your decision</li>
+            </ol>
         </div>
     </div>
 </div>
 
-<section class="section" style="background: white;">
-    <div class="container">
-        <h2 class="section-title">No Matter the Condition. No Matter the Situation.</h2>
-        <div class="benefits-grid">
-            <div class="benefit-item">
-                <div class="benefit-icon">&#127968;</div>
-                <h3>Any Condition</h3>
-                <p>Fire damage, flood, foundation problems, mold, full of belongings, we&rsquo;ve seen everything and we buy it all.</p>
+<section class="offer-situations">
+    <div class="offer-situations-inner">
+        <span class="section-label">Situations We Handle</span>
+        <h2 class="section-heading">Any Condition. Any Situation.</h2>
+
+        <div class="sit-grid">
+            <div class="sit-card">
+                <h4>Any Condition</h4>
+                <p>Fire damage, foundation issues, mold, deferred maintenance, hoarding situations. We purchase as-is.</p>
             </div>
-            <div class="benefit-item">
-                <div class="benefit-icon">&#128176;</div>
-                <h3>Any Situation</h3>
-                <p>Foreclosure, divorce, probate, tax liens, problem tenants, relocation, we have experience with all of it.</p>
+            <div class="sit-card">
+                <h4>Any Situation</h4>
+                <p>Foreclosure, divorce, probate, tax liens, code violations, relocation. We have experience with all of them.</p>
             </div>
-            <div class="benefit-item">
-                <div class="benefit-icon">&#128197;</div>
-                <h3>Any Timeline</h3>
-                <p>Facing a deadline? We can move in days. Need more time to arrange your move? We&rsquo;ll wait. You lead.</p>
+            <div class="sit-card">
+                <h4>Any Timeline</h4>
+                <p>Close in 7 days or take 90. Leaseback arrangements available. Schedule built around the seller.</p>
             </div>
         </div>
     </div>
 </section>
+
 {% endblock %}

@@ -1,157 +1,328 @@
 {% extends "base.html" %}
 
+{% block extra_head %}
+<style>
+.wbh-hero {
+    background: #0b1120;
+    color: white;
+    padding: 6rem 2rem 5rem;
+    text-align: center;
+}
+.wbh-hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.wbh-hero p {
+    color: #7a8394;
+    font-size: 1.05rem;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+}
+
+.wbh-section {
+    padding: 6rem 2rem;
+}
+.wbh-section-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.wbh-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.wbh-card {
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: white;
+}
+.wbh-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.4rem;
+}
+.wbh-card p {
+    font-size: 0.92rem;
+    color: #6b7280;
+    line-height: 1.65;
+}
+
+.wbh-neighborhoods {
+    max-width: 800px;
+    margin: 2rem auto 0;
+    text-align: center;
+    font-size: 0.95rem;
+    line-height: 2;
+    color: #374151;
+}
+
+.wbh-process-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 2.5rem;
+}
+.wbh-step {
+    text-align: center;
+}
+.wbh-step-num {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+.wbh-step h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+.wbh-step p {
+    font-size: 0.92rem;
+    color: #6b7280;
+    line-height: 1.65;
+}
+
+.wbh-situations {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+.wbh-sit-tag {
+    padding: 0.85rem 1rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #374151;
+    text-align: center;
+}
+
+.wbh-faq-inner {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.wbh-faq-item {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1.5rem 0;
+}
+.wbh-faq-item:last-child { border-bottom: none; }
+.wbh-faq-q {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+.wbh-faq-a {
+    color: #4b5563;
+    font-size: 0.95rem;
+    line-height: 1.75;
+}
+
+.wbh-cta {
+    background: #0b1120;
+    color: white;
+    padding: 5.5rem 2rem;
+    text-align: center;
+}
+.wbh-cta h2 {
+    font-size: 1.85rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+}
+.wbh-cta p {
+    color: #4e5a6e;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (max-width: 900px) {
+    .wbh-hero h1 { font-size: 1.8rem; }
+    .wbh-grid { grid-template-columns: 1fr; }
+    .wbh-process-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="hero" style="padding: 5rem 2rem;">
-    <h1 style="font-size: 2.8rem; max-width: 900px;">We Buy Houses in Columbus, Ohio</h1>
-    <p style="font-size: 1.3rem; max-width: 700px;">Cash offers. Transparent pricing. Fast closings. Any condition.</p>
-    <div style="margin-top: 2rem;">
-        <a href="/get-offer" class="btn btn-primary" style="font-size: 1.2rem; padding: 1.2rem 2.5rem;">Get Your Cash Offer</a>
-        <p style="margin-top: 1rem; color: #aaa;">or call us at <a href="tel:+16148253368" class="phone-number" style="color: #4CAF50; text-decoration: none;">(614) 825-3368</a></p>
+
+<section class="wbh-hero">
+    <span class="section-label" style="color:var(--amber);">Residential Acquisitions</span>
+    <h1>We Buy Houses in Columbus, Ohio</h1>
+    <p>Lifeline acquires residential properties across Franklin County. Cash transactions. Transparent pricing. Flexible closing timelines. Any condition.</p>
+    <div style="display:flex; justify-content:center; align-items:center; gap:1.25rem; flex-wrap:wrap;">
+        <a href="/get-offer" class="btn btn-primary" style="font-size:1rem; padding:1rem 2.25rem;">Submit Property for Evaluation</a>
+        <a href="tel:+16148253368" style="color:var(--amber); font-weight:700; text-decoration:none; font-size:0.95rem;">(614) 825-3368</a>
     </div>
 </section>
 
-<section class="section" style="background: white;">
-    <div class="container">
-        <h2 class="section-title">What We Buy in Columbus</h2>
-        <div class="property-grid">
-            <div class="card">
+<section class="wbh-section" style="background:white;">
+    <div class="wbh-section-inner">
+        <span class="section-label">What We Acquire</span>
+        <h2 class="section-heading">Property Types We Purchase in Columbus</h2>
+
+        <div class="wbh-grid">
+            <div class="wbh-card">
                 <h3>Single-Family Homes</h3>
-                <p>Any size, age, or condition throughout Columbus and Franklin County. Repairs needed or move-in ready, it doesn&rsquo;t matter.</p>
+                <p>Any size, age, or condition throughout Columbus and Franklin County. Repairs needed or move-in ready.</p>
             </div>
-            <div class="card">
+            <div class="wbh-card">
                 <h3>Multi-Family Properties</h3>
-                <p>Duplexes, triplexes, and small apartment buildings, even with tenants currently in place.</p>
+                <p>Duplexes, triplexes, and small apartment buildings. Tenants in place accepted.</p>
             </div>
-            <div class="card">
+            <div class="wbh-card">
                 <h3>Vacant Land</h3>
                 <p>Undeveloped lots and land parcels throughout the Columbus metro area.</p>
             </div>
-            <div class="card">
+            <div class="wbh-card">
                 <h3>Commercial Properties</h3>
-                <p>Retail, office, or industrial properties you need to move quickly.</p>
+                <p>Retail, office, or industrial properties requiring expedited sale.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section">
-    <div class="container">
-        <h2 class="section-title">We Buy Columbus Houses In Any Situation</h2>
-        <div class="benefits-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-            <div style="padding: 1rem; text-align: center;"><p>Facing Foreclosure</p></div>
-            <div style="padding: 1rem; text-align: center;"><p>Behind on Taxes</p></div>
-            <div style="padding: 1rem; text-align: center;"><p>Inherited Property</p></div>
-            <div style="padding: 1rem; text-align: center;"><p>Going Through Divorce</p></div>
-            <div style="padding: 1rem; text-align: center;"><p>Problem Tenants</p></div>
-            <div style="padding: 1rem; text-align: center;"><p>Code Violations</p></div>
-            <div style="padding: 1rem; text-align: center;"><p>Fire or Water Damage</p></div>
-            <div style="padding: 1rem; text-align: center;"><p>Mold Problems</p></div>
-            <div style="padding: 1rem; text-align: center;"><p>Foundation Issues</p></div>
-            <div style="padding: 1rem; text-align: center;"><p>Relocating for Work</p></div>
-            <div style="padding: 1rem; text-align: center;"><p>Downsizing</p></div>
-            <div style="padding: 1rem; text-align: center;"><p>Tired of Being a Landlord</p></div>
+<section class="wbh-section" style="background:#f7f8fa; border-top:1px solid #eef0f3;">
+    <div class="wbh-section-inner">
+        <span class="section-label">Situations</span>
+        <h2 class="section-heading">Situations We Handle</h2>
+
+        <div class="wbh-situations">
+            <div class="wbh-sit-tag">Facing Foreclosure</div>
+            <div class="wbh-sit-tag">Behind on Taxes</div>
+            <div class="wbh-sit-tag">Inherited Property</div>
+            <div class="wbh-sit-tag">Going Through Divorce</div>
+            <div class="wbh-sit-tag">Problem Tenants</div>
+            <div class="wbh-sit-tag">Code Violations</div>
+            <div class="wbh-sit-tag">Fire or Water Damage</div>
+            <div class="wbh-sit-tag">Foundation Issues</div>
+            <div class="wbh-sit-tag">Relocating for Work</div>
+            <div class="wbh-sit-tag">Downsizing</div>
+            <div class="wbh-sit-tag">Mold Problems</div>
+            <div class="wbh-sit-tag">Tired of Being a Landlord</div>
         </div>
     </div>
 </section>
 
-<section class="section" style="background: white;">
-    <div class="container">
-        <h2 class="section-title">Columbus Neighborhoods We Buy In</h2>
-        <div style="max-width: 800px; margin: 0 auto; text-align: center;">
-            <p style="font-size: 1.1rem; line-height: 2;">
-                <strong>Columbus</strong> | <strong>Westerville</strong> | <strong>Dublin</strong> | <strong>Grove City</strong> |
-                <strong>Reynoldsburg</strong> | <strong>Whitehall</strong> | <strong>Gahanna</strong> | <strong>Upper Arlington</strong> |
-                <strong>Hilliard</strong> | <strong>Worthington</strong> | <strong>Bexley</strong> | <strong>Grandview Heights</strong> |
-                <strong>Clintonville</strong> | <strong>German Village</strong> | <strong>Short North</strong> | <strong>Franklinton</strong> |
-                <strong>Linden</strong> | <strong>Northland</strong> | <strong>Eastland</strong> | <strong>South Side</strong>
-            </p>
-            <p style="margin-top: 1.5rem; color: #666;">All neighborhoods in Franklin County, Ohio</p>
+<section class="wbh-section" style="background:white;">
+    <div class="wbh-section-inner">
+        <span class="section-label">Coverage</span>
+        <h2 class="section-heading">Columbus Neighborhoods We Acquire In</h2>
+
+        <div class="wbh-neighborhoods">
+            <strong>Columbus</strong> | <strong>Westerville</strong> | <strong>Dublin</strong> | <strong>Grove City</strong> |
+            <strong>Reynoldsburg</strong> | <strong>Whitehall</strong> | <strong>Gahanna</strong> | <strong>Upper Arlington</strong> |
+            <strong>Hilliard</strong> | <strong>Worthington</strong> | <strong>Bexley</strong> | <strong>Grandview Heights</strong> |
+            <strong>Clintonville</strong> | <strong>German Village</strong> | <strong>Short North</strong> | <strong>Franklinton</strong> |
+            <strong>Linden</strong> | <strong>Northland</strong> | <strong>Eastland</strong> | <strong>South Side</strong>
         </div>
+        <p style="text-align:center; margin-top:1.25rem; font-size:0.82rem; color:#9ca3af;">All neighborhoods in Franklin County, Ohio</p>
     </div>
 </section>
 
-<section class="section">
-    <div class="container">
-        <h2 class="section-title">Three Steps. Done.</h2>
-        <div class="benefits-grid">
-            <div class="card" style="text-align: center; padding: 2rem;">
-                <div style="font-size: 3rem; color: #4CAF50; margin-bottom: 1rem;">1</div>
-                <h3>Contact Us</h3>
-                <p>Call or submit the form. Two minutes. No commitment.</p>
+<section class="wbh-section" style="background:#f7f8fa; border-top:1px solid #eef0f3;">
+    <div class="wbh-section-inner">
+        <span class="section-label">Our Process</span>
+        <h2 class="section-heading">Three Steps to Close</h2>
+
+        <div class="wbh-process-grid">
+            <div class="wbh-step">
+                <div class="wbh-step-num">Step 01</div>
+                <h3>Submit Your Property</h3>
+                <p>Call or submit the form. Takes under two minutes. No commitment required.</p>
             </div>
-            <div class="card" style="text-align: center; padding: 2rem;">
-                <div style="font-size: 3rem; color: #4CAF50; margin-bottom: 1rem;">2</div>
+            <div class="wbh-step">
+                <div class="wbh-step-num">Step 02</div>
                 <h3>Receive Your Offer</h3>
-                <p>Within 24 hours, you get a written cash offer with a full explanation of the numbers.</p>
+                <p>Written cash offer within 24 hours with a full breakdown of the valuation.</p>
             </div>
-            <div class="card" style="text-align: center; padding: 2rem;">
-                <div style="font-size: 3rem; color: #4CAF50; margin-bottom: 1rem;">3</div>
+            <div class="wbh-step">
+                <div class="wbh-step-num">Step 03</div>
                 <h3>Close and Get Paid</h3>
-                <p>Accept, choose your date, and receive your cash. That&rsquo;s the entire process.</p>
+                <p>Accept, choose your closing date, and receive cash. That is the entire process.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section" style="background: white;">
-    <div class="container">
-        <h2 class="section-title">Why Columbus Homeowners Choose Lifeline</h2>
-        <div class="benefits-grid">
-            <div class="benefit-item">
-                <div class="benefit-icon">&#127968;</div>
+<section class="wbh-section" style="background:white;">
+    <div class="wbh-section-inner">
+        <span class="section-label">Why Lifeline</span>
+        <h2 class="section-heading">Why Columbus Homeowners Work With Lifeline</h2>
+
+        <div class="wbh-grid">
+            <div class="wbh-card">
                 <h3>Local. Not a Call Center.</h3>
-                <p>We live and invest in Columbus. We know these neighborhoods, and we&rsquo;re here when you need to talk.</p>
+                <p>Headquartered in Columbus. We operate in these neighborhoods and maintain direct oversight on every transaction.</p>
             </div>
-            <div class="benefit-item">
-                <div class="benefit-icon">&#128181;</div>
-                <h3>Our Own Cash. No Banks.</h3>
-                <p>We fund every purchase ourselves. No waiting for mortgage approval. No deals falling through at the last minute.</p>
+            <div class="wbh-card">
+                <h3>Private Capital. No Banks.</h3>
+                <p>Transactions funded through internal reserves. No mortgage approvals, no financing fall-through.</p>
             </div>
-            <div class="benefit-item">
-                <div class="benefit-icon">&#128203;</div>
+            <div class="wbh-card">
                 <h3>Offers That Close</h3>
-                <p>When we make an offer, we close on it. No contingencies. No renegotiating after inspection.</p>
+                <p>The offer we present is the offer we close on. No contingencies, no renegotiating after inspection.</p>
             </div>
-            <div class="benefit-item">
-                <div class="benefit-icon">&#128400;</div>
-                <h3>We&rsquo;ve Seen the Other Side</h3>
-                <p>Our founder&rsquo;s family lost their home. We understand what you&rsquo;re carrying. We&rsquo;re here to help, not exploit.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="cta-section">
-    <h2>We Buy Houses Columbus. Get Your Offer Today.</h2>
-    <p style="max-width: 600px; margin: 0 auto 2rem;">No repairs. No fees. No hassle. A fair cash offer in under 24 hours.</p>
-    <a href="/get-offer" class="btn">Get My Free Cash Offer</a>
-</section>
-
-<section class="section" style="background: white;">
-    <div class="container">
-        <h2 class="section-title">Common Questions About Selling to Cash Buyers</h2>
-
-        <div style="max-width: 800px; margin: 0 auto; text-align: left;">
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #1a1a2e;">How do cash home buyers actually work?</h3>
-                <p>We purchase homes directly from homeowners using our own funds, no banks involved. We typically pay below retail market value, but you avoid repairs, agent commissions (6%), closing costs, and months of waiting. For many sellers, the net is comparable or better.</p>
-            </div>
-
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #1a1a2e;">Is selling to a cash buyer the right move for me?</h3>
-                <p>It depends on your situation. Cash buyers are the right fit when you need speed, when the property needs significant repairs, when you&rsquo;re facing foreclosure or a tax sale, or when you simply want a guaranteed sale without the uncertainty of the open market.</p>
-            </div>
-
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #1a1a2e;">How much will Lifeline pay for my house?</h3>
-                <p>Every property is different. We typically offer 70&ndash;85% of after-repair market value, depending on condition, location, and current market data. We show you exactly how the number was calculated, nothing is hidden.</p>
-            </div>
-
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #1a1a2e;">What if I get an offer and decide not to accept?</h3>
-                <p>You walk away with no obligation whatsoever. No pressure calls. No follow-up harassment. If the offer doesn&rsquo;t work for you, just say so and we part ways.</p>
+            <div class="wbh-card">
+                <h3>Founded on Experience</h3>
+                <p>Our founder's family lost their home to tax delinquency. That experience informs how we operate and why we exist.</p>
             </div>
         </div>
     </div>
 </section>
+
+<section class="wbh-section" style="background:#f7f8fa; border-top:1px solid #eef0f3;">
+    <div class="wbh-faq-inner">
+        <span class="section-label">FAQ</span>
+        <h2 class="section-heading">Common Questions About Selling to Cash Buyers</h2>
+
+        <div class="wbh-faq-item">
+            <p class="wbh-faq-q">How do cash home buyers work?</p>
+            <p class="wbh-faq-a">We purchase homes directly from homeowners using private capital. No banks involved. We typically pay below retail market value, but you avoid repairs, agent commissions (6%), closing costs, and months of waiting. For many sellers, the net is comparable or better.</p>
+        </div>
+
+        <div class="wbh-faq-item">
+            <p class="wbh-faq-q">Is selling to a cash buyer the right move for me?</p>
+            <p class="wbh-faq-a">Cash buyers are the right fit when you need speed, when the property needs significant repairs, when you are facing foreclosure or a tax sale, or when you want a guaranteed sale without the uncertainty of the open market.</p>
+        </div>
+
+        <div class="wbh-faq-item">
+            <p class="wbh-faq-q">How much will Lifeline pay for my house?</p>
+            <p class="wbh-faq-a">Every property is different. Offers are based on comparable sales, property condition, and current market data. We provide a written breakdown showing how the number was determined. There is no obligation to accept.</p>
+        </div>
+
+        <div class="wbh-faq-item">
+            <p class="wbh-faq-q">What if I decide not to accept the offer?</p>
+            <p class="wbh-faq-a">You walk away with no obligation. No follow-up pressure. If the offer does not work for you, we part ways.</p>
+        </div>
+    </div>
+</section>
+
+<section class="wbh-cta">
+    <h2>Request a Property Evaluation</h2>
+    <p>No repairs. No fees. No obligation. Written offer within 24 hours.</p>
+    <div style="display:flex; justify-content:center; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+        <a href="tel:+16148253368" style="color:var(--amber); font-size:1.3rem; font-weight:900; text-decoration:none;">(614) 825-3368</a>
+        <a href="/get-offer" class="btn btn-primary">Submit Property for Evaluation</a>
+    </div>
+</section>
+
 {% endblock %}

@@ -48,7 +48,7 @@
 
     .filter-group select:focus,
     .filter-group input:focus {
-        border-color: #4CAF50;
+        border-color: var(--green);
         outline: none;
     }
 
@@ -56,7 +56,7 @@
         display: flex;
         gap: 2rem;
         padding: 1rem 1.5rem;
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        background: #0b1120;
         color: white;
         border-radius: 10px;
         margin-bottom: 1rem;
@@ -69,7 +69,7 @@
     .stat-item h3 {
         font-size: 1.5rem;
         font-weight: 800;
-        color: #4CAF50;
+        color: var(--green);
         margin: 0;
     }
 
@@ -172,7 +172,7 @@
     .popup-content a {
         display: inline-block;
         margin-top: 0.5rem;
-        color: #4CAF50;
+        color: var(--green);
         text-decoration: none;
         font-weight: 600;
     }
@@ -196,8 +196,8 @@
 
     .pagination a:hover,
     .pagination a.active {
-        background: #4CAF50;
-        border-color: #4CAF50;
+        background: var(--green);
+        border-color: var(--green);
         color: white;
     }
 
@@ -216,7 +216,7 @@
 
     .search-box button {
         padding: 0.75rem 1.5rem;
-        background: #4CAF50;
+        background: var(--green);
         color: white;
         border: none;
         border-radius: 5px;
@@ -227,9 +227,10 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero" style="padding: 2rem;">
-    <h1 style="font-size: 2rem;">Columbus Distressed Property Database</h1>
-    <p>Free access to {{ total }} distressed properties in Franklin County, Ohio</p>
+<section class="hero" style="padding: 3.5rem 2rem;">
+    <span class="section-label" style="color:var(--amber);">Property Intelligence</span>
+    <h1 style="font-size: 2rem;">Franklin County Property Database</h1>
+    <p>{{ total }} property records monitored across Franklin County, Ohio</p>
 </section>
 
 <div class="container">
@@ -355,8 +356,8 @@
 <!-- CTA Section -->
 <section class="cta-section" style="margin-top: 3rem;">
     <h2>Own One of These Properties?</h2>
-    <p style="margin-bottom: 2rem; opacity: 0.9;">Get a fair cash offer - no fees, no repairs, close on your timeline.</p>
-    <a href="/get-offer" class="btn">Get My Cash Offer</a>
+    <p style="margin-bottom: 2rem; opacity: 0.9;">Our acquisitions team is prepared to make an offer. No fees, no obligation.</p>
+    <a href="/get-offer" class="btn btn-primary">Submit Property for Evaluation</a>
 </section>
 
 {% endblock %}
@@ -380,7 +381,7 @@
         'tax_delinquent': '#e65100',
         'code_violation': '#1976d2',
         'sheriff_sale': '#c62828',
-        'default': '#4CAF50'
+        'default': 'var(--green)'
     };
 
     // Add markers for each property

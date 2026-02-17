@@ -1,153 +1,325 @@
 {% extends "base.html" %}
 
+{% block extra_head %}
+<style>
+.shf-hero {
+    background: #0b1120;
+    color: white;
+    padding: 6rem 2rem 5rem;
+    text-align: center;
+}
+.shf-hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.shf-hero p {
+    color: #7a8394;
+    font-size: 1.05rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+.shf-strip {
+    background: #0e1528;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 2rem;
+}
+.shf-strip-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    text-align: center;
+}
+.shf-strip-val {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.02em;
+}
+.shf-strip-label {
+    font-size: 0.72rem;
+    color: #3d4a5e;
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.shf-section {
+    padding: 6rem 2rem;
+}
+.shf-section-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.shf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.shf-card {
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: white;
+}
+.shf-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.4rem;
+}
+.shf-card p {
+    font-size: 0.92rem;
+    color: #6b7280;
+    line-height: 1.65;
+}
+
+.shf-process-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 2.5rem;
+}
+.shf-step { text-align: center; }
+.shf-step-num {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+.shf-step h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+.shf-step p {
+    font-size: 0.92rem;
+    color: #6b7280;
+    line-height: 1.65;
+}
+
+.shf-faq-inner {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.shf-faq-item {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1.5rem 0;
+}
+.shf-faq-item:last-child { border-bottom: none; }
+.shf-faq-q {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+.shf-faq-a {
+    color: #4b5563;
+    font-size: 0.95rem;
+    line-height: 1.75;
+}
+
+.shf-cta {
+    background: #0b1120;
+    color: white;
+    padding: 5.5rem 2rem;
+    text-align: center;
+}
+.shf-cta h2 {
+    font-size: 1.85rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+}
+.shf-cta p {
+    color: #4e5a6e;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    max-width: 550px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (max-width: 900px) {
+    .shf-hero h1 { font-size: 1.8rem; }
+    .shf-strip-inner { grid-template-columns: repeat(2, 1fr); }
+    .shf-grid { grid-template-columns: 1fr; }
+    .shf-process-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="hero" style="padding: 5rem 2rem;">
-    <h1 style="font-size: 2.8rem; max-width: 900px;">Sell Your House Fast in Columbus, Ohio</h1>
-    <p style="font-size: 1.3rem; max-width: 700px;">Cash offer within 24 hours. Close in as few as 7 days. No repairs. No fees.</p>
-    <div style="margin-top: 2rem;">
-        <a href="/get-offer" class="btn btn-primary" style="font-size: 1.2rem; padding: 1.2rem 2.5rem;">Get My Cash Offer</a>
+
+<section class="shf-hero">
+    <span class="section-label" style="color:var(--amber);">Fast Property Sales</span>
+    <h1>Sell Your House Fast in Columbus, Ohio</h1>
+    <p>Cash offer within 24 hours. Close in as few as 7 days. No repairs. No agent fees. No obligation.</p>
+    <div style="margin-top:2rem; display:flex; justify-content:center; align-items:center; gap:1.25rem; flex-wrap:wrap;">
+        <a href="/get-offer" class="btn btn-primary" style="font-size:1rem; padding:1rem 2.25rem;">Submit Property for Evaluation</a>
     </div>
-    <p style="margin-top: 1rem; color: #aaa; font-size: 0.9rem;">No obligation. No pressure. No games.</p>
+    <p style="margin-top:1rem; color:#5a6478; font-size:0.85rem;">or call <a href="tel:+16148253368" style="color:var(--amber); text-decoration:none; font-weight:700;">(614) 825-3368</a></p>
 </section>
 
-<div class="trust-badges">
-    <div class="trust-badge">
-        <span>24h</span>
-        <p>Cash Offer</p>
-    </div>
-    <div class="trust-badge">
-        <span>$0</span>
-        <p>Fees or Commissions</p>
-    </div>
-    <div class="trust-badge">
-        <span>7&ndash;14</span>
-        <p>Days to Close</p>
-    </div>
-    <div class="trust-badge">
-        <span>Any</span>
-        <p>Condition Accepted</p>
+<div class="shf-strip">
+    <div class="shf-strip-inner">
+        <div>
+            <div class="shf-strip-val">24h</div>
+            <div class="shf-strip-label">Cash Offer</div>
+        </div>
+        <div>
+            <div class="shf-strip-val">$0</div>
+            <div class="shf-strip-label">Fees or Commissions</div>
+        </div>
+        <div>
+            <div class="shf-strip-val">7 to 14</div>
+            <div class="shf-strip-label">Days to Close</div>
+        </div>
+        <div>
+            <div class="shf-strip-val">Any</div>
+            <div class="shf-strip-label">Condition Accepted</div>
+        </div>
     </div>
 </div>
 
-<section class="section" style="background: white;">
-    <div class="container">
-        <h2 class="section-title">Why Columbus Homeowners Choose Lifeline</h2>
-        <div class="benefits-grid">
-            <div class="benefit-item">
-                <div class="benefit-icon">&#127968;</div>
-                <h3>Sold Completely As-Is</h3>
-                <p>No repairs. No cleaning. No staging. We buy your house exactly the way it is today, nothing required from you.</p>
+<section class="shf-section" style="background:white;">
+    <div class="shf-section-inner">
+        <span class="section-label">Why Lifeline</span>
+        <h2 class="section-heading">Why Columbus Homeowners Choose Lifeline</h2>
+
+        <div class="shf-grid">
+            <div class="shf-card">
+                <h3>Purchase As-Is</h3>
+                <p>No repairs. No cleaning. No staging. We buy your property exactly the way it is today.</p>
             </div>
-            <div class="benefit-item">
-                <div class="benefit-icon">&#128176;</div>
-                <h3>Competitive Cash Offers</h3>
-                <p>We make real offers based on current market data. We don&rsquo;t lowball. We show you how every number was calculated.</p>
+            <div class="shf-card">
+                <h3>Transparent Pricing</h3>
+                <p>Written offers based on current market data. Full breakdown provided. No hidden adjustments.</p>
             </div>
-            <div class="benefit-item">
-                <div class="benefit-icon">&#128197;</div>
-                <h3>You Set the Closing Date</h3>
-                <p>Close in 7 days or take 60, whatever your timeline requires. We work around you.</p>
+            <div class="shf-card">
+                <h3>You Set the Timeline</h3>
+                <p>Close in 7 days or take 90. Whatever your schedule requires. We work around you.</p>
             </div>
-            <div class="benefit-item">
-                <div class="benefit-icon">&#128181;</div>
-                <h3>Zero Fees. Full Offer.</h3>
-                <p>No agent commissions. No closing costs. The number in your offer is the number you receive.</p>
+            <div class="shf-card">
+                <h3>Zero Fees</h3>
+                <p>No agent commissions. No closing costs. The offer amount is the net amount received.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section">
-    <div class="container">
-        <h2 class="section-title">Situations We Help Columbus Homeowners Resolve</h2>
-        <div class="benefits-grid">
-            <div class="card">
+<section class="shf-section" style="background:#f7f8fa; border-top:1px solid #eef0f3;">
+    <div class="shf-section-inner">
+        <span class="section-label">Situations</span>
+        <h2 class="section-heading">Situations We Help Columbus Homeowners Resolve</h2>
+
+        <div class="shf-grid">
+            <div class="shf-card">
                 <h3>Facing Foreclosure</h3>
-                <p>Stop the process before it damages your credit permanently. Walk away with cash instead.</p>
+                <p>Close before the proceedings damage your credit. Walk away with cash instead of nothing.</p>
             </div>
-            <div class="card">
+            <div class="shf-card">
                 <h3>Behind on Taxes</h3>
-                <p>We pay the back taxes at closing. You pocket whatever equity remains.</p>
+                <p>We resolve back taxes at closing. You receive net proceeds after all balances are cleared.</p>
             </div>
-            <div class="card">
+            <div class="shf-card">
                 <h3>Inherited Property</h3>
-                <p>Probate property you don&rsquo;t want to manage, we take it off your hands completely.</p>
+                <p>Probate property you cannot manage. We take it as-is and coordinate with your attorney.</p>
             </div>
-            <div class="card">
+            <div class="shf-card">
                 <h3>Going Through Divorce</h3>
                 <p>A fast, clean sale means a fast, clean split. No showings, no negotiations, no delays.</p>
             </div>
-            <div class="card">
+            <div class="shf-card">
                 <h3>Relocating for Work</h3>
-                <p>Your new job can&rsquo;t wait. Neither can we. Close before you move.</p>
+                <p>Your timeline is fixed. We close before you move.</p>
             </div>
-            <div class="card">
+            <div class="shf-card">
                 <h3>Difficult Tenants</h3>
-                <p>We buy rental properties with tenants in place. You don&rsquo;t have to evict anyone first.</p>
+                <p>We acquire rental properties with tenants in place. No eviction required first.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section" style="background: white;">
-    <div class="container">
-        <h2 class="section-title">How to Sell Your House Fast in Columbus</h2>
-        <div class="benefits-grid">
-            <div class="benefit-item">
-                <div class="benefit-icon" style="background: #4CAF50; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">1</div>
+<section class="shf-section" style="background:white;">
+    <div class="shf-section-inner">
+        <span class="section-label">Our Process</span>
+        <h2 class="section-heading">How to Sell Your House Fast in Columbus</h2>
+
+        <div class="shf-process-grid">
+            <div class="shf-step">
+                <div class="shf-step-num">Step 01</div>
                 <h3>Submit Your Address</h3>
-                <p>Call or submit the form. It takes under two minutes and commits you to nothing.</p>
+                <p>Call or submit the form. Under two minutes. No commitment.</p>
             </div>
-            <div class="benefit-item">
-                <div class="benefit-icon" style="background: #4CAF50; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">2</div>
-                <h3>Receive Your Cash Offer</h3>
-                <p>Within 24 hours, you&rsquo;ll have a written offer with a full breakdown of the numbers.</p>
+            <div class="shf-step">
+                <div class="shf-step-num">Step 02</div>
+                <h3>Receive Your Offer</h3>
+                <p>Written cash offer within 24 hours with a full valuation breakdown.</p>
             </div>
-            <div class="benefit-item">
-                <div class="benefit-icon" style="background: #4CAF50; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">3</div>
+            <div class="shf-step">
+                <div class="shf-step-num">Step 03</div>
                 <h3>Close and Get Paid</h3>
-                <p>Accept the offer, choose your closing date, and receive your cash directly to your bank account.</p>
+                <p>Accept the offer, choose your closing date, and receive cash directly.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="cta-section">
-    <h2>Ready to Sell Your Columbus House Fast?</h2>
-    <p style="max-width: 600px; margin: 0 auto 2rem;">No repairs. No fees. No hassle. A fair cash offer within 24 hours.</p>
-    <a href="/get-offer" class="btn">Get My Free Cash Offer</a>
-</section>
+<section class="shf-section" style="background:#f7f8fa; border-top:1px solid #eef0f3;">
+    <div class="shf-faq-inner">
+        <span class="section-label">FAQ</span>
+        <h2 class="section-heading">Questions Columbus Homeowners Ask</h2>
 
-<section class="section" style="background: white;">
-    <div class="container">
-        <h2 class="section-title">Questions Columbus Homeowners Ask</h2>
+        <div class="shf-faq-item">
+            <p class="shf-faq-q">How fast can you buy my house in Columbus?</p>
+            <p class="shf-faq-a">We can close in as few as 7 days after the offer is accepted. If you need more time, 30, 60, or 90 days, that works too. You choose the date.</p>
+        </div>
 
-        <div style="max-width: 800px; margin: 0 auto; text-align: left;">
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #1a1a2e;">How fast can you buy my house in Columbus?</h3>
-                <p>We can close in as few as 7 days after the offer is accepted. If you need more time, 30, 60, 90 days, that works too. You choose the date.</p>
-            </div>
+        <div class="shf-faq-item">
+            <p class="shf-faq-q">Will you make a fair offer?</p>
+            <p class="shf-faq-a">Offers are based on current Franklin County market data and actual repair costs. We provide a written breakdown. You keep what you would otherwise lose to agent commissions, closing costs, repairs, and months of carrying costs.</p>
+        </div>
 
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #1a1a2e;">Will you make a fair offer?</h3>
-                <p>Yes. We make competitive offers based on current Franklin County market data and actual repair costs. Our offers are typically 70&ndash;85% of market value, but you keep what you&rsquo;d otherwise lose to agent commissions, closing costs, repairs, and months of carrying costs.</p>
-            </div>
+        <div class="shf-faq-item">
+            <p class="shf-faq-q">What condition do you buy in?</p>
+            <p class="shf-faq-a">Any condition. Fire damage, water damage, mold, foundation issues, deferred maintenance, full of belongings. We do not require a single repair before closing.</p>
+        </div>
 
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #1a1a2e;">What condition do you buy in?</h3>
-                <p>Any condition. Fire damage, water damage, mold, foundation issues, hoarder homes, full of belongings, we&rsquo;ve purchased all of them and we don&rsquo;t require a single repair before closing.</p>
-            </div>
+        <div class="shf-faq-item">
+            <p class="shf-faq-q">Are there any fees or hidden costs?</p>
+            <p class="shf-faq-a">None. We pay all closing costs. No agent commissions, no processing fees. The offer amount is the net amount received by the seller.</p>
+        </div>
 
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #1a1a2e;">Are there any fees or hidden costs?</h3>
-                <p>None. We pay all closing costs. The cash offer you receive is exactly what you receive at closing, nothing deducted, nothing hidden.</p>
-            </div>
-
-            <div style="margin-bottom: 2rem;">
-                <h3 style="color: #1a1a2e;">Where in Columbus do you buy?</h3>
-                <p>Throughout all of Franklin County. Columbus, Westerville, Dublin, Grove City, Reynoldsburg, Whitehall, Gahanna, Upper Arlington, Hilliard, Worthington, and every neighborhood in between.</p>
-            </div>
+        <div class="shf-faq-item">
+            <p class="shf-faq-q">Where in Columbus do you buy?</p>
+            <p class="shf-faq-a">Throughout all of Franklin County. Columbus, Westerville, Dublin, Grove City, Reynoldsburg, Whitehall, Gahanna, Upper Arlington, Hilliard, Worthington, and every neighborhood in between.</p>
         </div>
     </div>
 </section>
+
+<section class="shf-cta">
+    <h2>Ready to Sell Your Columbus Property?</h2>
+    <p>No repairs. No fees. No obligation. Written offer within 24 hours.</p>
+    <div style="display:flex; justify-content:center; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+        <a href="tel:+16148253368" style="color:var(--amber); font-size:1.3rem; font-weight:900; text-decoration:none;">(614) 825-3368</a>
+        <a href="/get-offer" class="btn btn-primary">Submit Property for Evaluation</a>
+    </div>
+</section>
+
 {% endblock %}

@@ -1,124 +1,332 @@
 {% extends "base.html" %}
 
+{% block extra_head %}
+<style>
+.about-hero {
+    background: #0b1120;
+    color: white;
+    padding: 6rem 2rem 5rem;
+}
+.about-hero-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.about-hero .section-label { color: var(--amber); }
+.about-hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+}
+.about-hero p {
+    color: #7a8394;
+    font-size: 1.05rem;
+    line-height: 1.75;
+    max-width: 640px;
+}
+
+.about-founder {
+    padding: 6rem 2rem;
+    background: white;
+}
+.about-founder-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+.about-photo img {
+    width: 180px;
+    height: 180px;
+    border-radius: 12px;
+    object-fit: cover;
+    object-position: center top;
+    border: 2px solid rgba(201,137,58,0.3);
+}
+.about-photo .name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #111827;
+    margin-top: 0.75rem;
+}
+.about-photo .role {
+    color: #6b7280;
+    font-size: 0.82rem;
+    margin-top: 0.2rem;
+}
+.about-narrative h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    color: #111827;
+    margin-bottom: 1.25rem;
+}
+.about-narrative p {
+    color: #4b5563;
+    font-size: 1rem;
+    line-height: 1.75;
+    margin-bottom: 1.15rem;
+}
+.about-narrative p strong { color: #111827; }
+
+.about-origin {
+    padding: 5rem 2rem;
+    background: #0b1120;
+    color: white;
+}
+.about-origin-inner {
+    max-width: 820px;
+    margin: 0 auto;
+}
+.about-origin h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    color: white;
+    margin-bottom: 1.25rem;
+}
+.about-origin p {
+    color: #7a8394;
+    font-size: 1rem;
+    line-height: 1.75;
+    margin-bottom: 1.15rem;
+}
+.about-origin p strong { color: white; }
+
+.about-process {
+    padding: 6rem 2rem;
+    background: #f7f8fa;
+    border-top: 1px solid #eef0f3;
+}
+.about-process-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.about-process-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2.5rem;
+    margin-top: 2.5rem;
+}
+.about-step-num {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+.about-step-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+.about-step-desc {
+    font-size: 0.92rem;
+    color: #6b7280;
+    line-height: 1.65;
+}
+
+.about-capabilities {
+    padding: 6rem 2rem;
+    background: white;
+}
+.about-capabilities-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.cap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.cap-card {
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f7f8fa;
+}
+.cap-card h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.4rem;
+}
+.cap-card p {
+    font-size: 0.92rem;
+    color: #6b7280;
+    line-height: 1.65;
+}
+
+.about-cta {
+    background: #0b1120;
+    color: white;
+    padding: 5.5rem 2rem;
+    text-align: center;
+}
+.about-cta h2 {
+    font-size: 1.85rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+}
+.about-cta p {
+    color: #4e5a6e;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 900px) {
+    .about-founder-inner { grid-template-columns: 1fr; gap: 2rem; }
+    .about-process-grid { grid-template-columns: 1fr 1fr; }
+    .cap-grid { grid-template-columns: 1fr; }
+    .about-hero h1 { font-size: 1.8rem; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="hero" style="padding: 3rem 2rem; text-align: left;">
-    <div style="max-width: 900px; margin: 0 auto;">
-        <p style="color: #4CAF50; font-weight: 600;">The Story Behind Lifeline</p>
-        <h1 style="font-size: 2.5rem;">I Know What It Feels Like to Lose Everything</h1>
+
+<section class="about-hero">
+    <div class="about-hero-inner">
+        <span class="section-label">About Lifeline Home Buyers</span>
+        <h1>A Property Acquisition Firm Built on Experience.</h1>
+        <p>
+            Lifeline Home Buyers is a privately funded residential acquisition company
+            headquartered in Columbus, Ohio. We acquire properties directly from homeowners
+            across Franklin County and Central Ohio.
+        </p>
     </div>
 </section>
 
-<div class="container" style="max-width: 900px; padding: 3rem 2rem;">
-
-    <div class="card" style="margin-bottom: 2rem; padding: 2.5rem;">
-        <div style="display: grid; grid-template-columns: 200px 1fr; gap: 2rem; align-items: start;">
-            <div>
-                <img src="/static/willy.jpg" alt="Willy Shumbusho, Founder of Lifeline Home Buyers" style="width: 180px; height: 180px; border-radius: 10px; object-fit: cover; object-position: center top; display: block; border: 3px solid #16a34a;">
-                <p style="text-align: center; margin-top: 0.75rem; font-weight: 600;">Willy Shumbusho</p>
-                <p style="text-align: center; color: #666; font-size: 0.85rem;">Founder, Lifeline Home Buyers</p>
-            </div>
-
-            <div>
-                <h2 style="margin-bottom: 1rem; color: #1a1a2e;">The Day That Changed Everything</h2>
-
-                <p style="margin-bottom: 1rem; line-height: 1.8;">
-                    Growing up, I never thought we'd lose our home. But life doesn't care about your plans.
-                </p>
-
-                <p style="margin-bottom: 1rem; line-height: 1.8;">
-                    My father fell behind on property taxes. A few payments became a year. The penalties compounded.
-                    The letters didn't stop. We were drowning, and nobody reached out a hand.
-                </p>
-
-                <p style="margin-bottom: 1rem; line-height: 1.8; color: #c62828; font-weight: 500;">
-                    We lost our home. My father lost everything he'd built. And not one person offered to help.
-                </p>
-
-                <p style="line-height: 1.8;">
-                    I watched my father, a proud man, be broken by a system that only saw a debt,
-                    never a family. I never forgot what that felt like.
-                </p>
-            </div>
+<section class="about-founder">
+    <div class="about-founder-inner">
+        <div class="about-photo">
+            <img src="/static/willy.jpg" alt="Willy Shumbusho, Founder and Managing Director of Lifeline Home Buyers">
+            <p class="name">Willy Shumbusho</p>
+            <p class="role">Founder &amp; Managing Director</p>
         </div>
-    </div>
 
-    <div class="card" style="margin-bottom: 2rem; padding: 2.5rem; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white;">
-        <h2 style="margin-bottom: 1rem;">The Promise I Made</h2>
+        <div class="about-narrative">
+            <span class="section-label">Leadership</span>
+            <h2>Founder oversight. Structured operations. Direct accountability.</h2>
 
-        <p style="margin-bottom: 1rem; line-height: 1.8; opacity: 0.95;">
-            I made myself a promise: if I ever had the means, I would be the person who shows up when no one else does.
-        </p>
-
-        <p style="margin-bottom: 1rem; line-height: 1.8; opacity: 0.95;">
-            In 2022, I put that promise into action. Not as a faceless corporation. Not chasing volume.
-            Because I remember, clearly, what it felt like to have no options and no one in your corner.
-        </p>
-
-        <p style="line-height: 1.8; opacity: 0.95;">
-            <strong style="color: #4CAF50;">If you're facing what my family faced, you're not alone anymore.</strong>
-            Tax problems. Inherited property. Foreclosure. Whatever your situation, I'm here.
-        </p>
-    </div>
-
-    <div class="card" style="margin-bottom: 2rem; padding: 2.5rem;">
-        <h2 style="margin-bottom: 1rem;">What Drives Me Every Day</h2>
-
-        <p style="margin-bottom: 1.5rem; line-height: 1.8;">
-            The moment someone realizes there's a way out, that look on their face, that's why I do this.
-            Not the deals. The people.
-        </p>
-
-        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #4CAF50;">
-            <p style="font-style: italic; margin: 0; line-height: 1.8;">
-                "Every person I help is the family I wish someone had helped when we needed it most."
+            <p>
+                Willy Shumbusho founded Lifeline Home Buyers in 2022 after experiencing firsthand
+                what happens when a family faces property loss with no guidance and no options.
             </p>
-            <p style="margin: 0.75rem 0 0 0; font-weight: 600; color: #666;">&#8212; Willy Shumbusho</p>
+
+            <p>
+                Today, he provides strategic oversight on acquisition operations and capital deployment
+                across Central Ohio. Our acquisitions team handles property evaluations, title coordination,
+                and seller communication under his direct supervision.
+            </p>
+
+            <p>
+                <strong>Lifeline operates with structured underwriting, internal capital reserves,
+                and dedicated title coordination.</strong> Every transaction closes through licensed
+                title professionals with full transparency on pricing.
+            </p>
         </div>
     </div>
+</section>
 
-    <div class="card" style="margin-bottom: 2rem; padding: 2.5rem;">
-        <h2 style="margin-bottom: 1.5rem;">How I Work</h2>
+<section class="about-origin">
+    <div class="about-origin-inner">
+        <span class="section-label" style="color:var(--amber);">Why This Company Exists</span>
+        <h2>This business started because of a house my family lost.</h2>
 
-        <div style="display: grid; gap: 1.5rem;">
-            <div style="display: flex; gap: 1rem; align-items: start;">
-                <div style="background: #e8f5e9; color: #2e7d32; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">1</div>
-                <div>
-                    <h3 style="margin: 0 0 0.25rem 0;">I Listen First</h3>
-                    <p style="margin: 0; color: #666;">Before numbers are ever discussed, I want to understand your situation, what you're carrying and what you actually need.</p>
-                </div>
+        <p>
+            In 2012, my father fell behind on property taxes. The letters kept coming.
+            Penalties, interest, fees. No one reached out to explain what the options were.
+            We lost the house.
+        </p>
+
+        <p>
+            <strong>Lifeline exists so that does not happen to other families.</strong>
+            I built this company to provide what my family never received: clarity, structure,
+            and a real offer on the table.
+        </p>
+
+        <p>
+            Every property we evaluate, every offer we write, every closing we coordinate
+            is informed by that experience. This is not a side project. It is the company
+            I built to solve a problem I lived through.
+        </p>
+    </div>
+</section>
+
+<section class="about-process">
+    <div class="about-process-inner">
+        <span class="section-label">How We Operate</span>
+        <h2 class="section-heading">Our Acquisition Process</h2>
+
+        <div class="about-process-grid">
+            <div>
+                <div class="about-step-num">Step 01</div>
+                <div class="about-step-title">Initial Review</div>
+                <div class="about-step-desc">Submit your property address. Our team reviews public records, tax status, title history, and comparable sales within 24 hours.</div>
             </div>
-
-            <div style="display: flex; gap: 1rem; align-items: start;">
-                <div style="background: #e8f5e9; color: #2e7d32; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">2</div>
-                <div>
-                    <h3 style="margin: 0 0 0.25rem 0;">Transparent Offers, No Tactics</h3>
-                    <p style="margin: 0; color: #666;">I show you exactly how I arrived at my number. Accept it or don't, there's no pressure either way.</p>
-                </div>
+            <div>
+                <div class="about-step-num">Step 02</div>
+                <div class="about-step-title">Valuation &amp; Offer</div>
+                <div class="about-step-desc">Written cash offer with a transparent breakdown. No hidden fees, no obligations. Review on your timeline.</div>
             </div>
-
-            <div style="display: flex; gap: 1rem; align-items: start;">
-                <div style="background: #e8f5e9; color: #2e7d32; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">3</div>
-                <div>
-                    <h3 style="margin: 0 0 0.25rem 0;">Your Timeline, Your Terms</h3>
-                    <p style="margin: 0; color: #666;">Close in 7 days or take 3 months. I work around your schedule, not the other way around.</p>
-                </div>
+            <div>
+                <div class="about-step-num">Step 03</div>
+                <div class="about-step-title">Title Coordination</div>
+                <div class="about-step-desc">Our team handles title search, lien resolution, and closing logistics through licensed title professionals.</div>
             </div>
-
-            <div style="display: flex; gap: 1rem; align-items: start;">
-                <div style="background: #e8f5e9; color: #2e7d32; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">4</div>
-                <div>
-                    <h3 style="margin: 0 0 0.25rem 0;">No Shame. No Judgment.</h3>
-                    <p style="margin: 0; color: #666;">I've been on the losing side of a financial spiral. You won't hear judgment from me, ever.</p>
-                </div>
+            <div>
+                <div class="about-step-num">Step 04</div>
+                <div class="about-step-title">Closing</div>
+                <div class="about-step-desc">Close in as few as 7 days or on your schedule. Back taxes, liens, and payoffs handled at the table.</div>
             </div>
         </div>
     </div>
+</section>
 
-    <div class="card" style="padding: 2.5rem; text-align: center; background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%); color: white;">
-        <h2 style="margin-bottom: 0.5rem;">Ready to Talk?</h2>
-        <p style="margin-bottom: 1.5rem; opacity: 0.9;">No pressure. No obligation. Just an honest conversation about your options.</p>
-        <a href="/get-offer" class="btn" style="background: white; color: #2E7D32;">Get Your Cash Offer</a>
+<section class="about-capabilities">
+    <div class="about-capabilities-inner">
+        <span class="section-label">Capabilities</span>
+        <h2 class="section-heading">What Lifeline Handles</h2>
+
+        <div class="cap-grid">
+            <div class="cap-card">
+                <h4>Private Capital</h4>
+                <p>Internal reserves and private capital relationships. No bank loans, no mortgage approvals. Funds available at closing regardless of property condition.</p>
+            </div>
+            <div class="cap-card">
+                <h4>As-Is Acquisitions</h4>
+                <p>We purchase properties in any condition. No repair requests, no renegotiation after walkthrough. The offer we present is the offer we close on.</p>
+            </div>
+            <div class="cap-card">
+                <h4>Title Resolution</h4>
+                <p>Back taxes, liens, and title defects are resolved at closing. We coordinate directly with the title company on behalf of the seller.</p>
+            </div>
+            <div class="cap-card">
+                <h4>Flexible Timelines</h4>
+                <p>Close in 7 days or 90 days. Leaseback arrangements available. Schedule built around the seller, not around us.</p>
+            </div>
+        </div>
     </div>
+</section>
 
-</div>
+<section class="about-cta">
+    <h2>Request a Property Evaluation</h2>
+    <p>No obligation. Written offer delivered within 48 hours of property review.</p>
+    <div style="display:flex; justify-content:center; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+        <a href="tel:+16148253368" style="color:var(--amber); font-size:1.3rem; font-weight:900; text-decoration:none; letter-spacing:-0.02em;">(614) 825-3368</a>
+        <a href="/get-offer" class="btn btn-primary" style="font-size:0.95rem; padding:0.9rem 2rem;">Submit Property for Evaluation</a>
+    </div>
+    <p style="margin-top:1.5rem; font-size:0.78rem; color:#3a4255;">Lifeline Home Buyers | Franklin County &amp; Central Ohio</p>
+</section>
+
 {% endblock %}

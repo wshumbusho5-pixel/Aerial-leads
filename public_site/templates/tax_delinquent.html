@@ -1,97 +1,278 @@
 {% extends "base.html" %}
 
+{% block extra_head %}
+<style>
+.tax-hero {
+    background: #0b1120;
+    color: white;
+    padding: 6rem 2rem 5rem;
+}
+.tax-hero-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 4rem;
+    align-items: center;
+}
+.tax-hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 1.25rem;
+}
+.tax-hero h1 em {
+    font-style: normal;
+    color: var(--amber);
+}
+.tax-hero-sub {
+    color: #7a8394;
+    font-size: 1.05rem;
+    line-height: 1.75;
+    max-width: 540px;
+    margin-bottom: 2rem;
+}
+
+.tax-form-card {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 2rem 1.75rem;
+}
+.tax-form-card h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #c4cdd9;
+    margin-bottom: 0.3rem;
+}
+.tax-form-card > p {
+    font-size: 0.76rem;
+    color: #3d4a5e;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+}
+
+.dark-input {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 7px;
+    color: white;
+    font-size: 0.9rem;
+    font-family: inherit;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s;
+}
+.dark-input:focus { outline: none; border-color: var(--amber); }
+.dark-input::placeholder { color: #3d4655; }
+
+.tax-timeline {
+    padding: 6rem 2rem;
+    background: white;
+}
+.tax-timeline-inner {
+    max-width: 820px;
+    margin: 0 auto;
+}
+.tax-timeline p {
+    color: #4b5563;
+    font-size: 1rem;
+    line-height: 1.75;
+    margin-bottom: 1.15rem;
+}
+.timeline-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+}
+.timeline-list li {
+    padding: 0.85rem 0;
+    border-bottom: 1px solid #eef0f3;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    padding-left: 1.5rem;
+    position: relative;
+    color: #374151;
+}
+.timeline-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1.15rem;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--amber);
+}
+.timeline-list li strong { color: #111827; }
+
+.tax-how {
+    padding: 6rem 2rem;
+    background: #f7f8fa;
+    border-top: 1px solid #eef0f3;
+}
+.tax-how-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.tax-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.tax-card {
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: white;
+}
+.tax-card h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.4rem;
+}
+.tax-card p {
+    font-size: 0.92rem;
+    color: #6b7280;
+    line-height: 1.65;
+}
+
+.tax-properties {
+    padding: 6rem 2rem;
+    background: white;
+}
+.tax-properties-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.tax-cta {
+    background: #0b1120;
+    color: white;
+    padding: 5.5rem 2rem;
+    text-align: center;
+}
+.tax-cta h2 {
+    font-size: 1.85rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.75rem;
+}
+.tax-cta p {
+    color: #4e5a6e;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 900px) {
+    .tax-hero-inner { grid-template-columns: 1fr; }
+    .tax-hero h1 { font-size: 1.8rem; }
+    .tax-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="hero" style="background: linear-gradient(135deg, #b71c1c 0%, #c62828 100%); text-align: left;">
-    <div style="max-width: 900px; margin: 0 auto;">
-        <p style="opacity: 0.9; margin-bottom: 0.5rem;">I&rsquo;ve lived this. I know how it starts.</p>
-        <h1 style="font-size: 2.5rem;">My Family Lost Our Home to Tax Delinquency</h1>
-        <p style="font-size: 1.1rem; margin: 1rem 0;">
-            I watched the letters arrive. I saw the fear build. I was there the day we lost everything.
-            That&rsquo;s why I started Lifeline, so no family goes through what mine did.
-        </p>
-        <a href="/get-offer" class="btn btn-primary" style="margin-top: 1rem; background: white; color: #b71c1c;">Let Me Help You</a>
-    </div>
-</section>
 
-<section class="section" style="background: white;">
-    <div class="container">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
-            <div>
-                <h2 style="margin-bottom: 1rem; color: #b71c1c;">Every Day You Wait, the Debt Grows</h2>
-                <p style="margin-bottom: 1rem;">In Ohio, delinquent property taxes don&rsquo;t stay still. Here&rsquo;s what happens if nothing changes:</p>
-                <ul style="margin-bottom: 1.5rem; padding-left: 1.5rem;">
-                    <li style="margin-bottom: 0.5rem; color: #c62828;"><strong>Tax Lien Sale</strong>. Franklin County can sell the lien on your property to a third party</li>
-                    <li style="margin-bottom: 0.5rem; color: #c62828;"><strong>Tax Foreclosure</strong>. If unpaid long enough, the county can take ownership entirely</li>
-                    <li style="margin-bottom: 0.5rem;"><strong>Compounding Penalties</strong>. Interest and fees accelerate every quarter</li>
-                    <li style="margin-bottom: 0.5rem;"><strong>Credit Damage</strong>. Tax liens become public record and hurt your credit score</li>
-                    <li style="margin-bottom: 0.5rem;"><strong>Legal Costs</strong>. The longer this sits, the more expensive any resolution becomes</li>
-                </ul>
-                <p><strong>There&rsquo;s a way out that puts money in your pocket.</strong> We buy the property, pay off all back taxes at closing, and you walk away clean.</p>
+<section class="tax-hero">
+    <div class="tax-hero-inner">
+        <div>
+            <span class="section-label" style="color:var(--amber);">Tax Delinquent Property Acquisitions</span>
+            <h1>Behind on Property Taxes in <em>Franklin County?</em></h1>
+            <p class="tax-hero-sub">
+                Lifeline acquires tax delinquent properties directly from homeowners.
+                We resolve back taxes at closing, handle title coordination, and provide a clear path
+                to settlement. No listing. No agent commissions. No uncertainty.
+            </p>
+            <div style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;">
+                <a href="tel:+16148253368" style="color:var(--amber); font-size:1.3rem; font-weight:900; text-decoration:none;">(614) 825-3368</a>
+                <a href="/get-offer" class="btn btn-primary">Submit Property for Evaluation</a>
             </div>
-            <div class="card" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white;">
-                <h3 style="margin-bottom: 1rem;">Get Your Cash Offer</h3>
-                <form action="/submit-lead" method="POST">
-                    <input type="hidden" name="source_page" value="tax-delinquent">
+        </div>
 
-                    <div class="form-group">
-                        <input type="text" name="property_address" required placeholder="Property Address"
-                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
-                    </div>
-                    <div class="form-group">
-                        <input type="text" name="name" required placeholder="Your Name"
-                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
-                    </div>
-                    <div class="form-group">
-                        <input type="tel" name="phone" required placeholder="Phone Number"
-                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;">
-                    </div>
-                    <div class="form-group">
-                        <textarea name="message" rows="2" placeholder="How much do you estimate you owe in back taxes? (optional)"
-                               style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white;"></textarea>
-                    </div>
-                    <button type="submit" class="btn" style="width: 100%; background: #4CAF50; color: white;">
-                        Stop the Clock. Get Help Now.
-                    </button>
-                </form>
-            </div>
+        <div class="tax-form-card">
+            <h3>Property Evaluation Request</h3>
+            <p>Our team evaluates tax delinquent properties within 24 hours.</p>
+            <form action="/submit-lead" method="POST">
+                <input type="hidden" name="source_page" value="tax-delinquent">
+                <input class="dark-input" type="text" name="property_address" required placeholder="Property address">
+                <input class="dark-input" type="text" name="name" required placeholder="Your name">
+                <input class="dark-input" type="tel" name="phone" required placeholder="Phone number">
+                <textarea class="dark-input" name="message" rows="2" placeholder="Estimated back tax amount (optional)" style="resize:vertical;"></textarea>
+                <button type="submit" style="width:100%; padding:0.85rem; background:var(--green); color:white; border:none; border-radius:7px; font-size:0.92rem; font-weight:700; cursor:pointer; margin-top:0.25rem; transition:background 0.2s;"
+                        onmouseover="this.style.background='#095a28'"
+                        onmouseout="this.style.background='#0b6b30'">
+                    Request Evaluation
+                </button>
+                <p style="text-align:center; font-size:0.75rem; color:#3d4a5e; margin-top:0.75rem;">No fees. No obligation.</p>
+            </form>
         </div>
     </div>
 </section>
 
-<section class="section">
-    <div class="container">
-        <h2 class="section-title">Here&rsquo;s What We Do For You</h2>
-        <div class="benefits-grid">
-            <div class="benefit-item card">
-                <div class="benefit-icon">&#128176;</div>
-                <h3>We Pay the Back Taxes</h3>
-                <p>All delinquent taxes are cleared at closing, out of the purchase price, not your pocket.</p>
+<section class="tax-timeline">
+    <div class="tax-timeline-inner">
+        <span class="section-label">What Happens Next</span>
+        <h2 class="section-heading">The Tax Delinquency Timeline in Ohio</h2>
+
+        <p>
+            In Ohio, delinquent property taxes do not remain static. Penalties compound quarterly,
+            and the county has multiple enforcement mechanisms. Understanding the timeline helps
+            homeowners make informed decisions.
+        </p>
+
+        <ul class="timeline-list">
+            <li><strong>Tax Lien Sale:</strong> Franklin County can sell the lien on your property to a third party investor</li>
+            <li><strong>Tax Foreclosure:</strong> If taxes remain unpaid, the county can initiate foreclosure proceedings and take ownership</li>
+            <li><strong>Compounding Penalties:</strong> Interest and fees accelerate every quarter the balance remains outstanding</li>
+            <li><strong>Credit Impact:</strong> Tax liens become public record and affect credit standing</li>
+            <li><strong>Legal Costs:</strong> The longer the delinquency persists, the more expensive any resolution becomes</li>
+        </ul>
+
+        <p>
+            <strong>Lifeline provides an alternative.</strong> We acquire the property, resolve all back taxes
+            at closing, and the seller receives net proceeds. The debt is cleared. The property transfers. It is done.
+        </p>
+    </div>
+</section>
+
+<section class="tax-how">
+    <div class="tax-how-inner">
+        <span class="section-label">How It Works</span>
+        <h2 class="section-heading">Our Tax Delinquent Acquisition Process</h2>
+
+        <div class="tax-grid">
+            <div class="tax-card">
+                <h4>Back Taxes Resolved at Closing</h4>
+                <p>All delinquent taxes are cleared from sale proceeds at closing. The seller does not pay out of pocket.</p>
             </div>
-            <div class="benefit-item card">
-                <div class="benefit-icon">&#128181;</div>
-                <h3>You Pocket the Rest</h3>
-                <p>After the tax debt is cleared, the remaining equity is yours, paid in cash at closing.</p>
+            <div class="tax-card">
+                <h4>Net Proceeds to Seller</h4>
+                <p>After the tax debt is cleared, remaining equity is paid directly to the seller in cash at closing.</p>
             </div>
-            <div class="benefit-item card">
-                <div class="benefit-icon">&#9203;</div>
-                <h3>We Move Fast</h3>
-                <p>Tax foreclosure deadlines are real. We work quickly to get you out before the county does.</p>
+            <div class="tax-card">
+                <h4>Expedited Timeline</h4>
+                <p>Tax foreclosure deadlines are real. Our team moves quickly to close before the county acts. 7 to 21 day closings available.</p>
             </div>
-            <div class="benefit-item card">
-                <div class="benefit-icon">&#128274;</div>
-                <h3>A Clean Break</h3>
-                <p>No more liens. No more letters. No more fear. You close and it&rsquo;s over.</p>
+            <div class="tax-card">
+                <h4>Complete Resolution</h4>
+                <p>No more liens. No more letters. No more accumulating penalties. The property transfers and the obligation ends.</p>
             </div>
         </div>
     </div>
 </section>
 
 {% if properties %}
-<section class="section" style="background: white;">
-    <div class="container">
-        <h2 class="section-title">Properties With Back Tax Balances</h2>
-        <p style="text-align: center; color: #666; margin-bottom: 2rem;">
-            Is your address on this list? We can help you resolve this before the tax sale.
+<section class="tax-properties">
+    <div class="tax-properties-inner">
+        <span class="section-label">Property Intelligence</span>
+        <h2 class="section-heading">Tax Delinquent Properties in Franklin County</h2>
+        <p style="color:#6b7280; font-size:0.92rem; margin-bottom:2rem;">
+            If your property appears below, our team is prepared to make an offer. Contact us to discuss resolution options.
         </p>
 
         <div class="property-grid">
@@ -100,16 +281,16 @@
                 <div class="property-card-body">
                     <span class="type-badge tax">Tax Delinquent</span>
                     <h3>{{ prop.address }}</h3>
-                    <p style="color: #666; font-size: 0.9rem;">
+                    <p style="color: #6b7280; font-size: 0.9rem;">
                         {{ prop.city if prop.city else 'Columbus' }}, OH
                     </p>
                     {% if prop.taxes_owed and prop.taxes_owed > 0 %}
-                    <p style="color: #e53935; font-size: 0.9rem; margin-top: 0.5rem;">
-                        <span style="background: #ffebee; padding: 0.15rem 0.5rem; border-radius: 4px;">Outstanding Tax Balance</span>
+                    <p style="color: #b45309; font-size: 0.85rem; margin-top: 0.5rem;">
+                        <span style="background: #fff7ed; padding: 0.15rem 0.5rem; border-radius: 4px;">Outstanding Tax Balance</span>
                     </p>
                     {% endif %}
-                    <p style="color: #4CAF50; font-weight: 500; margin-top: 1rem; font-size: 0.9rem;">
-                        Get Help &rarr;
+                    <p style="color: var(--green); font-weight: 500; margin-top: 1rem; font-size: 0.9rem;">
+                        View Details &rarr;
                     </p>
                 </div>
             </a>
@@ -123,9 +304,13 @@
 </section>
 {% endif %}
 
-<section class="cta-section" style="background: linear-gradient(135deg, #b71c1c 0%, #c62828 100%);">
-    <h2>The Longer You Wait, the Fewer Options You Have</h2>
-    <p style="margin-bottom: 2rem; opacity: 0.9;">Get a free cash offer today. No obligation. No pressure.</p>
-    <a href="/get-offer" class="btn" style="background: white; color: #b71c1c;">Get Help Now</a>
+<section class="tax-cta">
+    <h2>Resolve Your Tax Delinquency</h2>
+    <p>No obligation. Written offer delivered within 48 hours of property review.</p>
+    <div style="display:flex; justify-content:center; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+        <a href="tel:+16148253368" style="color:var(--amber); font-size:1.3rem; font-weight:900; text-decoration:none;">(614) 825-3368</a>
+        <a href="/get-offer" class="btn btn-primary" style="font-size:0.95rem; padding:0.9rem 2rem;">Submit Property for Evaluation</a>
+    </div>
 </section>
+
 {% endblock %}

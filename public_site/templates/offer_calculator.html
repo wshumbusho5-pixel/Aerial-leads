@@ -55,12 +55,12 @@
     }
 
     .progress-step.active {
-        background: #4CAF50;
+        background: var(--green);
         color: white;
     }
 
     .progress-step.completed {
-        background: #2E7D32;
+        background: #095a28;
         color: white;
     }
 
@@ -82,12 +82,12 @@
     }
 
     .option-btn:hover {
-        border-color: #4CAF50;
+        border-color: var(--green);
         background: #f8fff8;
     }
 
     .option-btn.selected {
-        border-color: #4CAF50;
+        border-color: var(--green);
         background: #e8f5e9;
     }
 
@@ -102,7 +102,7 @@
     }
 
     .result-box {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        background: #0b1120;
         color: white;
         padding: 2rem;
         border-radius: 10px;
@@ -112,7 +112,7 @@
     .offer-amount {
         font-size: 3rem;
         font-weight: 800;
-        color: #4CAF50;
+        color: var(--green);
         margin: 1rem 0;
     }
 
@@ -124,9 +124,10 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero" style="padding: 2rem;">
-    <h1 style="font-size: 2rem;">What's Your Property Worth?</h1>
-    <p>Get a free, no-obligation cash offer estimate in 60 seconds</p>
+<section class="hero" style="padding: 3.5rem 2rem;">
+    <span class="section-label" style="color:var(--amber);">Property Valuation</span>
+    <h1 style="font-size: 2rem;">Estimate Your Property Value</h1>
+    <p>Preliminary valuation in 60 seconds. No obligation.</p>
 </section>
 
 <div class="container calculator-container" style="padding: 2rem;">
@@ -254,12 +255,12 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary" style="width: 100%;">
-                        Get My Exact Cash Offer
+                        Request Full Evaluation
                     </button>
                 </form>
 
                 <p style="text-align: center; margin-top: 1rem; font-size: 0.85rem; color: #666;">
-                    We'll call you within 24 hours with your personalized offer
+                    Our team will contact you within 24 hours with a detailed evaluation
                 </p>
             </div>
         </div>
