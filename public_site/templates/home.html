@@ -90,14 +90,6 @@
     border-radius: 8px;
     max-width: 420px;
 }
-.founder-line img {
-    width: 38px; height: 38px;
-    border-radius: 50%;
-    object-fit: cover;
-    object-position: center top;
-    border: 2px solid rgba(201,137,58,0.5);
-    flex-shrink: 0;
-}
 .founder-line-text {
     font-size: 0.8rem;
     color: #5a6478;
@@ -544,14 +536,15 @@
             <p style="font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--amber); margin-bottom:1rem;">Lifeline Home Buyers &mdash; Columbus, Ohio</p>
 
             <h1 class="hero-headline">
-                Direct Property Acquisitions<br>
-                Across <em>Franklin County.</em>
+                Residential Property Acquisitions<br>
+                Across <em>Franklin County &amp; Central Ohio.</em>
             </h1>
 
             <p class="hero-sub">
                 Privately funded transactions. Flexible closing structures.
                 No traditional listing required. Lifeline acquires residential properties
                 directly from homeowners — tax delinquent, probate, pre-foreclosure, or any condition.
+                Headquartered in Columbus. Expanding across Ohio.
             </p>
 
             <div class="hero-phone-cta">
@@ -559,13 +552,12 @@
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
                     (614) 825-3368
                 </a>
-                <a href="/get-offer" class="btn btn-primary">Submit Property for Review</a>
+                <a href="/get-offer" class="btn btn-primary">Submit Property for Evaluation</a>
             </div>
 
             <div class="founder-line">
-                <img src="/static/willy.jpg" alt="Willy Shumbusho, Founder">
                 <div class="founder-line-text">
-                    <strong>Willy Shumbusho, Founder &amp; Director of Acquisitions</strong>
+                    <strong>Willy Shumbusho, Managing Director</strong>
                     Founder oversight on acquisition strategy and capital deployment.
                 </div>
             </div>
@@ -716,11 +708,11 @@
      ═══════════════════════════════════════════ -->
 <section class="property-data-section">
     <div class="property-data-inner">
-        <span class="section-label">Property Database</span>
-        <h2 class="section-heading">Look Up Any Property in Franklin County</h2>
+        <span class="section-label">Property Intelligence</span>
+        <h2 class="section-heading">Franklin County Property Intelligence</h2>
         <p style="color:#6b7280; font-size:0.9rem; line-height:1.7; max-width:600px;">
-            Lifeline maintains a database of properties across Franklin County — tax status, assessed values, property type.
-            Search for your address or browse our records.
+            Lifeline monitors property records across Franklin County — tax status, assessed values, ownership type.
+            Search for a specific address or browse our intelligence records.
         </p>
 
         <form class="property-search-bar" action="/properties" method="GET">
@@ -731,7 +723,7 @@
         <div class="data-stats-row">
             <div class="data-stat-card">
                 <div class="number">19,700+</div>
-                <div class="label">Properties tracked in Franklin County</div>
+                <div class="label">Properties monitored in Franklin County</div>
             </div>
             <div class="data-stat-card">
                 <div class="number">Updated Monthly</div>
@@ -744,7 +736,7 @@
         </div>
 
         <a href="/properties" style="font-size:0.88rem; color:#0e7a38; text-decoration:none; font-weight:600;">
-            Browse full database &rarr;
+            Browse property records &rarr;
         </a>
     </div>
 </section>
@@ -826,7 +818,7 @@
         <div class="founder-photo-col">
             <img src="/static/willy.jpg" alt="Willy Shumbusho, Founder of Lifeline Home Buyers">
             <p class="name">Willy Shumbusho</p>
-            <p class="role">Founder &amp; Director of Acquisitions</p>
+            <p class="role">Founder &amp; Managing Director</p>
             <a href="/about" style="display:inline-block; margin-top:1rem; font-size:0.78rem; color:var(--amber); text-decoration:none;">
                 Full story &rarr;
             </a>
@@ -845,7 +837,11 @@
 
             <p>
                 <strong>Lifeline exists so that doesn't happen to other families.</strong>
-                I built this company to provide what my family never received — clarity, structure, and a real offer on the table. Today our acquisitions team handles evaluations across Central Ohio, and I maintain direct oversight on every transaction strategy.
+                I built this company to provide what my family never received — clarity, structure, and a real offer on the table.
+            </p>
+
+            <p>
+                Today, Lifeline operates with structured underwriting, internal capital reserves, and dedicated title coordination across Central Ohio. Our acquisitions team handles property evaluations, and I maintain direct oversight on transaction strategy and capital deployment.
             </p>
         </div>
 
@@ -918,7 +914,7 @@
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;fill:var(--amber)"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>
             (614) 825-3368
         </a>
-        <a href="/get-offer" class="btn btn-primary" style="font-size:0.95rem; padding:0.9rem 2rem;">Submit Property Details</a>
+        <a href="/get-offer" class="btn btn-primary" style="font-size:0.95rem; padding:0.9rem 2rem;">Submit Property for Evaluation</a>
     </div>
     <p style="margin-top:1.5rem; font-size:0.78rem; color:#3a4255;">Lifeline Home Buyers &mdash; Franklin County &amp; Central Ohio</p>
 </section>
