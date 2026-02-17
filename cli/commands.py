@@ -1,5 +1,5 @@
 """
-Aerial Leads - Command-Line Interface
+Lifeline Home Buyers - Command-Line Interface
 
 Beautiful CLI using Click and Rich for terminal operations.
 Supports multiple markets via --market parameter.
@@ -31,7 +31,7 @@ DEFAULT_MARKET = 'columbus_oh'
 @click.version_option(version=VERSION, prog_name=APP_NAME)
 def cli():
     """
-    🏠 Aerial Leads - Premium Real Estate Lead Generation
+    🏠 Lifeline Home Buyers - Premium Real Estate Lead Generation
 
     Transform tax delinquency data into high-value investment opportunities.
     """

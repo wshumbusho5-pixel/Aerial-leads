@@ -1,5 +1,5 @@
 """
-Aerial Leads - Logging Configuration
+Lifeline Home Buyers - Logging Configuration
 
 Centralized logging setup for the entire application.
 Uses both file logging and rich console logging.

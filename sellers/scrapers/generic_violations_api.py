@@ -1,5 +1,5 @@
 """
-Aerial Leads - Generic Code Violations API Client
+Lifeline Home Buyers - Generic Code Violations API Client
 
 Retrieves code enforcement violations from ArcGIS REST APIs using market configuration.
 Works with any city/county that uses ArcGIS for open data.

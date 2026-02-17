@@ -1,5 +1,5 @@
 """
-Aerial Leads - Authentication Module
+Lifeline Home Buyers - Authentication Module
 """
 
 from .va_auth import VAAuth, ROLES, check_login, require_login

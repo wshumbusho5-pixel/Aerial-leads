@@ -1,5 +1,5 @@
 """
-Aerial Leads - Skip Tracer
+Lifeline Home Buyers - Skip Tracer
 
 Main class for skip tracing operations.
 Supports multiple providers and caching.

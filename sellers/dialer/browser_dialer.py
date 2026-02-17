@@ -90,7 +90,7 @@ def render_dialer(token: str, phone_number: str = "", lead_info: dict = None):
 
             .phone-input:focus {{
                 outline: none;
-                border-color: #667eea;
+                border-color: #0b6b30;
             }}
 
             .btn-row {{
@@ -152,7 +152,7 @@ def render_dialer(token: str, phone_number: str = "", lead_info: dict = None):
 
             .lead-info h4 {{
                 margin: 0 0 10px 0;
-                color: #667eea;
+                color: #0b6b30;
             }}
 
             .lead-info p {{

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Aerial Leads - Dashboard
+Lifeline Home Buyers - Dashboard
 Beautiful web interface for lead generation
 """
 
@@ -40,7 +40,7 @@ from shared.utils.data_archiver import DataArchiver, archive_before_scrape
 
 # Page config
 st.set_page_config(
-    page_title="Aerial Leads - Lead Generation Dashboard",
+    page_title="Lifeline Home Buyers - Lead Generation Dashboard",
     page_icon="🏠",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -52,13 +52,13 @@ st.markdown("""
     .main-header {
         font-size: 3rem;
         font-weight: bold;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(90deg, #0b6b30 0%, #095a28 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 1rem;
     }
     .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #0b6b30 0%, #095a28 100%);
         padding: 1.5rem;
         border-radius: 10px;
         color: white;
@@ -66,7 +66,7 @@ st.markdown("""
     }
     .stButton>button {
         width: 100%;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(90deg, #0b6b30 0%, #095a28 100%);
         color: white;
         font-weight: bold;
         border: none;
@@ -113,7 +113,7 @@ def check_va_login(username, password):
 
 def show_login_page():
     """Display login page"""
-    st.markdown("# 🏠 Aerial Leads")
+    st.markdown("# 🏠 Lifeline Home Buyers")
     st.markdown("### Login to Continue")
 
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -534,7 +534,7 @@ if st.session_state.user_type == 'va':
 # ========================================
 # Sidebar for Admin
 with st.sidebar:
-    st.markdown("# 🏠 Aerial Leads")
+    st.markdown("# 🏠 Lifeline Home Buyers")
     st.markdown(f"**Logged in as: {st.session_state.user_name}**")
     st.markdown("---")
 
@@ -586,7 +586,7 @@ with st.sidebar:
 # HOME PAGE
 # ========================================
 if page == "🏠 Home":
-    st.markdown('<h1 class="main-header">🏠 Aerial Leads Dashboard</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏠 Lifeline Home Buyers Dashboard</h1>', unsafe_allow_html=True)
     st.markdown("### Premium Real Estate Lead Generation Platform")
 
     col1, col2, col3 = st.columns(3)

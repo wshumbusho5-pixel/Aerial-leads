@@ -1,5 +1,5 @@
 """
-Aerial Leads - Automated Follow-up Sequences
+Lifeline Home Buyers - Automated Follow-up Sequences
 
 Automatically follow up with leads over time.
 Never let a lead go cold - consistent follow-up wins deals!

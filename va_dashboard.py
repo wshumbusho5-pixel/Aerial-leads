@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Aerial Leads - VA Dashboard
+Lifeline Home Buyers - VA Dashboard
 Clean, focused interface for Virtual Assistants
 Shares data with admin dashboard for seamless communication
 """
@@ -127,7 +127,7 @@ st.markdown("""
         height: auto;
     }
     .stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #0b6b30 0%, #095a28 100%);
         padding: 1.5rem;
         border-radius: 12px;
         color: white;
@@ -146,7 +146,7 @@ st.markdown("""
         background: #f8f9fa;
         padding: 1rem;
         border-radius: 8px;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid #0b6b30;
         margin-bottom: 0.5rem;
     }
     .priority-high { border-left-color: #e74c3c; }

@@ -205,7 +205,7 @@ BROWSER_DIALER_HTML = '''
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Aerial Leads - Browser Dialer</title>
+    <title>Lifeline Home Buyers - Browser Dialer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://sdk.twilio.com/js/client/releases/1.14.0/twilio.min.js"></script>
     <style>
@@ -258,7 +258,7 @@ BROWSER_DIALER_HTML = '''
         .lead-info .phone {
             font-size: 1.3rem;
             font-weight: 700;
-            color: #4CAF50;
+            color: #0b6b30;
             margin-top: 10px;
         }
 
@@ -273,7 +273,7 @@ BROWSER_DIALER_HTML = '''
         }
         .phone-input:focus {
             outline: none;
-            border-color: #4CAF50;
+            border-color: #0b6b30;
         }
 
         .btn {
@@ -287,10 +287,10 @@ BROWSER_DIALER_HTML = '''
             transition: all 0.3s;
         }
         .btn-call {
-            background: #4CAF50;
+            background: #0b6b30;
             color: white;
         }
-        .btn-call:hover { background: #45a049; }
+        .btn-call:hover { background: #095a28; }
         .btn-call:disabled { background: #ccc; cursor: not-allowed; }
 
         .btn-hangup {
@@ -316,7 +316,7 @@ BROWSER_DIALER_HTML = '''
         }
         .volume-bar {
             height: 100%;
-            background: #4CAF50;
+            background: #0b6b30;
             width: 0%;
             transition: width 0.1s;
         }

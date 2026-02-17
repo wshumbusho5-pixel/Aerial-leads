@@ -1,5 +1,5 @@
 """
-Aerial Leads - Lead Integration Module
+Lifeline Home Buyers - Lead Integration Module
 
 Integrates probate and sheriff sale leads with tax delinquent data
 to create comprehensive lead profiles for motivation scoring.

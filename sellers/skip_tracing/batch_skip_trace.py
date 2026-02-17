@@ -1,5 +1,5 @@
 """
-Aerial Leads - Skip Tracing Integration
+Lifeline Home Buyers - Skip Tracing Integration
 
 Integrates with BatchSkipTracing.com API to enrich property data with:
 - Phone numbers

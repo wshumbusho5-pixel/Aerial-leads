@@ -1282,7 +1282,7 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
         }}
         .lead-info h3 {{ font-size: 1rem; margin-bottom: 5px; color: #333; }}
         .lead-info p {{ color: #666; font-size: 0.9rem; }}
-        .lead-info .phone {{ font-size: 1.3rem; font-weight: 700; color: #4CAF50; margin-top: 10px; }}
+        .lead-info .phone {{ font-size: 1.3rem; font-weight: 700; color: #0b6b30; margin-top: 10px; }}
         input, select, textarea {{
             width: 100%;
             padding: 12px 15px;
@@ -1292,7 +1292,7 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             margin-bottom: 12px;
         }}
         input[type="tel"] {{ text-align: center; font-size: 1.2rem; }}
-        input:focus, select:focus, textarea:focus {{ outline: none; border-color: #4CAF50; }}
+        input:focus, select:focus, textarea:focus {{ outline: none; border-color: #0b6b30; }}
         textarea {{ resize: vertical; min-height: 80px; }}
         .btn {{
             width: 100%;
@@ -1304,8 +1304,8 @@ async def browser_dialer(phone: str = "", name: str = "", address: str = "", ide
             cursor: pointer;
             margin-bottom: 10px;
         }}
-        .btn-call {{ background: #4CAF50; color: white; }}
-        .btn-call:hover {{ background: #43a047; }}
+        .btn-call {{ background: #0b6b30; color: white; }}
+        .btn-call:hover {{ background: #095a28; }}
         .btn-call:disabled {{ background: #ccc; cursor: not-allowed; }}
         .btn-hangup {{ background: #dc3545; color: white; display: none; }}
         .btn-hangup:hover {{ background: #c82333; }}

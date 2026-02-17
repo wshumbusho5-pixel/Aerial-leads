@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Aerial Leads - Dashboard
-Beautiful web interface for lead generation
+Lifeline Home Buyers - Dashboard
+Internal administration interface for lead generation
 """
 
 # Load .env file BEFORE any other imports
@@ -108,7 +108,7 @@ except ImportError as e:
 
 # Page config
 st.set_page_config(
-    page_title="Aerial Leads - Lead Generation Dashboard",
+    page_title="Lifeline Home Buyers - Admin Dashboard",
     page_icon="🏠",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -120,18 +120,18 @@ st.markdown("""
     .main-header {
         font-size: 3rem;
         font-weight: bold;
-        color: #667eea !important;
+        color: #0b6b30 !important;
         margin-bottom: 1rem;
     }
     .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #0b6b30 0%, #095a28 100%);
         padding: 1.5rem;
         border-radius: 10px;
         color: white !important;
         margin-bottom: 1rem;
     }
     .stButton>button {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(90deg, #0b6b30 0%, #095a28 100%);
         color: white !important;
         font-weight: bold;
         border: none;
@@ -143,7 +143,7 @@ st.markdown("""
 
 # Sidebar
 with st.sidebar:
-    st.markdown("# 🏠 Aerial Leads")
+    st.markdown("# Lifeline Home Buyers")
     st.markdown("---")
 
     page = st.radio(
@@ -188,7 +188,7 @@ with st.sidebar:
 # HOME PAGE
 # ========================================
 if page == "🏠 Home":
-    st.markdown('<h1 class="main-header">🏠 Aerial Leads Dashboard</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">Lifeline Home Buyers Dashboard</h1>', unsafe_allow_html=True)
     st.markdown("### Premium Real Estate Lead Generation Platform")
 
     col1, col2, col3 = st.columns(3)

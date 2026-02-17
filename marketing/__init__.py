@@ -1,5 +1,5 @@
 """
-Aerial Leads - Marketing Module
+Lifeline Home Buyers - Marketing Module
 
 Direct mail, RVM, and other marketing automation.
 """

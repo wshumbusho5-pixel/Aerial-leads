@@ -1,5 +1,5 @@
 """
-Aerial Leads - Franklin County Excel Data Loader
+Lifeline Home Buyers - Franklin County Excel Data Loader
 
 Loads tax delinquent properties from Franklin County Auditor's bulk Excel files.
 This is MUCH faster and more reliable than web scraping.

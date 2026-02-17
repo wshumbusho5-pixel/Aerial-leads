@@ -1,5 +1,5 @@
 """
-Voice Server for Aerial Leads Dialer
+Voice Server for Lifeline Home Buyers Dialer
 
 Flask server that handles:
 1. Twilio webhook callbacks (TwiML responses)
@@ -155,7 +155,7 @@ def incoming():
     logger.info(f"Incoming call from: {from_number}")
 
     response = VoiceResponse()
-    response.say("Welcome to Aerial Leads. Connecting you to an agent.")
+    response.say("Welcome to Lifeline Home Buyers. Connecting you to an agent.")
 
     dial = Dial()
     dial.client('agent')  # Route to the browser client
@@ -187,7 +187,7 @@ def create_twiml_app():
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
     # Check if app already exists
-    apps = client.applications.list(friendly_name='Aerial Leads Dialer')
+    apps = client.applications.list(friendly_name='Lifeline Home Buyers Dialer')
 
     if apps:
         app = apps[0]
@@ -196,7 +196,7 @@ def create_twiml_app():
 
     # Create new app (URLs will be updated later when we have ngrok/production URL)
     app = client.applications.create(
-        friendly_name='Aerial Leads Dialer',
+        friendly_name='Lifeline Home Buyers Dialer',
         voice_method='POST',
     )
 
@@ -217,7 +217,7 @@ def create_api_key():
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
     # Create a new API key
-    key = client.new_keys.create(friendly_name='Aerial Leads Voice')
+    key = client.new_keys.create(friendly_name='Lifeline Home Buyers Voice')
 
     print("API Key created!")
     print("Add these to your .env file:")
@@ -256,7 +256,7 @@ if __name__ == '__main__':
             create_twiml_app()
     else:
         # Run the server
-        print("Starting Aerial Leads Voice Server...")
+        print("Starting Lifeline Home Buyers Voice Server...")
         print("Endpoints:")
         print("  GET  /health - Health check")
         print("  GET  /token  - Get access token")

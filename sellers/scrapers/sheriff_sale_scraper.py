@@ -1,5 +1,5 @@
 """
-Aerial Leads - Sheriff Sale / Pre-Foreclosure Scraper
+Lifeline Home Buyers - Sheriff Sale / Pre-Foreclosure Scraper
 
 Scrapes upcoming sheriff sales and pre-foreclosure properties.
 These are highly motivated sellers facing auction deadlines.

@@ -1,5 +1,5 @@
 """
-VA Video Interview Portal - Orteza Groups
+VA Video Interview Portal - Lifeline Home Buyers
 Applicants check status, view scripts, and submit video interviews.
 
 Run with: streamlit run recording_page.py --server.port 8503
@@ -15,7 +15,7 @@ load_dotenv()
 # Page config - only set if running directly (not imported)
 if __name__ == "__main__":
     st.set_page_config(
-        page_title="Video Interview | Lifeline Home Buyers - Orteza Groups",
+        page_title="Video Interview | Lifeline Home Buyers",
         page_icon="🎬",
         layout="centered",
         initial_sidebar_state="collapsed"
@@ -389,7 +389,7 @@ def main():
                 <path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="butt"/>
             </svg>
         </div>
-        <div class="company-badge">Orteza Groups of Companies</div>
+        <div class="company-badge">Lifeline Home Buyers</div>
         <h1 class="hero-title">Video Interview Portal</h1>
         <p class="hero-subtitle">Lifeline Home Buyers • Application Status</p>
     </div>
@@ -683,7 +683,7 @@ def main():
     st.markdown("""
     <div class="footer">
         <span class="footer-logo"><svg viewBox="40 40 160 80" xmlns="http://www.w3.org/2000/svg"><path d="M 50 80 L 80 50 L 110 80 L 110 110 L 50 110 Z" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linejoin="miter"/><path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linecap="butt"/></svg></span>
-        <span class="footer-brand">Lifeline Home Buyers</span> • A company of Orteza Groups<br>
+        <span class="footer-brand">Lifeline Home Buyers</span><br>
         Columbus, Ohio, USA<br><br>
         <small>Questions? Email us at hiring@lifelinehomebuyers.com</small>
     </div>

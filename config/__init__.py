@@ -1,3 +1,3 @@
-"""Aerial Leads Configuration Package"""
+"""Lifeline Home Buyers Configuration Package"""
 
 from .settings import *

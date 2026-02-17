@@ -1,5 +1,5 @@
 """
-Aerial Leads - Motivation Scoring Engine
+Lifeline Home Buyers - Motivation Scoring Engine
 
 Calculates a 0-100 motivation score for property owners based on multiple distress signals.
 

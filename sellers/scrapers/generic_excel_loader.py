@@ -1,5 +1,5 @@
 """
-Aerial Leads - Generic Excel Data Loader
+Lifeline Home Buyers - Generic Excel Data Loader
 
 Loads tax delinquent properties from county Excel files using market configuration.
 Works with any county that provides bulk Excel downloads.

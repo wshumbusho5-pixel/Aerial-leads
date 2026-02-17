@@ -1,5 +1,5 @@
 """
-Aerial Leads - Public Facing Website
+Lifeline Home Buyers - Public Facing Website
 
 This module provides a public-facing website that:
 1. Generates SEO-optimized pages for each property

@@ -1,5 +1,5 @@
 """
-Aerial Leads - Configuration Settings
+Lifeline Home Buyers - Configuration Settings
 
 Centralized configuration for the entire application.
 Loads from environment variables and provides sensible defaults.
@@ -184,7 +184,7 @@ else:
 # Logging Settings
 # ========================================
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOG_FILE = Path(os.getenv('LOG_FILE', str(LOGS_DIR / 'aerial_leads.log')))
+LOG_FILE = Path(os.getenv('LOG_FILE', str(LOGS_DIR / 'lifeline.log')))
 LOG_FORMAT = os.getenv(
     'LOG_FORMAT',
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -306,6 +306,6 @@ DEBUG_MODE = os.getenv('DEBUG_MODE', 'true').lower() == 'true'
 # Version
 # ========================================
 VERSION = '1.0.0'
-APP_NAME = 'Aerial Leads'
-COMPANY_NAME = 'Aerial Leads LLC'
-SUPPORT_EMAIL = 'support@aerialleads.com'
+APP_NAME = 'Lifeline Home Buyers'
+COMPANY_NAME = 'Lifeline Home Buyers LLC'
+SUPPORT_EMAIL = 'support@lifelinehomebuyers.com'

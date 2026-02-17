@@ -1,5 +1,5 @@
 """
-Aerial Leads - Market Configuration Loader
+Lifeline Home Buyers - Market Configuration Loader
 
 Loads market-specific configurations from YAML files.
 Enables multi-market support without code changes.

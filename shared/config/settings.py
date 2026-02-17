@@ -1,5 +1,5 @@
 """
-Aerial Leads - Configuration Settings
+Lifeline Home Buyers - Configuration Settings
 
 Centralized configuration for the entire application.
 Loads from environment variables and provides sensible defaults.
@@ -322,6 +322,6 @@ DEBUG_MODE = os.getenv('DEBUG_MODE', 'true').lower() == 'true'
 # Version
 # ========================================
 VERSION = '1.0.0'
-APP_NAME = 'Aerial Leads'
-COMPANY_NAME = 'Aerial Leads LLC'
+APP_NAME = 'Lifeline Home Buyers'
+COMPANY_NAME = 'Lifeline Home Buyers LLC'
 SUPPORT_EMAIL = 'support@aerialleads.com'

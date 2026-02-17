@@ -1,5 +1,5 @@
 """
-Aerial Leads - Base Scraper
+Lifeline Home Buyers - Base Scraper
 
 Abstract base class for all web scrapers.
 Provides common functionality: requests, retries, rate limiting, error handling.

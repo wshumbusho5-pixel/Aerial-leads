@@ -1,5 +1,5 @@
 """
-Aerial Leads - Franklin County Probate Court Scraper
+Lifeline Home Buyers - Franklin County Probate Court Scraper
 
 Scrapes probate/estate cases from Franklin County Probate Court.
 Identifies properties likely to be inherited and sold.

@@ -1,5 +1,5 @@
 """
-Aerial Leads - Opt-Out Manager
+Lifeline Home Buyers - Opt-Out Manager
 
 Manages property owner opt-out requests for privacy compliance
 """
@@ -216,7 +216,7 @@ class OptOutManager:
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Opt-Out Request - Aerial Leads</title>
+            <title>Opt-Out Request - Lifeline Home Buyers</title>
             <style>
                 body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
                 h1 { color: #1e40af; }

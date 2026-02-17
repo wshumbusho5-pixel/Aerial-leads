@@ -1,5 +1,5 @@
 """
-Aerial Leads - SMS/Text Campaigns
+Lifeline Home Buyers - SMS/Text Campaigns
 
 Send text messages to leads for marketing outreach.
 Note: Uses placeholder for actual SMS provider (Twilio, etc.)

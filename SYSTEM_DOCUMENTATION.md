@@ -305,7 +305,7 @@ Public job application portal for hiring Virtual Assistants from multiple countr
 | `DATABASE_URL` | PostgreSQL connection (use `${{Postgres.DATABASE_URL}}`) |
 | `SENDGRID_API_KEY` | SendGrid API key |
 | `SENDGRID_FROM_EMAIL` | Sender email (admin@areliga.com) |
-| `SENDGRID_FROM_NAME` | Sender name (Orteza Groups) |
+| `SENDGRID_FROM_NAME` | Sender name (Lifeline Home Buyers) |
 
 ### Start Command
 ```

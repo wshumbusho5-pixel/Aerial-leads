@@ -1,5 +1,5 @@
 """
-Aerial Leads - Appointment Scheduler
+Lifeline Home Buyers - Appointment Scheduler
 
 Schedule and track appointments with sellers:
 - Phone appointments

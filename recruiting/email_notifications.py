@@ -299,7 +299,7 @@ def send_hired_email(
                 <p>Best regards,<br><strong>The Lifeline Home Buyers Team</strong></p>
             </div>
             <div class="footer">
-                <p>Orteza Groups | Lifeline Home Buyers</p>
+                <p>Lifeline Home Buyers</p>
             </div>
         </div>
     </body>
@@ -342,7 +342,7 @@ def send_rejected_email(
                 <p>Best wishes,<br><strong>The Lifeline Home Buyers Team</strong></p>
             </div>
             <div class="footer">
-                <p>Orteza Groups | Lifeline Home Buyers</p>
+                <p>Lifeline Home Buyers</p>
             </div>
         </div>
     </body>
@@ -390,7 +390,7 @@ def send_interview_scheduled_email(
                 <p>Best regards,<br><strong>The Lifeline Home Buyers Team</strong></p>
             </div>
             <div class="footer">
-                <p>Orteza Groups | Lifeline Home Buyers</p>
+                <p>Lifeline Home Buyers</p>
             </div>
         </div>
     </body>
@@ -500,10 +500,10 @@ def send_welcome_pas_email(
 
                 <p>Best regards,<br>
                 <strong>The Lifeline Home Buyers Team</strong><br>
-                An Orteza Groups Company</p>
+                Columbus, Ohio</p>
             </div>
             <div class="footer">
-                <p>Orteza Groups | Lifeline Home Buyers<br>
+                <p>Lifeline Home Buyers<br>
                 Columbus, Ohio</p>
             </div>
         </div>
@@ -624,10 +624,10 @@ def send_welcome_ids_email(
 
                 <p>Best regards,<br>
                 <strong>The Lifeline Home Buyers Team</strong><br>
-                An Orteza Groups Company</p>
+                Columbus, Ohio</p>
             </div>
             <div class="footer">
-                <p>Orteza Groups | Lifeline Home Buyers<br>
+                <p>Lifeline Home Buyers<br>
                 Columbus, Ohio</p>
             </div>
         </div>

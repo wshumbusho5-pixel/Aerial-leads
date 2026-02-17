@@ -1,5 +1,5 @@
 """
-Aerial Leads - Direct Mail Manager
+Lifeline Home Buyers - Direct Mail Manager
 
 Create and manage direct mail campaigns for lead outreach.
 Supports multi-touch sequences, tracking, and integration with print services.

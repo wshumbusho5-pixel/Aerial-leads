@@ -1,5 +1,5 @@
 """
-Twilio Client Wrapper for Aerial Leads Dialer
+Twilio Client Wrapper for Lifeline Home Buyers Dialer
 
 Handles all Twilio API interactions for outbound calling.
 """

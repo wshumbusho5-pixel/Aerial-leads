@@ -1,5 +1,5 @@
 """
-Aerial Leads - VA Authentication
+Lifeline Home Buyers - VA Authentication
 
 Simple but effective authentication for Virtual Assistants.
 Keeps unauthorized users out while remaining easy to use.

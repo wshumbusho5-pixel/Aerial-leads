@@ -1,5 +1,5 @@
 """
-Call Manager for Aerial Leads Dialer
+Call Manager for Lifeline Home Buyers Dialer
 
 Handles lead queue management, call tracking, and disposition recording.
 """

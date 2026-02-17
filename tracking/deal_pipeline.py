@@ -1,5 +1,5 @@
 """
-Aerial Leads - Deal Pipeline / CRM
+Lifeline Home Buyers - Deal Pipeline / CRM
 
 Track deals from lead to close:
 Lead → Qualified → Offer Made → Under Contract → Closed

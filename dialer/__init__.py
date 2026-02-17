@@ -1,5 +1,5 @@
 """
-Aerial Leads - Cold Calling Dialer System
+Lifeline Home Buyers - Cold Calling Dialer System
 
 Twilio-powered dialer for VA cold calling operations.
 """

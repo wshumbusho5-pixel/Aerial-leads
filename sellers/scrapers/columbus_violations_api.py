@@ -1,5 +1,5 @@
 """
-Aerial Leads - Columbus Code Violations API Scraper
+Lifeline Home Buyers - Columbus Code Violations API Scraper
 
 Retrieves code enforcement violations from Columbus Open Data Portal ArcGIS REST API.
 Much faster and more reliable than web scraping.

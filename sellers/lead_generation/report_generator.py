@@ -1,5 +1,5 @@
 """
-Aerial Leads - PDF Report Generator
+Lifeline Home Buyers - PDF Report Generator
 
 Generates professional PDF reports for individual leads
 Perfect for selling premium Tier 1 leads at $100+ each
