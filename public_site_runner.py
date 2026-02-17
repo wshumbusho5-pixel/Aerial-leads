@@ -15,12 +15,20 @@ TEMPLATES_DIR = BASE_DIR / "public_site" / "templates"
 DATA_DIR = BASE_DIR / "public_site" / "data"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 import pandas as pd
 import logging
+
+try:
+    import yaml
+    import markdown
+    BLOG_AVAILABLE = True
+except ImportError:
+    BLOG_AVAILABLE = False
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -286,6 +294,135 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "public_site" / "stati
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.globals['now'] = datetime.now
 
+
+# ============================================
+# CACHE HEADERS MIDDLEWARE
+# ============================================
+
+class CacheHeaderMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/static"):
+            response.headers["Cache-Control"] = "public, max-age=31536000"
+        elif request.url.path in ("/sitemap.xml", "/robots.txt"):
+            response.headers["Cache-Control"] = "public, max-age=3600"
+        else:
+            response.headers["Cache-Control"] = "public, max-age=300"
+        return response
+
+app.add_middleware(CacheHeaderMiddleware)
+
+
+# ============================================
+# NEIGHBORHOOD DATA
+# ============================================
+
+NEIGHBORHOODS = {
+    "linden": {
+        "name": "Linden", "zip": "43211",
+        "desc": "Linden is one of Columbus's most established neighborhoods on the near east and northeast side. With a large inventory of single-family homes built in the early-to-mid 20th century, Linden presents significant opportunity for homeowners looking to sell properties that may need updates or have fallen behind on taxes.",
+        "long_desc": "Linden is a neighborhood in northeast Columbus known for its tree-lined streets and historic housing stock. Many properties in the 43211 zip code are single-family homes built between 1920 and 1960. The area has seen increased investor activity as Columbus continues to grow, and property values have been steadily rising. However, many long-time homeowners face challenges with deferred maintenance, rising property taxes, and inherited properties. Lifeline Home Buyers is actively acquiring in Linden and provides fair cash offers for properties in any condition.",
+        "property_types": [
+            {"title": "Tax Delinquent Properties", "desc": "Many Linden homeowners face accumulated tax debt. We resolve all back taxes at closing so you walk away clean."},
+            {"title": "Inherited Homes", "desc": "Probate properties from long-time Linden families. We coordinate with estate attorneys and handle title issues."},
+            {"title": "Deferred Maintenance", "desc": "Older homes needing roof, foundation, plumbing, or electrical work. We buy as-is, no repairs required."},
+            {"title": "Vacant Properties", "desc": "Vacant homes accumulating code violations and carrying costs. Sell before the costs outweigh the equity."},
+        ],
+    },
+    "franklinton": {
+        "name": "Franklinton", "zip": "43222",
+        "desc": "Franklinton is one of Columbus's oldest neighborhoods, located just west of downtown across the Scioto River. The area is undergoing significant redevelopment, creating opportunity for homeowners to capture rising values — especially for properties that need work.",
+        "long_desc": "Franklinton sits directly west of downtown Columbus and is one of the city's most rapidly changing neighborhoods. New development along West Broad Street and the Scioto Peninsula has driven property values upward, but many long-time residents own older homes that need significant work. The 43222 zip code contains a mix of single-family homes, duplexes, and small multi-family properties. For homeowners who can't afford renovations to capitalize on rising values, selling for cash allows them to capture equity now rather than watching it erode through carrying costs.",
+        "property_types": [
+            {"title": "Properties Near Redevelopment", "desc": "Franklinton's growth means your property may be worth more than you think. Get a current valuation."},
+            {"title": "Older Single-Family Homes", "desc": "Turn-of-century homes needing complete renovation. We purchase regardless of condition."},
+            {"title": "Duplexes & Small Multi-Family", "desc": "Rental properties with tenant issues or deferred maintenance. We buy with tenants in place."},
+            {"title": "Flood Zone Properties", "desc": "Properties in flood-prone areas that are difficult to insure or finance traditionally."},
+        ],
+    },
+    "near-east-side": {
+        "name": "Near East Side", "zip": "43203",
+        "desc": "The Near East Side is centrally located just east of downtown Columbus. With proximity to major employers and institutions, the area has strong fundamentals — but many properties have deferred maintenance or complicated title situations.",
+        "long_desc": "The Near East Side neighborhood in the 43203 zip code is one of Columbus's most centrally located residential areas. Its proximity to downtown, Columbus State Community College, and major medical facilities makes it attractive for redevelopment. Property values have been appreciating as the neighborhood continues to evolve. Many properties in the area are older single-family homes and small multi-family buildings that have been in the same families for decades. Lifeline works with homeowners who need to sell inherited properties, resolve tax issues, or simply move on from a property they can no longer maintain.",
+        "property_types": [
+            {"title": "Probate & Inherited Properties", "desc": "Multi-generational homes where heirs need a clean resolution. We handle all title coordination."},
+            {"title": "Tax Delinquent Properties", "desc": "Properties with accumulated tax debt. We clear all liens and back taxes at closing."},
+            {"title": "Code Violation Properties", "desc": "Homes with outstanding city code violations. Sell before fines accumulate further."},
+            {"title": "Occupied Properties", "desc": "Need to sell but still living there? We offer flexible closing dates and leaseback options."},
+        ],
+    },
+    "south-side": {
+        "name": "South Side", "zip": "43207",
+        "desc": "Columbus's South Side is a working-class neighborhood with affordable housing stock and a strong sense of community. Many homeowners here face challenges with aging properties and rising costs.",
+        "long_desc": "The South Side of Columbus, primarily in the 43207 zip code, is a large residential area south of downtown. The neighborhood features predominantly single-family homes built from the 1940s through the 1970s. It's a working-class community where many families have owned homes for generations. Rising property taxes, aging infrastructure, and deferred maintenance are common challenges. Lifeline Home Buyers provides South Side homeowners with a straightforward path to sell their property for cash without the burden of repairs or the uncertainty of a traditional listing.",
+        "property_types": [
+            {"title": "Aging Housing Stock", "desc": "Homes from the 1940s-1970s that need updates. We buy regardless of condition — roof, plumbing, electrical, all of it."},
+            {"title": "Tax Delinquent Properties", "desc": "South Side properties with accumulated tax debt. Resolve the balance and keep your equity."},
+            {"title": "Estate Sales", "desc": "Family homes being sold after a parent or grandparent passes. We make the process simple."},
+            {"title": "Rental Properties", "desc": "Tired of being a landlord? Sell your rental property as-is, tenants and all."},
+        ],
+    },
+    "hilltop": {
+        "name": "Hilltop", "zip": "43228",
+        "desc": "The Hilltop is a large neighborhood on Columbus's west side with one of the highest concentrations of distressed properties in the city. Lifeline is actively acquiring here and providing homeowners with fair cash offers.",
+        "long_desc": "The Hilltop neighborhood in west Columbus (43228) is one of the largest residential areas in the city. Known for its affordable housing stock, the area has a high proportion of properties needing renovation. Many homes were built in the 1950s-1970s and have significant deferred maintenance. The neighborhood also has one of the higher rates of tax delinquency in Franklin County. For Hilltop homeowners, selling for cash is often the most practical option — especially when repair costs would exceed the potential increase in sale price. Lifeline Home Buyers is one of the most active cash buyers in the Hilltop area.",
+        "property_types": [
+            {"title": "Major Renovation Properties", "desc": "Homes needing $30,000+ in work. Foundation, roof, HVAC — we take it all as-is."},
+            {"title": "Tax Delinquent Properties", "desc": "The Hilltop has high tax delinquency rates. We resolve back taxes and get you cash at closing."},
+            {"title": "Fire & Water Damaged", "desc": "Properties damaged by fire, flooding, or other events. We purchase regardless of damage extent."},
+            {"title": "Vacant & Abandoned", "desc": "Properties sitting empty and accumulating violations. Convert a liability into cash."},
+        ],
+    },
+    "german-village": {
+        "name": "German Village", "zip": "43206",
+        "desc": "German Village is one of Columbus's most desirable historic neighborhoods. Properties here command premium prices, but even in German Village, homeowners face situations where a quick cash sale makes sense.",
+        "long_desc": "German Village, located just south of downtown Columbus in the 43206 zip code, is one of the city's premier historic neighborhoods. Listed on the National Register of Historic Places, the area features beautifully preserved brick homes, tree-lined streets, and a vibrant commercial district. While property values are among the highest in Columbus, homeowners here still face situations that require a fast, certain sale: divorce, relocation, inherited properties, or homes that need historic-compliant renovations that can be extremely expensive. Lifeline Home Buyers works with German Village homeowners to provide competitive cash offers that reflect the area's premium values.",
+        "property_types": [
+            {"title": "Historic Properties", "desc": "Homes requiring expensive historic-compliant renovations. We understand the value and buy accordingly."},
+            {"title": "Inherited Properties", "desc": "Premium real estate inherited by out-of-state heirs. We provide a simple path to liquidity."},
+            {"title": "Divorce Sales", "desc": "When both parties need a clean, fast resolution on a high-value property."},
+            {"title": "Relocation Sales", "desc": "Need to move for work? Close on your German Village home in days, not months."},
+        ],
+    },
+}
+
+
+# ============================================
+# BLOG POST LOADING
+# ============================================
+
+BLOG_POSTS_DIR = BASE_DIR / "public_site" / "blog_posts"
+
+
+def load_blog_posts():
+    """Load all blog posts from markdown files with YAML frontmatter."""
+    posts = []
+    if not BLOG_AVAILABLE or not BLOG_POSTS_DIR.exists():
+        return posts
+    for md_file in BLOG_POSTS_DIR.glob("*.md"):
+        try:
+            content = md_file.read_text(encoding="utf-8")
+            if content.startswith("---"):
+                parts = content.split("---", 2)
+                if len(parts) >= 3:
+                    frontmatter = yaml.safe_load(parts[1])
+                    frontmatter["body"] = parts[2].strip()
+                    frontmatter["date"] = str(frontmatter.get("date", ""))
+                    posts.append(frontmatter)
+        except Exception as e:
+            logger.warning(f"Error loading blog post {md_file}: {e}")
+    posts.sort(key=lambda p: p.get("date", ""), reverse=True)
+    return posts
+
+
+def get_blog_post(slug: str):
+    """Get a single blog post by slug."""
+    for post in load_blog_posts():
+        if post.get("slug") == slug:
+            return post
+    return None
+
+
 @app.on_event("startup")
 async def startup():
     """Initialize database on startup."""
@@ -335,11 +472,20 @@ async def sitemap():
         (f"{base_url}/calculator", "monthly", "0.7"),
         (f"{base_url}/we-buy-houses", "monthly", "0.8"),
         (f"{base_url}/sell-house-fast", "monthly", "0.8"),
+        (f"{base_url}/blog", "weekly", "0.7"),
     ]
 
     urls = []
     for loc, freq, priority in static_pages:
         urls.append(f"    <url><loc>{loc}</loc><changefreq>{freq}</changefreq><priority>{priority}</priority></url>")
+
+    # Add neighborhood pages
+    for slug in NEIGHBORHOODS:
+        urls.append(f"    <url><loc>{base_url}/we-buy-houses-{slug}</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>")
+
+    # Add blog posts
+    for post in load_blog_posts():
+        urls.append(f"    <url><loc>{base_url}/blog/{post['slug']}</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>")
 
     # Add individual property pages
     df = load_properties()
@@ -566,6 +712,87 @@ async def property_database(request: Request, page: int = 1, type: str = None):
         "search_query": "",
         "page_title": "Property Database | Lifeline Home Buyers",
         "meta_description": "Search distressed properties in Columbus, Ohio."
+    })
+
+
+# ============================================
+# NEIGHBORHOOD PAGES
+# ============================================
+
+@app.get("/we-buy-houses-{slug}", response_class=HTMLResponse)
+async def neighborhood_page(request: Request, slug: str):
+    """Neighborhood-specific landing pages for hyper-local SEO."""
+    neighborhood = NEIGHBORHOODS.get(slug)
+    if not neighborhood:
+        raise HTTPException(status_code=404, detail="Neighborhood not found")
+
+    return templates.TemplateResponse("neighborhood.html", {
+        "request": request,
+        "neighborhood": neighborhood,
+        "slug": slug,
+        "page_title": f"We Buy Houses {neighborhood['name']} Columbus OH | Cash Offer | Lifeline Home Buyers",
+        "meta_description": f"We buy houses in {neighborhood['name']}, Columbus OH ({neighborhood['zip']}). Cash offers in 24 hours, close in 7 days. Any condition. No fees. Call (614) 825-3368.",
+        "breadcrumbs": [
+            {"name": "Home", "url": "https://life-line-homebuyers.com/"},
+            {"name": f"We Buy Houses {neighborhood['name']}", "url": f"https://life-line-homebuyers.com/we-buy-houses-{slug}"},
+        ],
+    })
+
+
+# ============================================
+# BLOG ROUTES
+# ============================================
+
+@app.get("/blog", response_class=HTMLResponse)
+async def blog_list(request: Request, page: int = 1):
+    """Blog listing page."""
+    posts = load_blog_posts()
+    per_page = 10
+    total_pages = max(1, (len(posts) + per_page - 1) // per_page)
+    start = (page - 1) * per_page
+    page_posts = posts[start:start + per_page]
+
+    return templates.TemplateResponse("blog_list.html", {
+        "request": request,
+        "posts": page_posts,
+        "page": page,
+        "total_pages": total_pages,
+        "page_title": "Homeowner Resources & Guides | Lifeline Home Buyers Blog",
+        "meta_description": "Guides and resources for Ohio homeowners — selling inherited property, dealing with tax delinquency, cash home sales, and the Columbus real estate market.",
+        "breadcrumbs": [
+            {"name": "Home", "url": "https://life-line-homebuyers.com/"},
+            {"name": "Blog", "url": "https://life-line-homebuyers.com/blog"},
+        ],
+    })
+
+
+@app.get("/blog/{slug}", response_class=HTMLResponse)
+async def blog_post_page(request: Request, slug: str):
+    """Individual blog post page."""
+    post = get_blog_post(slug)
+    if not post:
+        raise HTTPException(status_code=404, detail="Blog post not found")
+
+    html_content = markdown.markdown(
+        post["body"],
+        extensions=["tables", "fenced_code", "nl2br"]
+    ) if BLOG_AVAILABLE else "<p>Blog not available</p>"
+
+    all_posts = load_blog_posts()
+    related_posts = [p for p in all_posts if p.get("slug") != slug][:3]
+
+    return templates.TemplateResponse("blog_post.html", {
+        "request": request,
+        "post": post,
+        "content": html_content,
+        "related_posts": related_posts,
+        "page_title": f"{post['title']} | Lifeline Home Buyers",
+        "meta_description": post.get("description", ""),
+        "breadcrumbs": [
+            {"name": "Home", "url": "https://life-line-homebuyers.com/"},
+            {"name": "Blog", "url": "https://life-line-homebuyers.com/blog"},
+            {"name": post["title"], "url": f"https://life-line-homebuyers.com/blog/{slug}"},
+        ],
     })
 
 
