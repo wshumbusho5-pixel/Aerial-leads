@@ -143,6 +143,62 @@
 
         .nav-cta:hover { background: #095a28 !important; }
 
+        /* ── MOBILE NAV ─────────────────────────────────────── */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .nav-toggle span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: white;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        .nav-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .nav-toggle.active span:nth-child(2) { opacity: 0; }
+        .nav-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+        .mobile-nav {
+            display: none;
+            background: var(--dark);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem 1.5rem;
+        }
+        .mobile-nav.open { display: block; }
+        .mobile-nav a {
+            display: block;
+            color: #8892a4;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: color 0.2s;
+        }
+        .mobile-nav a:last-child { border-bottom: none; }
+        .mobile-nav a:hover { color: white; }
+        .mobile-nav .mob-phone {
+            color: var(--amber);
+            font-weight: 700;
+        }
+        .mobile-nav .mob-cta {
+            display: inline-block;
+            margin-top: 0.75rem;
+            padding: 0.7rem 1.25rem;
+            background: var(--green);
+            color: white;
+            border-radius: 7px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
         /* ── HERO (used on sub-pages) ───────────────────────── */
         .hero {
             background: var(--dark);
@@ -433,6 +489,7 @@
         /* ── RESPONSIVE ──────────────────────────────────────── */
         @media (max-width: 768px) {
             .nav-links { display: none; }
+            .nav-toggle { display: flex; }
             .hero h1 { font-size: 1.9rem; }
             .section { padding: 3.5rem 1.25rem; }
             .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
@@ -459,8 +516,20 @@
                 <li><a href="tel:+16148253368" class="nav-phone">(614) 825-3368</a></li>
                 <li><a href="/get-offer" class="nav-cta">Submit Property</a></li>
             </ul>
+            <button class="nav-toggle" onclick="this.classList.toggle('active'); document.getElementById('mobile-nav').classList.toggle('open');" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </nav>
+    <div class="mobile-nav" id="mobile-nav">
+        <a href="/">Home</a>
+        <a href="/probate">Probate</a>
+        <a href="/tax-delinquent">Tax Help</a>
+        <a href="/about">About</a>
+        <a href="/properties">Property Intelligence</a>
+        <a href="tel:+16148253368" class="mob-phone">(614) 825-3368</a>
+        <a href="/get-offer" class="mob-cta">Submit Property</a>
+    </div>
 
     <main>
         {% block content %}{% endblock %}
