@@ -1,7 +1,7 @@
 # INDEPENDENT CONTRACTOR AGREEMENT
 
 **LIFELINE HOME BUYERS**
-*Columbus, Ohio*
+*An Orteza Groups Company*
 
 ---
 
@@ -9,7 +9,7 @@
 
 **COMPANY:**
 Lifeline Home Buyers
-Columbus, Ohio
+An Orteza Groups Company
 Columbus, Ohio
 ("Company")
 
@@ -286,5 +286,5 @@ Date: _________________________________
 ---
 
 **LIFELINE HOME BUYERS**
-Columbus, Ohio
+An Orteza Groups Company
 Columbus, Ohio

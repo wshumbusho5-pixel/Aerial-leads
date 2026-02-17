@@ -139,7 +139,7 @@ def send_script_assignment_email(
                 <strong>The Lifeline Home Buyers Team</strong></p>
             </div>
             <div class="footer">
-                <p>Orteza groups | Lifeline Home Buyers<br>
+                <p>Orteza Groups | Lifeline Home Buyers<br>
                 Columbus, Ohio</p>
                 <p>This email was sent because you applied for a VA position with us.</p>
             </div>
@@ -196,7 +196,7 @@ def send_video_approved_email(
                 <strong>The Lifeline Home Buyers Team</strong></p>
             </div>
             <div class="footer">
-                <p>Orteza groups | Lifeline Home Buyers<br>
+                <p>Orteza Groups | Lifeline Home Buyers<br>
                 Columbus, Ohio</p>
             </div>
         </div>
@@ -251,7 +251,7 @@ def send_application_received_email(
                 <strong>The Lifeline Home Buyers Team</strong></p>
             </div>
             <div class="footer">
-                <p>Orteza groups | Lifeline Home Buyers<br>
+                <p>Orteza Groups | Lifeline Home Buyers<br>
                 Columbus, Ohio</p>
             </div>
         </div>
@@ -299,7 +299,7 @@ def send_hired_email(
                 <p>Best regards,<br><strong>The Lifeline Home Buyers Team</strong></p>
             </div>
             <div class="footer">
-                <p>Lifeline Home Buyers</p>
+                <p>Lifeline Home Buyers | Orteza Groups</p>
             </div>
         </div>
     </body>
@@ -342,7 +342,7 @@ def send_rejected_email(
                 <p>Best wishes,<br><strong>The Lifeline Home Buyers Team</strong></p>
             </div>
             <div class="footer">
-                <p>Lifeline Home Buyers</p>
+                <p>Lifeline Home Buyers | Orteza Groups</p>
             </div>
         </div>
     </body>
@@ -390,7 +390,7 @@ def send_interview_scheduled_email(
                 <p>Best regards,<br><strong>The Lifeline Home Buyers Team</strong></p>
             </div>
             <div class="footer">
-                <p>Lifeline Home Buyers</p>
+                <p>Lifeline Home Buyers | Orteza Groups</p>
             </div>
         </div>
     </body>
@@ -500,10 +500,10 @@ def send_welcome_pas_email(
 
                 <p>Best regards,<br>
                 <strong>The Lifeline Home Buyers Team</strong><br>
-                Columbus, Ohio</p>
+                An Orteza Groups Company</p>
             </div>
             <div class="footer">
-                <p>Lifeline Home Buyers<br>
+                <p>Lifeline Home Buyers | Orteza Groups<br>
                 Columbus, Ohio</p>
             </div>
         </div>
@@ -624,10 +624,10 @@ def send_welcome_ids_email(
 
                 <p>Best regards,<br>
                 <strong>The Lifeline Home Buyers Team</strong><br>
-                Columbus, Ohio</p>
+                An Orteza Groups Company</p>
             </div>
             <div class="footer">
-                <p>Lifeline Home Buyers<br>
+                <p>Lifeline Home Buyers | Orteza Groups<br>
                 Columbus, Ohio</p>
             </div>
         </div>

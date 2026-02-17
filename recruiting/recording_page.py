@@ -389,7 +389,7 @@ def main():
                 <path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="butt"/>
             </svg>
         </div>
-        <div class="company-badge">Lifeline Home Buyers</div>
+        <div class="company-badge">Orteza Groups of Companies</div>
         <h1 class="hero-title">Video Interview Portal</h1>
         <p class="hero-subtitle">Lifeline Home Buyers • Application Status</p>
     </div>
@@ -683,7 +683,7 @@ def main():
     st.markdown("""
     <div class="footer">
         <span class="footer-logo"><svg viewBox="40 40 160 80" xmlns="http://www.w3.org/2000/svg"><path d="M 50 80 L 80 50 L 110 80 L 110 110 L 50 110 Z" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linejoin="miter"/><path d="M 110 80 L 135 80 L 145 65 L 155 95 L 165 80 L 190 80" fill="none" stroke="#1e3a5f" stroke-width="2.5" stroke-linecap="butt"/></svg></span>
-        <span class="footer-brand">Lifeline Home Buyers</span><br>
+        <span class="footer-brand">Lifeline Home Buyers</span> | Orteza Groups<br>
         Columbus, Ohio, USA<br><br>
         <small>Questions? Email us at hiring@lifelinehomebuyers.com</small>
     </div>
