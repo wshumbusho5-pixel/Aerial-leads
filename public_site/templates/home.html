@@ -16,7 +16,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
     pointer-events: none;
 }
 .home-hero::after {
@@ -24,7 +24,7 @@
     position: absolute;
     bottom: 0; left: 0; right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(201,137,58,0.25), transparent);
+    background: rgba(255,255,255,0.04);
 }
 
 .hero-inner {
@@ -109,31 +109,31 @@
     font-size: 0.82rem;
 }
 
-/* Hero form */
+/* Hero form — client intake, not funnel */
 .hero-form-card {
-    background: rgba(255,255,255,0.035);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
     padding: 2rem 1.75rem;
     position: relative;
 }
 .hero-form-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 1.5rem; right: 1.5rem;
-    height: 2px;
-    background: linear-gradient(90deg, var(--amber), #0e7a38);
-    border-radius: 0 0 2px 2px;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: rgba(255,255,255,0.08);
 }
 .hero-form-card h3 {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 700;
-    color: white;
+    color: #c4cdd9;
     margin-bottom: 0.3rem;
+    letter-spacing: 0.01em;
 }
 .hero-form-card p {
-    font-size: 0.78rem;
-    color: #4e5a6e;
+    font-size: 0.76rem;
+    color: #3d4a5e;
     margin-bottom: 1.25rem;
     line-height: 1.5;
 }
@@ -243,13 +243,7 @@
     position: relative;
     overflow: hidden;
 }
-.capital-section::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
-    pointer-events: none;
-}
+/* no texture overlay — solid background */
 .capital-inner {
     max-width: 900px;
     margin: 0 auto;
@@ -408,13 +402,7 @@
     position: relative;
     overflow: hidden;
 }
-.founder-section::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
-    pointer-events: none;
-}
+/* no texture overlay — solid background */
 .founder-inner {
     max-width: 900px;
     margin: 0 auto;
@@ -578,7 +566,7 @@
                 <img src="/static/willy.jpg" alt="Willy Shumbusho, Founder">
                 <div class="founder-line-text">
                     <strong>Willy Shumbusho, Founder</strong>
-                    Founder-led. Directly involved in every transaction.
+                    Founder-led firm. Direct oversight on every acquisition.
                 </div>
             </div>
         </div>
