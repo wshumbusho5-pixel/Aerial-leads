@@ -49,6 +49,9 @@ python-dotenv==1.0.0
 # YAML Configuration
 pyyaml==6.0.1
 
+# Markdown (for blog)
+markdown==3.5.1
+
 # HTTP & API
 httpx==0.25.1
 aiohttp==3.9.0
