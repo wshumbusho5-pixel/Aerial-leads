@@ -2975,7 +2975,7 @@ elif page == "👥 VA Management":
                 st.rerun()
 
         # VA Management Tabs
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["👤 Manage VAs", "📋 Assign Leads", "📊 Performance", "👁️ Team Overview", "📜 Assignment History"])
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["👤 Manage VAs", "📋 Assign Leads", "📊 Performance", "👁️ Team Overview", "📜 Assignment History", "📝 Daily Reports"])
 
         # TAB 1: Manage VAs
         with tab1:
@@ -3944,6 +3944,152 @@ elif page == "👥 VA Management":
                     st.warning("Database not connected")
             except Exception as e:
                 st.error(f"Error loading assignment history: {e}")
+
+        # TAB 6: Daily Reports
+        with tab6:
+            st.markdown("### 📝 VA End-of-Day Reports")
+            st.markdown("Review daily reports submitted by your virtual assistants.")
+
+            try:
+                import psycopg2
+                from psycopg2.extras import RealDictCursor
+                DATABASE_URL = os.environ.get('DATABASE_URL', '')
+                if DATABASE_URL:
+                    conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+                    cursor = conn.cursor()
+
+                    # Ensure table exists
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS va_daily_reports (
+                            id SERIAL PRIMARY KEY,
+                            date VARCHAR(20),
+                            va_name VARCHAR(100),
+                            submitted_at TIMESTAMP,
+                            total_calls INTEGER DEFAULT 0,
+                            contacts INTEGER DEFAULT 0,
+                            appointments INTEGER DEFAULT 0,
+                            interested INTEGER DEFAULT 0,
+                            not_interested INTEGER DEFAULT 0,
+                            no_answer INTEGER DEFAULT 0,
+                            voicemails INTEGER DEFAULT 0,
+                            hot_leads TEXT,
+                            challenges TEXT,
+                            wins TEXT,
+                            tomorrow_plan TEXT,
+                            day_rating VARCHAR(50)
+                        )
+                    """)
+                    conn.commit()
+
+                    # Filters
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        # Get list of VAs who have submitted reports
+                        cursor.execute("SELECT DISTINCT va_name FROM va_daily_reports ORDER BY va_name")
+                        va_names = [row['va_name'] for row in cursor.fetchall()]
+                        selected_va = st.selectbox("Filter by VA", ["All VAs"] + va_names, key="report_va_filter")
+                    with col2:
+                        date_range = st.selectbox("Date Range", ["Last 7 Days", "Last 14 Days", "Last 30 Days", "All Time"], key="report_date_filter")
+                    with col3:
+                        sort_order = st.selectbox("Sort", ["Newest First", "Oldest First"], key="report_sort")
+
+                    # Build query
+                    query = "SELECT * FROM va_daily_reports WHERE 1=1"
+                    params = []
+
+                    if selected_va != "All VAs":
+                        query += " AND va_name = %s"
+                        params.append(selected_va)
+
+                    if date_range == "Last 7 Days":
+                        query += " AND submitted_at >= NOW() - INTERVAL '7 days'"
+                    elif date_range == "Last 14 Days":
+                        query += " AND submitted_at >= NOW() - INTERVAL '14 days'"
+                    elif date_range == "Last 30 Days":
+                        query += " AND submitted_at >= NOW() - INTERVAL '30 days'"
+
+                    if sort_order == "Newest First":
+                        query += " ORDER BY submitted_at DESC"
+                    else:
+                        query += " ORDER BY submitted_at ASC"
+
+                    cursor.execute(query, params)
+                    reports = cursor.fetchall()
+
+                    if reports:
+                        # Summary metrics
+                        st.markdown("#### 📊 Summary")
+                        total_reports = len(reports)
+                        total_calls = sum(r['total_calls'] or 0 for r in reports)
+                        total_contacts = sum(r['contacts'] or 0 for r in reports)
+                        total_appointments = sum(r['appointments'] or 0 for r in reports)
+
+                        m1, m2, m3, m4 = st.columns(4)
+                        with m1:
+                            st.metric("Reports", total_reports)
+                        with m2:
+                            st.metric("Total Calls", total_calls)
+                        with m3:
+                            st.metric("Total Contacts", total_contacts)
+                        with m4:
+                            st.metric("Appointments", total_appointments)
+
+                        st.markdown("---")
+
+                        # Individual reports
+                        for report in reports:
+                            va = report['va_name'] or 'Unknown'
+                            date = report['date'] or ''
+                            rating = report['day_rating'] or ''
+
+                            with st.expander(f"**{va}** — {date} — {rating} — {report['total_calls'] or 0} calls"):
+                                # Stats row
+                                c1, c2, c3, c4, c5, c6, c7 = st.columns(7)
+                                with c1:
+                                    st.metric("Calls", report['total_calls'] or 0)
+                                with c2:
+                                    st.metric("Contacts", report['contacts'] or 0)
+                                with c3:
+                                    st.metric("Appts", report['appointments'] or 0)
+                                with c4:
+                                    st.metric("Interested", report['interested'] or 0)
+                                with c5:
+                                    st.metric("Not Int.", report['not_interested'] or 0)
+                                with c6:
+                                    st.metric("No Answer", report['no_answer'] or 0)
+                                with c7:
+                                    st.metric("Voicemails", report['voicemails'] or 0)
+
+                                st.markdown("---")
+
+                                # Qualitative sections
+                                if report.get('hot_leads') and report['hot_leads'].strip():
+                                    st.markdown("**🔥 Hot Leads:**")
+                                    st.markdown(report['hot_leads'])
+
+                                if report.get('challenges') and report['challenges'].strip():
+                                    st.markdown("**⚠️ Challenges:**")
+                                    st.markdown(report['challenges'])
+
+                                if report.get('wins') and report['wins'].strip():
+                                    st.markdown("**🎉 Wins:**")
+                                    st.markdown(report['wins'])
+
+                                if report.get('tomorrow_plan') and report['tomorrow_plan'].strip():
+                                    st.markdown("**📅 Tomorrow's Plan:**")
+                                    st.markdown(report['tomorrow_plan'])
+
+                                submitted = report.get('submitted_at', '')
+                                if submitted:
+                                    st.caption(f"Submitted: {submitted}")
+                    else:
+                        st.info("No reports found for the selected filters. Reports will appear here once your VAs submit their end-of-day reports.")
+
+                    conn.close()
+                else:
+                    st.warning("Database not connected. Set DATABASE_URL to view reports.")
+            except Exception as e:
+                st.error(f"Error loading reports: {e}")
 
 
 # ========================================
