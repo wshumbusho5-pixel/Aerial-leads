@@ -148,18 +148,53 @@ def call_complete():
 def incoming():
     """
     Handle incoming calls to our Twilio number.
-    Routes to the available agent.
+    Forwards to personal phone with original caller ID preserved.
+    Also tries browser client first.
     """
     from_number = request.form.get('From', '')
+    PERSONAL_PHONE = os.getenv('PERSONAL_PHONE_NUMBER', '')
 
     logger.info(f"Incoming call from: {from_number}")
 
     response = VoiceResponse()
-    response.say("Welcome to Lifeline Home Buyers. Connecting you to an agent.")
+    response.say("Welcome to Lifeline Home Buyers. Connecting you now.", voice='alice')
 
-    dial = Dial()
-    dial.client('agent')  # Route to the browser client
-    response.append(dial)
+    # Forward to personal phone with the ORIGINAL caller's number as caller ID
+    # This way you see who's actually calling you
+    if PERSONAL_PHONE:
+        dial = Dial(
+            caller_id=from_number,  # Show the ORIGINAL caller's number
+            timeout=20,
+            action='/incoming-fallback'
+        )
+        dial.number(PERSONAL_PHONE)
+        response.append(dial)
+    else:
+        # Fallback to browser client
+        dial = Dial()
+        dial.client('agent')
+        response.append(dial)
+
+    return Response(str(response), mimetype='text/xml')
+
+
+@app.route('/incoming-fallback', methods=['POST'])
+def incoming_fallback():
+    """
+    Called if the personal phone doesn't answer.
+    Sends to voicemail or browser client.
+    """
+    dial_status = request.form.get('DialCallStatus', '')
+    from_number = request.form.get('From', '')
+
+    logger.info(f"Incoming fallback: status={dial_status}, from={from_number}")
+
+    response = VoiceResponse()
+
+    if dial_status in ('no-answer', 'busy', 'failed'):
+        response.say("Sorry, no one is available right now. Please leave a message after the beep.", voice='alice')
+        response.record(max_length=120, transcribe=True)
+        response.say("Thank you. We will get back to you soon.")
 
     return Response(str(response), mimetype='text/xml')
 

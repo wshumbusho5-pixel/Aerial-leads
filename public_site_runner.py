@@ -1253,15 +1253,17 @@ async def incoming_sms_buyers(request: Request):
 @app.post("/incoming-call")
 async def incoming_call_sellers(request: Request):
     """Handle inbound calls to the sellers Twilio number - forward to real phone."""
+    form_data = await request.form()
     forward_to = FORWARD_TO_SELLERS
-    caller_id = TWILIO_PHONE_NUMBER
+    original_caller = form_data.get('From', '')
 
     response = VoiceResponse()
     if forward_to:
-        dial = Dial(caller_id=caller_id, timeout=30)
+        # Use original caller's number so you can see who's calling
+        dial = Dial(caller_id=original_caller or TWILIO_PHONE_NUMBER, timeout=30)
         dial.number(forward_to)
         response.append(dial)
-        logger.info(f"Forwarding sellers line call to {forward_to}")
+        logger.info(f"Forwarding sellers line call from {original_caller} to {forward_to}")
     else:
         response.say("Thank you for calling Lifeline Home Buyers. Please leave a message or call back later.")
         logger.warning("FORWARD_TO_SELLERS not configured")
@@ -1272,15 +1274,17 @@ async def incoming_call_sellers(request: Request):
 @app.post("/incoming-call-buyers")
 async def incoming_call_buyers(request: Request):
     """Handle inbound calls to the buyers Twilio number - forward to real phone."""
+    form_data = await request.form()
     forward_to = FORWARD_TO_BUYERS or FORWARD_TO_SELLERS  # Fallback to sellers number
-    caller_id = TWILIO_PHONE_NUMBER_2 or TWILIO_PHONE_NUMBER
+    original_caller = form_data.get('From', '')
 
     response = VoiceResponse()
     if forward_to:
-        dial = Dial(caller_id=caller_id, timeout=30)
+        # Use original caller's number so you can see who's calling
+        dial = Dial(caller_id=original_caller or TWILIO_PHONE_NUMBER, timeout=30)
         dial.number(forward_to)
         response.append(dial)
-        logger.info(f"Forwarding buyers line call to {forward_to}")
+        logger.info(f"Forwarding buyers line call from {original_caller} to {forward_to}")
     else:
         response.say("Thank you for calling Lifeline Home Buyers. Please leave a message or call back later.")
         logger.warning("FORWARD_TO_BUYERS not configured")
