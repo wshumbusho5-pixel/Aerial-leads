@@ -1,6 +1,74 @@
 {% extends "base.html" %}
 
 {% block extra_head %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": "https://life-line-homebuyers.com/about#willy-shumbusho",
+    "name": "Willy Shumbusho",
+    "givenName": "Willy",
+    "familyName": "Shumbusho",
+    "jobTitle": "Founder & Managing Director",
+    "description": "Real estate investor and entrepreneur based in Columbus, Ohio. Founder of Orteza Groups of Companies and Lifeline Home Buyers, specializing in residential property acquisitions across Franklin County and Central Ohio.",
+    "url": "https://life-line-homebuyers.com/about",
+    "image": "https://life-line-homebuyers.com/static/willy.jpg",
+    "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Columbus",
+        "addressRegion": "OH",
+        "addressCountry": "US"
+    },
+    "worksFor": [
+        {
+            "@type": "Organization",
+            "@id": "https://life-line-homebuyers.com/#orteza-groups",
+            "name": "Orteza Groups of Companies LLC",
+            "description": "Parent holding company overseeing Lifeline Home Buyers and other business divisions.",
+            "url": "https://life-line-homebuyers.com",
+            "foundingDate": "2022",
+            "founder": {
+                "@type": "Person",
+                "name": "Willy Shumbusho"
+            },
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Columbus",
+                "addressRegion": "OH",
+                "addressCountry": "US"
+            },
+            "subOrganization": {
+                "@type": ["RealEstateAgent", "LocalBusiness"],
+                "@id": "https://life-line-homebuyers.com/#lifeline",
+                "name": "Lifeline Home Buyers",
+                "url": "https://life-line-homebuyers.com",
+                "telephone": "+1-614-825-3368",
+                "description": "Cash home buyer in Columbus, Ohio. Acquires residential properties directly from homeowners — tax delinquent, probate, foreclosure, as-is.",
+                "foundingDate": "2022",
+                "areaServed": [
+                    {"@type": "City", "name": "Columbus"},
+                    {"@type": "AdministrativeArea", "name": "Franklin County"},
+                    {"@type": "State", "name": "Ohio"}
+                ]
+            }
+        }
+    ],
+    "knowsAbout": [
+        "Real Estate Investing",
+        "Residential Property Acquisitions",
+        "Tax Delinquent Properties",
+        "Probate Real Estate",
+        "Wholesale Real Estate",
+        "Cash Home Buying",
+        "Property Valuation",
+        "Title Resolution"
+    ],
+    "nationality": {
+        "@type": "Country",
+        "name": "United States"
+    }
+}
+</script>
 <style>
 .about-hero {
     background: #0b1120;
@@ -200,8 +268,9 @@
         <h1>A Property Acquisition Firm Built on Experience.</h1>
         <p>
             Lifeline Home Buyers is a privately funded residential acquisition company
-            headquartered in Columbus, Ohio. We acquire properties directly from homeowners
-            across Franklin County and Central Ohio.
+            headquartered in Columbus, Ohio, operating under
+            <strong>Orteza Groups of Companies LLC</strong>. We acquire properties directly
+            from homeowners across Franklin County and Central Ohio.
         </p>
     </div>
 </section>
@@ -219,8 +288,10 @@
             <h2>Founder oversight. Structured operations. Direct accountability.</h2>
 
             <p>
-                Willy Shumbusho founded Lifeline Home Buyers in 2022 after experiencing firsthand
-                what happens when a family faces property loss with no guidance and no options.
+                Willy Shumbusho is the founder of <strong>Orteza Groups of Companies LLC</strong>,
+                a Columbus-based holding company. Lifeline Home Buyers operates as the real estate
+                acquisition division, founded in 2022 after Willy experienced firsthand what happens
+                when a family faces property loss with no guidance and no options.
             </p>
 
             <p>

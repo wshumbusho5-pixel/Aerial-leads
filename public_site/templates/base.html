@@ -37,6 +37,7 @@
     {
         "@context": "https://schema.org",
         "@type": ["RealEstateAgent", "LocalBusiness"],
+        "@id": "https://life-line-homebuyers.com/#lifeline",
         "name": "Lifeline Home Buyers",
         "description": "We buy houses in Columbus, Ohio for cash. Any condition, any situation — tax delinquent, probate, foreclosure. Fair cash offers in 24 hours.",
         "url": "https://life-line-homebuyers.com",
@@ -44,7 +45,21 @@
         "foundingDate": "2022",
         "founder": {
             "@type": "Person",
-            "name": "Willy Shumbusho"
+            "@id": "https://life-line-homebuyers.com/about#willy-shumbusho",
+            "name": "Willy Shumbusho",
+            "jobTitle": "Founder & Managing Director",
+            "image": "https://life-line-homebuyers.com/static/willy.jpg",
+            "url": "https://life-line-homebuyers.com/about"
+        },
+        "parentOrganization": {
+            "@type": "Organization",
+            "@id": "https://life-line-homebuyers.com/#orteza-groups",
+            "name": "Orteza Groups of Companies LLC",
+            "description": "Parent holding company headquartered in Columbus, Ohio.",
+            "founder": {
+                "@type": "Person",
+                "name": "Willy Shumbusho"
+            }
         },
         "address": {
             "@type": "PostalAddress",
@@ -54,7 +69,8 @@
         },
         "areaServed": [
             {"@type": "City", "name": "Columbus"},
-            {"@type": "AdministrativeArea", "name": "Franklin County"}
+            {"@type": "AdministrativeArea", "name": "Franklin County"},
+            {"@type": "State", "name": "Ohio"}
         ],
         "openingHoursSpecification": [
             {
@@ -635,7 +651,7 @@
                 We do not guarantee accuracy or completeness. All offers are subject to due diligence and not binding until a purchase agreement is signed.
                 This site is not affiliated with any government agency. If you are in foreclosure, consult a licensed attorney or HUD-approved housing counselor.
             </p>
-            <p class="footer-copy">&copy; 2022–{{ now().year if now is defined else '2026' }} Lifeline Home Buyers LLC. Columbus, Ohio.</p>
+            <p class="footer-copy">&copy; 2022–{{ now().year if now is defined else '2026' }} Lifeline Home Buyers, a division of Orteza Groups of Companies LLC. Columbus, Ohio.</p>
         </div>
     </footer>
 
