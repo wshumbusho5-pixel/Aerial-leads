@@ -290,11 +290,13 @@ elif page == "🚀 Generate Leads":
             help="Minimum years behind on taxes"
         )
 
-        columbus_only = st.checkbox(
-            "Columbus Only",
-            value=True,
-            help="Filter to Columbus zip codes only"
+        coverage_area = st.selectbox(
+            "📍 Coverage Area",
+            options=["Columbus Only (27 zips)", "Full Franklin County (45 zips)"],
+            index=1,
+            help="Columbus = city limits only | Full Franklin County = includes Dublin, Hilliard, Grove City, Reynoldsburg, Westerville, etc."
         )
+        columbus_only = coverage_area == "Columbus Only (27 zips)"
 
     st.markdown("---")
 
@@ -363,11 +365,40 @@ elif page == "🚀 Generate Leads":
 
             # Use market config and factory for year_built support
             market = load_market('columbus_oh')
+
+            # Override zip codes based on coverage area selection
+            if coverage_area == "Columbus Only (27 zips)":
+                # Use only Columbus city zips
+                columbus_zips = [
+                    '43201', '43202', '43203', '43204', '43205',
+                    '43206', '43207', '43209', '43210', '43211',
+                    '43212', '43213', '43214', '43215', '43219',
+                    '43220', '43221', '43222', '43223', '43224',
+                    '43227', '43229', '43230', '43231', '43232',
+                    '43235', '43240'
+                ]
+                market.zip_codes = columbus_zips
+            else:
+                # Full Franklin County - includes suburbs
+                franklin_zips = [
+                    '43004', '43016', '43017', '43026', '43054',
+                    '43062', '43064', '43065', '43068', '43081',
+                    '43085', '43110', '43119', '43123', '43125',
+                    '43137', '43146', '43217',
+                    '43201', '43202', '43203', '43204', '43205',
+                    '43206', '43207', '43209', '43210', '43211',
+                    '43212', '43213', '43214', '43215', '43219',
+                    '43220', '43221', '43222', '43223', '43224',
+                    '43227', '43228', '43229', '43230', '43231',
+                    '43232', '43235', '43240'
+                ]
+                market.zip_codes = franklin_zips
+
             loader = ScraperFactory.create_tax_scraper(market)
             df = loader.load_tax_delinquent_properties(
                 min_amount_owed=min_tax_debt,
                 min_years_delinquent=min_years,
-                filter_by_zip=columbus_only,
+                filter_by_zip=True,
                 max_properties=num_properties
             )
 
@@ -667,17 +698,126 @@ elif page == "🚀 Generate Leads":
             df = street_view.add_street_view_columns(df, address_col='address', city='Columbus', state='OH')
             progress_bar.progress(88)
 
-            # Initialize skip trace columns (user can skip trace later on Skip Trace page)
-            status_text.text("📞 Preparing contact columns...")
-            df['phone'] = None
-            df['phone_2'] = None
-            df['email'] = None
-            df['email_2'] = None
-            df['skip_traced'] = False
-            df['skip_trace_confidence'] = 0.0
+            # ============================================
+            # DEDUPLICATION ENGINE - Prevent wasting money
+            # ============================================
+            status_text.text("🔍 Deduplicating against master ledger...")
+
+            MASTER_LEDGER_PATH = PROCESSED_DATA_DIR / 'master_lead_ledger.csv'
+
+            def normalize_address(addr):
+                """Normalize address for matching"""
+                if pd.isna(addr) or not addr:
+                    return ''
+                addr = str(addr).upper().strip()
+                import re
+                addr = re.sub(r'\s+', ' ', addr)
+                return addr
+
+            df['_norm_address'] = df['address'].apply(normalize_address)
+
+            # Load existing master ledger if it exists
+            if MASTER_LEDGER_PATH.exists():
+                master_ledger = pd.read_csv(MASTER_LEDGER_PATH, dtype=str)
+                master_ledger['_norm_address'] = master_ledger['address'].apply(normalize_address)
+
+                # Build lookup of existing skip trace data
+                skip_trace_lookup = {}
+                for _, row in master_ledger.iterrows():
+                    addr = row['_norm_address']
+                    if addr and row.get('skip_traced') == 'True':
+                        skip_trace_lookup[addr] = {
+                            'phone': row.get('phone', ''),
+                            'phone_2': row.get('phone_2', ''),
+                            'email': row.get('email', ''),
+                            'email_2': row.get('email_2', ''),
+                            'skip_traced': 'True',
+                            'skip_trace_confidence': row.get('skip_trace_confidence', '0'),
+                            'skip_trace_date': row.get('skip_trace_date', ''),
+                        }
+
+                existing_addresses = set(master_ledger['_norm_address'].dropna())
+                new_mask = ~df['_norm_address'].isin(existing_addresses)
+                num_new = new_mask.sum()
+                num_existing = len(df) - num_new
+
+                # Carry forward skip trace data for existing leads
+                df['phone'] = None
+                df['phone_2'] = None
+                df['email'] = None
+                df['email_2'] = None
+                df['skip_traced'] = False
+                df['skip_trace_confidence'] = 0.0
+                df['skip_trace_date'] = None
+                df['first_seen_date'] = None
+
+                carried_over = 0
+                for idx, row in df.iterrows():
+                    addr = row['_norm_address']
+                    if addr in skip_trace_lookup:
+                        st_data = skip_trace_lookup[addr]
+                        for col, val in st_data.items():
+                            if val and str(val) not in ('', 'nan', 'None'):
+                                df.at[idx, col] = val
+                        carried_over += 1
+
+                # Carry forward first_seen_date for existing leads
+                first_seen_lookup = dict(zip(master_ledger['_norm_address'], master_ledger.get('first_seen_date', pd.Series(dtype=str))))
+                for idx, row in df.iterrows():
+                    addr = row['_norm_address']
+                    if addr in first_seen_lookup and first_seen_lookup[addr] and str(first_seen_lookup[addr]) not in ('', 'nan', 'None'):
+                        df.at[idx, 'first_seen_date'] = first_seen_lookup[addr]
+                    else:
+                        df.at[idx, 'first_seen_date'] = pd.Timestamp.now().strftime('%Y-%m-%d')
+
+                # Mark new vs returning leads
+                df['is_new_lead'] = new_mask
+                df.loc[new_mask, 'change_alert'] = 'NEW LEAD'
+                df.loc[~new_mask, 'change_alert'] = 'RETURNING'
+
+            else:
+                # First run ever - everything is new
+                num_new = len(df)
+                num_existing = 0
+                carried_over = 0
+                df['phone'] = None
+                df['phone_2'] = None
+                df['email'] = None
+                df['email_2'] = None
+                df['skip_traced'] = False
+                df['skip_trace_confidence'] = 0.0
+                df['skip_trace_date'] = None
+                df['first_seen_date'] = pd.Timestamp.now().strftime('%Y-%m-%d')
+                df['is_new_lead'] = True
+                df['change_alert'] = 'NEW LEAD'
+
+            # Show deduplication results
+            st.markdown("---")
+            st.markdown("### 🔍 Deduplication Report")
+            dedup_col1, dedup_col2, dedup_col3, dedup_col4 = st.columns(4)
+            with dedup_col1:
+                st.metric("Total Leads", len(df))
+            with dedup_col2:
+                st.metric("Brand New", num_new, delta=f"+{num_new}" if num_new > 0 else "0")
+            with dedup_col3:
+                st.metric("Already Known", num_existing)
+            with dedup_col4:
+                st.metric("Phone Carried Over", carried_over)
+
+            if num_existing > 0:
+                skip_trace_cost_saved = num_existing * 0.15
+                st.success(f"💰 **Saved ~${skip_trace_cost_saved:.2f}** by not re-skip-tracing {num_existing} known leads. {carried_over} already have phone data from previous runs.")
+
+            if num_new > 0:
+                skip_trace_cost_new = num_new * 0.15
+                st.info(f"🆕 **{num_new} new leads found!** Skip tracing these will cost ~${skip_trace_cost_new:.2f}")
+
+            # Clean up temp column
+            df.drop('_norm_address', axis=1, inplace=True)
+
             progress_bar.progress(90)
 
-            # Step 9: Export
+            # Step 9: Export leads
             status_text.text("📤 Exporting leads...")
 
             PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -694,6 +834,61 @@ elif page == "🚀 Generate Leads":
                     tier_df.to_csv(tier_path, index=False)
                     # Also save to legacy filename
                     tier_df.to_csv(PROCESSED_DATA_DIR / f'tier_{tier_num}_leads_real.csv', index=False)
+
+            # Save new-only export (for skip tracing)
+            new_only_df = df[df['is_new_lead'] == True]
+            if len(new_only_df) > 0:
+                new_only_path = PROCESSED_DATA_DIR / 'new_leads_only.csv'
+                new_only_df.to_csv(new_only_path, index=False)
+
+            # Save leads that need skip tracing (new + no phone from previous)
+            needs_skip = df[(df['skip_traced'] == False) | (df['skip_traced'] == 'False')]
+            if len(needs_skip) > 0:
+                needs_skip_path = PROCESSED_DATA_DIR / 'needs_skip_trace.csv'
+                needs_skip.to_csv(needs_skip_path, index=False)
+
+            # Update master ledger (append new, update existing)
+            status_text.text("📋 Updating master ledger...")
+            if MASTER_LEDGER_PATH.exists():
+                existing_ledger = pd.read_csv(MASTER_LEDGER_PATH, dtype=str)
+                existing_ledger['_norm_address'] = existing_ledger['address'].apply(normalize_address)
+
+                # Update existing entries with fresh scores
+                ledger_cols = ['address', 'owner_name', 'zip_code', 'motivation_score', 'tier', 'tier_name',
+                               'taxes_owed', 'years_delinquent', 'assessed_value', 'market_value',
+                               'phone', 'phone_2', 'email', 'email_2', 'skip_traced', 'skip_trace_confidence',
+                               'skip_trace_date', 'first_seen_date', 'is_new_lead', 'change_alert',
+                               'stack_count', 'stack_signals']
+
+                # Keep only columns that exist
+                available_cols = [c for c in ledger_cols if c in df.columns]
+                new_ledger_entries = df[available_cols].copy()
+                new_ledger_entries['_norm_address'] = df['address'].apply(normalize_address)
+                new_ledger_entries['last_seen_date'] = pd.Timestamp.now().strftime('%Y-%m-%d')
+
+                # Find leads in old ledger that are NOT in new scrape (they dropped off)
+                new_norm_addrs = set(new_ledger_entries['_norm_address'].dropna())
+                dropped_off = existing_ledger[~existing_ledger['_norm_address'].isin(new_norm_addrs)].copy()
+                dropped_off['change_alert'] = 'DROPPED OFF'
+                dropped_off['is_new_lead'] = False
+
+                # Combine: new scrape results + dropped-off leads (keep their data)
+                keep_cols = [c for c in available_cols + ['last_seen_date', '_norm_address'] if c in new_ledger_entries.columns]
+                drop_cols = [c for c in keep_cols if c in dropped_off.columns]
+                updated_ledger = pd.concat([new_ledger_entries[keep_cols], dropped_off[drop_cols]], ignore_index=True)
+                updated_ledger.drop('_norm_address', axis=1, inplace=True)
+                updated_ledger.to_csv(MASTER_LEDGER_PATH, index=False)
+            else:
+                # First run - create the ledger
+                ledger_cols = ['address', 'owner_name', 'zip_code', 'motivation_score', 'tier', 'tier_name',
+                               'taxes_owed', 'years_delinquent', 'assessed_value', 'market_value',
+                               'phone', 'phone_2', 'email', 'email_2', 'skip_traced', 'skip_trace_confidence',
+                               'skip_trace_date', 'first_seen_date', 'is_new_lead', 'change_alert',
+                               'stack_count', 'stack_signals']
+                available_cols = [c for c in ledger_cols if c in df.columns]
+                ledger_df = df[available_cols].copy()
+                ledger_df['last_seen_date'] = pd.Timestamp.now().strftime('%Y-%m-%d')
+                ledger_df.to_csv(MASTER_LEDGER_PATH, index=False)
 
             progress_bar.progress(100)
             status_text.text("✅ Complete!")
@@ -722,9 +917,24 @@ elif page == "🚀 Generate Leads":
             revenue = tier_1*100 + tier_2*75 + tier_3*50
             st.success(f"💰 **Potential Revenue: ${revenue:,}**")
 
+            # New leads breakdown
+            if num_new > 0:
+                st.markdown("### 🆕 New Leads Breakdown")
+                new_df = df[df['is_new_lead'] == True]
+                nt1 = len(new_df[new_df['tier'] == 1])
+                nt2 = len(new_df[new_df['tier'] == 2])
+                nt3 = len(new_df[new_df['tier'] == 3])
+                ncol1, ncol2, ncol3 = st.columns(3)
+                with ncol1:
+                    st.metric("New Tier 1", nt1)
+                with ncol2:
+                    st.metric("New Tier 2", nt2)
+                with ncol3:
+                    st.metric("New Tier 3", nt3)
+
             # Show preview
             st.markdown("### Preview (Top 5 Leads)")
-            preview_cols = ['address', 'owner_name', 'motivation_score', 'taxes_owed', 'tier_name']
+            preview_cols = ['address', 'owner_name', 'motivation_score', 'taxes_owed', 'tier_name', 'is_new_lead']
             if 'year_built' in df.columns:
                 preview_cols.insert(4, 'year_built')
             top_5 = df.nlargest(5, 'motivation_score')[preview_cols]

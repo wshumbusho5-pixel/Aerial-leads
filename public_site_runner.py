@@ -269,22 +269,39 @@ def load_leads():
 
 
 def load_properties():
-    """Load public properties — database first, CSV fallback."""
+    """Load public properties — database first, scored leads, then CSV fallback.
+
+    Prioritizes quality scored leads over bulk data to avoid serving
+    447K+ thin property pages that hurt SEO indexing.
+    """
+    # First try: scored leads from the lead generation pipeline (best quality)
+    scored_file = PROCESSED_DATA_DIR / "columbus_oh_all_leads.csv"
+    if scored_file.exists():
+        try:
+            df = pd.read_csv(scored_file)
+            if not df.empty and 'slug' in df.columns:
+                logger.info(f"Loaded {len(df)} scored properties for public display")
+                return df
+        except Exception as e:
+            logger.error(f"Failed to load scored leads: {e}")
+
+    # Second try: database
     conn = get_db_connection()
     if conn:
         try:
-            df = pd.read_sql("SELECT * FROM public_properties ORDER BY imported_at DESC", conn)
+            df = pd.read_sql("SELECT * FROM public_properties ORDER BY imported_at DESC LIMIT 1000", conn)
             conn.close()
             if not df.empty:
                 return df
         except Exception as e:
             logger.error(f"Failed to load properties from DB: {e}")
 
-    # Fallback to CSV
+    # Last resort: CSV (capped to prevent serving 447K thin pages)
     props_file = PROCESSED_DATA_DIR / "public_properties.csv"
     if props_file.exists():
         try:
-            return pd.read_csv(props_file)
+            df = pd.read_csv(props_file, nrows=1000)
+            return df
         except Exception as e:
             logger.error(f"Failed to load properties CSV: {e}")
     return pd.DataFrame()
@@ -456,6 +473,12 @@ async def robots_txt():
 Allow: /
 Disallow: /dialer
 Disallow: /api/
+Disallow: /database?search=
+Disallow: /database?*search=
+Disallow: /database?*sort=
+Disallow: /database?*page=
+Disallow: /properties?page=
+Disallow: /properties?type=
 
 Sitemap: https://life-line-homebuyers.com/sitemap.xml
 """
@@ -492,10 +515,17 @@ async def sitemap():
     for post in load_blog_posts():
         urls.append(f"    <url><loc>{base_url}/blog/{post['slug']}</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>")
 
-    # Add individual property pages
+    # Add individual property pages (limit to quality scored leads, not bulk data)
     df = load_properties()
     if not df.empty and "slug" in df.columns:
-        for slug in df["slug"].dropna().unique()[:50000]:  # sitemap spec allows up to 50,000 URLs
+        # Only include properties with actual motivation scores (quality leads)
+        if 'motivation_score' in df.columns:
+            quality_df = df[df['motivation_score'].notna() & (df['motivation_score'] > 0)]
+        else:
+            quality_df = df
+        # Cap at 500 best property pages to keep sitemap focused
+        quality_df = quality_df.head(500)
+        for slug in quality_df["slug"].dropna().unique():
             urls.append(f"    <url><loc>{base_url}/property/{slug}</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>")
 
     content = '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -630,6 +660,8 @@ async def property_list(request: Request, type: str = None, page: int = 1):
     per_page = 24
     total = len(df)
     total_pages = max(1, (total + per_page - 1) // per_page)
+    total_pages = min(total_pages, 50)  # Cap
+    page = max(1, min(page, total_pages))  # Clamp
     start = (page - 1) * per_page
     end = start + per_page
     properties = df.iloc[start:end].to_dict("records") if total > 0 else []
@@ -641,6 +673,11 @@ async def property_list(request: Request, type: str = None, page: int = 1):
         "code_violation": "Code Violation Properties",
     }
 
+    # noindex paginated/filtered pages
+    has_params = any([type, page > 1])
+    meta_robots = "noindex, follow" if has_params else "index, follow"
+    canonical_url = "https://life-line-homebuyers.com/properties"
+
     return templates.TemplateResponse("property_list.html", {
         "request": request,
         "properties": properties,
@@ -651,6 +688,8 @@ async def property_list(request: Request, type: str = None, page: int = 1):
         "type_label": type_labels.get(type, "All Properties"),
         "page_title": f"{type_labels.get(type, 'Distressed Properties')} in Columbus OH | Lifeline Home Buyers",
         "meta_description": f"We buy {type_labels.get(type, 'distressed properties').lower()} in Columbus, Ohio for cash. Browse our active list.",
+        "meta_robots": meta_robots,
+        "canonical_url": canonical_url,
     })
 
 
@@ -678,10 +717,12 @@ async def property_database(request: Request, page: int = 1, type: str = None):
     if type and 'lead_type' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['lead_type'] == type]
 
-    # Pagination
+    # Pagination (capped to prevent crawl traps)
     per_page = 24
     total = len(filtered_df)
     total_pages = max(1, (total + per_page - 1) // per_page)
+    total_pages = min(total_pages, 50)  # Cap at 50 pages
+    page = max(1, min(page, total_pages))  # Clamp to valid range
     start = (page - 1) * per_page
     end = start + per_page
 
@@ -698,6 +739,11 @@ async def property_database(request: Request, page: int = 1, type: str = None):
                 'lat': row.get('latitude') or row.get('lat'),
                 'lng': row.get('longitude') or row.get('lng') or row.get('lon')
             })
+
+    # noindex filtered/paginated pages to prevent crawl bloat
+    has_params = any([type, page > 1])
+    meta_robots = "noindex, follow" if has_params else "index, follow"
+    canonical_url = "https://life-line-homebuyers.com/database"
 
     return templates.TemplateResponse("property_map.html", {
         "request": request,
@@ -716,7 +762,9 @@ async def property_database(request: Request, page: int = 1, type: str = None):
         "sort_by": "recent",
         "search_query": "",
         "page_title": "Property Database | Lifeline Home Buyers",
-        "meta_description": "Search distressed properties in Columbus, Ohio."
+        "meta_description": "Search distressed properties in Columbus, Ohio.",
+        "meta_robots": meta_robots,
+        "canonical_url": canonical_url,
     })
 
 

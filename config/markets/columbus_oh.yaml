@@ -1,11 +1,16 @@
-# Columbus, Ohio Market Configuration
-# Aerial Leads - Market-specific settings for Franklin County
+# Columbus Metro Market Configuration
+# Aerial Leads - Market-specific settings for Franklin County & surrounding counties
 
 market:
   id: "columbus_oh"
-  name: "Columbus, Ohio"
+  name: "Columbus Metro, Ohio"
   state: "OH"
   county: "Franklin"
+  neighboring_counties:
+    - "Delaware"
+    - "Licking"
+    - "Fairfield"
+    - "Pickaway"
   timezone: "America/New_York"
 
 # Tax delinquency data source
@@ -91,8 +96,8 @@ violations:
 
 # Geographic boundaries
 geography:
-  # Columbus zip codes
-  zip_codes:
+  # Columbus city zip codes (27)
+  columbus_zip_codes:
     - "43201"
     - "43202"
     - "43203"
@@ -120,6 +125,216 @@ geography:
     - "43232"
     - "43235"
     - "43240"
+
+  # Full Franklin County zip codes (all standard zips)
+  franklin_county_zip_codes:
+    - "43004"  # Blacklick
+    - "43016"  # Dublin
+    - "43017"  # Dublin
+    - "43026"  # Hilliard
+    - "43054"  # New Albany
+    - "43062"  # Pataskala
+    - "43064"  # Plain City
+    - "43065"  # Powell
+    - "43068"  # Reynoldsburg
+    - "43081"  # Westerville
+    - "43085"  # Worthington
+    - "43110"  # Canal Winchester
+    - "43119"  # Galloway
+    - "43123"  # Grove City
+    - "43125"  # Groveport
+    - "43137"  # Lockbourne
+    - "43146"  # Orient
+    - "43201"
+    - "43202"
+    - "43203"
+    - "43204"
+    - "43205"
+    - "43206"
+    - "43207"
+    - "43209"
+    - "43210"
+    - "43211"
+    - "43212"
+    - "43213"
+    - "43214"
+    - "43215"
+    - "43217"  # Lockbourne/Rickenbacker
+    - "43219"
+    - "43220"
+    - "43221"
+    - "43222"
+    - "43223"
+    - "43224"
+    - "43227"
+    - "43228"  # West Columbus/Hilltop
+    - "43229"
+    - "43230"
+    - "43231"
+    - "43232"
+    - "43235"
+
+  # Neighboring county zip codes
+  delaware_county_zip_codes:
+    - "43003"  # Ashley
+    - "43011"  # Centerburg
+    - "43013"  # Croton
+    - "43015"  # Delaware
+    - "43016"  # Dublin
+    - "43017"  # Dublin
+    - "43021"  # Galena
+    - "43031"  # Johnstown
+    - "43035"  # Lewis Center
+    - "43040"  # Marysville
+    - "43061"  # Ostrander
+    - "43064"  # Plain City
+    - "43065"  # Powell
+    - "43066"  # Radnor
+    - "43074"  # Sunbury
+    - "43081"  # Westerville
+    - "43082"  # Westerville
+
+  licking_county_zip_codes:
+    - "43001"  # Alexandria
+    - "43011"  # Centerburg
+    - "43013"  # Croton
+    - "43023"  # Granville
+    - "43025"  # Hebron
+    - "43031"  # Johnstown
+    - "43046"  # Millersport
+    - "43054"  # New Albany
+    - "43055"  # Newark
+    - "43056"  # Heath
+    - "43062"  # Pataskala
+    - "43068"  # Reynoldsburg
+    - "43071"  # Saint Louisville
+    - "43074"  # Sunbury
+    - "43076"  # Thornville
+    - "43080"  # Utica
+
+  fairfield_county_zip_codes:
+    - "43102"  # Amanda
+    - "43103"  # Ashville
+    - "43105"  # Baltimore
+    - "43107"  # Bremen
+    - "43110"  # Canal Winchester
+    - "43112"  # Carroll
+    - "43130"  # Lancaster
+    - "43136"  # Lithopolis
+    - "43147"  # Pickerington
+    - "43148"  # Pleasantville
+    - "43150"  # Rushville
+    - "43154"  # Stoutsville
+    - "43155"  # Sugar Grove
+
+  pickaway_county_zip_codes:
+    - "43102"  # Amanda
+    - "43103"  # Ashville
+    - "43113"  # Circleville
+    - "43115"  # Clarksburg
+    - "43116"  # Commercial Point
+    - "43125"  # Groveport
+    - "43137"  # Lockbourne
+    - "43143"  # Mount Sterling
+    - "43145"  # New Holland
+    - "43146"  # Orient
+    - "43154"  # Stoutsville
+    - "43164"  # Williamsport
+
+  # Combined: all zip codes across all counties (deduplicated)
+  zip_codes:
+    # Columbus core
+    - "43201"
+    - "43202"
+    - "43203"
+    - "43204"
+    - "43205"
+    - "43206"
+    - "43207"
+    - "43209"
+    - "43210"
+    - "43211"
+    - "43212"
+    - "43213"
+    - "43214"
+    - "43215"
+    - "43217"
+    - "43219"
+    - "43220"
+    - "43221"
+    - "43222"
+    - "43223"
+    - "43224"
+    - "43227"
+    - "43228"
+    - "43229"
+    - "43230"
+    - "43231"
+    - "43232"
+    - "43235"
+    - "43240"
+    # Franklin County suburbs
+    - "43004"
+    - "43016"
+    - "43017"
+    - "43026"
+    - "43054"
+    - "43062"
+    - "43064"
+    - "43065"
+    - "43068"
+    - "43081"
+    - "43085"
+    - "43110"
+    - "43119"
+    - "43123"
+    - "43125"
+    - "43137"
+    - "43146"
+    # Delaware County
+    - "43003"
+    - "43011"
+    - "43013"
+    - "43015"
+    - "43021"
+    - "43031"
+    - "43035"
+    - "43040"
+    - "43061"
+    - "43066"
+    - "43074"
+    - "43081"
+    - "43082"
+    # Licking County
+    - "43001"
+    - "43023"
+    - "43025"
+    - "43046"
+    - "43055"
+    - "43056"
+    - "43071"
+    - "43076"
+    - "43080"
+    # Fairfield County
+    - "43102"
+    - "43103"
+    - "43105"
+    - "43107"
+    - "43112"
+    - "43130"
+    - "43136"
+    - "43147"
+    - "43148"
+    - "43150"
+    - "43155"
+    # Pickaway County
+    - "43113"
+    - "43115"
+    - "43116"
+    - "43143"
+    - "43145"
+    - "43154"
+    - "43164"
 
 # Market-specific scoring adjustments (optional)
 # These override the global defaults in settings.py

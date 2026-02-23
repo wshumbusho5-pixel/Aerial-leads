@@ -404,11 +404,20 @@ async def property_list(request: Request, page: int = 1, type: str = None):
     # Pagination
     per_page = 50
     total = len(df)
-    total_pages = (total + per_page - 1) // per_page
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    total_pages = min(total_pages, 50)  # Cap
+    page = max(1, min(page, total_pages))  # Clamp
     start = (page - 1) * per_page
     end = start + per_page
 
     properties = df.iloc[start:end].to_dict('records')
+
+    # noindex paginated/filtered pages
+    has_params = any([type, page > 1])
+    meta_robots = "noindex, follow" if has_params else "index, follow"
+    host = request.headers.get('host', 'life-line-homebuyers.com')
+    scheme = request.url.scheme or 'https'
+    canonical_url = f"{scheme}://{host}/properties"
 
     return templates.TemplateResponse("property_list.html", {
         "request": request,
@@ -418,7 +427,9 @@ async def property_list(request: Request, page: int = 1, type: str = None):
         "total": total,
         "filter_type": type,
         "page_title": f"Distressed Properties in Columbus, Ohio | Page {page}",
-        "meta_description": f"Browse {total} distressed properties in Columbus, Ohio. Tax delinquent, probate, and code violation properties available."
+        "meta_description": f"Browse {total} distressed properties in Columbus, Ohio. Tax delinquent, probate, and code violation properties available.",
+        "meta_robots": meta_robots,
+        "canonical_url": canonical_url,
     })
 
 
@@ -637,10 +648,12 @@ async def property_database(
         filtered_df = filtered_df.sort_values('address')
     # Default: recent (by scraped_at if available)
 
-    # Pagination
+    # Pagination (cap at reasonable max to prevent crawl traps)
     per_page = 24
     total = len(filtered_df)
     total_pages = max(1, (total + per_page - 1) // per_page)
+    total_pages = min(total_pages, 50)  # Cap at 50 pages max
+    page = max(1, min(page, total_pages))  # Clamp page to valid range
     start = (page - 1) * per_page
     end = start + per_page
 
@@ -664,6 +677,15 @@ async def property_database(
         }
         map_properties.append(prop)
 
+    # Tell Google not to index filtered/paginated/search variations
+    has_params = any([search, type, zip, sort != "recent", page > 1])
+    meta_robots = "noindex, follow" if has_params else "index, follow"
+
+    # Canonical always points to clean /database URL
+    host = request.headers.get('host', 'life-line-homebuyers.com')
+    scheme = request.url.scheme or 'https'
+    canonical_url = f"{scheme}://{host}/database"
+
     return templates.TemplateResponse("property_map.html", {
         "request": request,
         "properties": properties,
@@ -681,7 +703,9 @@ async def property_database(
         "sort_by": sort,
         "search_query": search or "",
         "page_title": f"Columbus Distressed Property Database | {total_all} Properties | Lifeline Home Buyers",
-        "meta_description": f"Free searchable database of {total_all} distressed properties in Columbus, Ohio. Find probate, tax delinquent, and code violation properties."
+        "meta_description": f"Free searchable database of {total_all} distressed properties in Columbus, Ohio. Find probate, tax delinquent, and code violation properties.",
+        "meta_robots": meta_robots,
+        "canonical_url": canonical_url,
     })
 
 
@@ -760,6 +784,12 @@ async def robots(request: Request):
     content = f"""User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /database?search=
+Disallow: /database?*search=
+Disallow: /database?*sort=
+Disallow: /database?*page=
+Disallow: /properties?page=
+Disallow: /properties?type=
 
 Sitemap: https://{host}/sitemap.xml
 """

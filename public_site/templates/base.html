@@ -6,13 +6,17 @@
     <title>{{ page_title }}</title>
     <meta name="description" content="{{ meta_description }}">
 
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="{{ meta_robots|default('index, follow') }}">
     <meta name="author" content="Lifeline Home Buyers">
     <meta name="geo.region" content="US-OH">
     <meta name="geo.placename" content="Columbus">
     <meta name="geo.position" content="39.9612;-82.9988">
     <meta name="ICBM" content="39.9612, -82.9988">
-    <link rel="canonical" href="{{ request.url }}">
+    {% if canonical_url %}
+    <link rel="canonical" href="{{ canonical_url }}">
+    {% else %}
+    <link rel="canonical" href="{{ request.url.scheme }}://{{ request.headers.get('host', 'life-line-homebuyers.com') }}{{ request.url.path }}">
+    {% endif %}
 
     <meta property="og:title" content="{{ page_title }}">
     <meta property="og:description" content="{{ meta_description }}">
